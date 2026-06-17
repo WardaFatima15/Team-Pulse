@@ -1,5 +1,7 @@
-import { db as pgDb } from "@vercel/postgres"
+import { Pool } from "@neondatabase/serverless"
 import bcrypt from "bcryptjs"
+
+const pool = new Pool({ connectionString: process.env.POSTGRES_URL })
 
 export function serialize<T>(rows: T): T {
   return JSON.parse(JSON.stringify(rows))
@@ -8,7 +10,7 @@ export function serialize<T>(rows: T): T {
 let schemaReady: Promise<void> | null = null
 
 async function setupSchema(): Promise<void> {
-  const client = await pgDb.connect()
+  const client = await pool.connect()
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS "Admin" (
@@ -125,7 +127,7 @@ export function ensureDb(): Promise<void> {
 
 export async function queryOne<T>(text: string, values?: unknown[]): Promise<T | undefined> {
   await ensureDb()
-  const client = await pgDb.connect()
+  const client = await pool.connect()
   try {
     const { rows } = await client.query(text, values)
     return rows[0] as T | undefined
@@ -136,7 +138,7 @@ export async function queryOne<T>(text: string, values?: unknown[]): Promise<T |
 
 export async function queryAll<T>(text: string, values?: unknown[]): Promise<T[]> {
   await ensureDb()
-  const client = await pgDb.connect()
+  const client = await pool.connect()
   try {
     const { rows } = await client.query(text, values)
     return rows as T[]
@@ -147,7 +149,7 @@ export async function queryAll<T>(text: string, values?: unknown[]): Promise<T[]
 
 export async function execute(text: string, values?: unknown[]): Promise<void> {
   await ensureDb()
-  const client = await pgDb.connect()
+  const client = await pool.connect()
   try {
     await client.query(text, values)
   } finally {
