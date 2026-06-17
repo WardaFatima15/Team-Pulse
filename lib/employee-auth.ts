@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { db, serialize } from "@/lib/db"
+import { queryOne } from "@/lib/db"
 
 export type EmployeeSession = {
   id: string; name: string; avatar: string; role: string
@@ -10,9 +10,9 @@ export async function getEmployeeSession(): Promise<EmployeeSession | null> {
   const store = await cookies()
   const id = store.get("employee_token")?.value
   if (!id) return null
-  const row = db.prepare(
-    "SELECT id, name, avatar, role, department, status, email, jiraAccountId FROM Employee WHERE id = ?"
-  ).get(id)
-  if (!row) return null
-  return serialize(row) as EmployeeSession
+  const row = await queryOne<EmployeeSession>(
+    `SELECT id, name, avatar, role, department, status, email, "jiraAccountId" FROM "Employee" WHERE id = $1`,
+    [id]
+  )
+  return row ?? null
 }

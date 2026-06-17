@@ -1,4 +1,4 @@
-import { db } from "@/lib/db"
+import { queryAll } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Clock, TrendingUp, Users, Timer } from "lucide-react"
@@ -7,18 +7,15 @@ import { format } from "date-fns"
 type Employee = { id: string; name: string; avatar: string; role: string; department: string }
 type TimeRecord = { id: string; employeeId: string; date: string; clockIn: string; clockOut: string | null; hours: number }
 
-export default function TimeTrackingPage() {
+export default async function TimeTrackingPage() {
   const today = new Date().toISOString().split("T")[0]
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
-  const employees = db.prepare("SELECT * FROM Employee ORDER BY name").all() as Employee[]
-  const todayRecords = db.prepare("SELECT * FROM TimeRecord WHERE date = ?").all(today) as TimeRecord[]
+  const days = [0, 1, 2, 3, 4].map(n => new Date(Date.now() - n * 86400000).toISOString().split("T")[0])
 
-  const days = [today, yesterday,
-    new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0],
-    new Date(Date.now() - 3 * 86400000).toISOString().split("T")[0],
-    new Date(Date.now() - 4 * 86400000).toISOString().split("T")[0],
-  ]
-  const weekRecords = db.prepare(`SELECT * FROM TimeRecord WHERE date IN (${days.map(() => "?").join(",")}) ORDER BY date DESC`).all(...days) as TimeRecord[]
+  const [employees, todayRecords, weekRecords] = await Promise.all([
+    queryAll<Employee>(`SELECT * FROM "Employee" ORDER BY name`),
+    queryAll<TimeRecord>(`SELECT * FROM "TimeRecord" WHERE date = $1`, [today]),
+    queryAll<TimeRecord>(`SELECT * FROM "TimeRecord" WHERE date = ANY($1) ORDER BY date DESC`, [days]),
+  ])
 
   const totalHoursToday = todayRecords.reduce((s, r) => s + r.hours, 0)
   const activeNow = todayRecords.filter(r => !r.clockOut).length
@@ -43,7 +40,7 @@ export default function TimeTrackingPage() {
 
       <Card>
         <CardHeader className="border-b border-slate-100 pb-4">
-          <CardTitle className="text-sm font-semibold">Today's Attendance — {format(new Date(today), "EEEE, MMMM d yyyy")}</CardTitle>
+          <CardTitle className="text-sm font-semibold">Today&apos;s Attendance — {format(new Date(today), "EEEE, MMMM d yyyy")}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="overflow-x-auto">

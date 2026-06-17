@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db"
+import { queryOne } from "@/lib/db"
 
-function getDbConfig(): { domain: string; email: string; apiToken: string } | null {
-  const row = db.prepare("SELECT value FROM Settings WHERE key = 'jiraConfig'").get() as { value: string } | undefined
+async function getDbConfig(): Promise<{ domain: string; email: string; apiToken: string } | null> {
+  const row = await queryOne<{ value: string }>(`SELECT value FROM "Settings" WHERE key = 'jiraConfig'`)
   if (!row) return null
   try { return JSON.parse(row.value) } catch { return null }
 }
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const assignee = searchParams.get("assignee")
 
   if (!domain || !email || !token) {
-    const cfg = getDbConfig()
+    const cfg = await getDbConfig()
     if (!cfg) return NextResponse.json({ error: "Jira not configured" }, { status: 400 })
     domain = cfg.domain; email = cfg.email; token = cfg.apiToken
   }

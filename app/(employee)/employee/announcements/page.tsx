@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getEmployeeSession } from "@/lib/employee-auth"
-import { db } from "@/lib/db"
+import { queryAll } from "@/lib/db"
 import { Card, CardContent } from "@/components/ui/card"
 import { Pin, Megaphone } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
@@ -11,9 +11,9 @@ export default async function EmployeeAnnouncementsPage() {
   const emp = await getEmployeeSession()
   if (!emp) redirect("/login")
 
-  const announcements = db.prepare(
-    "SELECT * FROM Announcement ORDER BY pinned DESC, createdAt DESC"
-  ).all() as Announcement[]
+  const announcements = await queryAll<Announcement>(
+    `SELECT * FROM "Announcement" ORDER BY pinned DESC, "createdAt" DESC`
+  )
 
   return (
     <div className="space-y-5 max-w-2xl">

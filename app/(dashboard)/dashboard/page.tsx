@@ -1,4 +1,4 @@
-import { db } from "@/lib/db"
+import { queryAll } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Users, Clock, TrendingUp, CalendarCheck, ArrowUp, ArrowRight, AlertTriangle } from "lucide-react"
@@ -21,19 +21,22 @@ function getFlag(location: string) {
 
 function day(n: number) { return new Date(Date.now() - n * 86400000).toISOString().split("T")[0] }
 
-export default function DashboardPage() {
-  const employees = db.prepare("SELECT * FROM Employee ORDER BY status DESC, name ASC").all() as Employee[]
+export default async function DashboardPage() {
   const today = day(0)
+  const weekDates = [0, 1, 2, 3, 4, 5, 6].map(n => day(n))
+  const days = weekDates.map((date, i) => ({
+    date,
+    label: format(new Date(Date.now() - i * 86400000), "EEE"),
+  }))
 
-  const days = [0, 1, 2, 3, 4, 5, 6].map(n => ({ date: day(n), label: format(new Date(Date.now() - n * 86400000), "EEE") }))
-  const weekRecords = db.prepare(
-    `SELECT * FROM TimeRecord WHERE date IN (${days.map(() => "?").join(",")})`)
-    .all(...days.map(d => d.date)) as TimeRecord[]
+  const [employees, weekRecords, leaves, openTickets] = await Promise.all([
+    queryAll<Employee>(`SELECT * FROM "Employee" ORDER BY status DESC, name ASC`),
+    queryAll<TimeRecord>(`SELECT * FROM "TimeRecord" WHERE date = ANY($1)`, [weekDates]),
+    queryAll<LeaveRequest>(`SELECT * FROM "LeaveRequest" ORDER BY "createdAt" DESC`),
+    queryAll<Ticket>(`SELECT * FROM "Ticket" WHERE status != 'resolved' ORDER BY "createdAt" DESC LIMIT 4`),
+  ])
 
   const todayRecords = weekRecords.filter(r => r.date === today)
-  const leaves = db.prepare("SELECT * FROM LeaveRequest ORDER BY createdAt DESC").all() as LeaveRequest[]
-  const openTickets = db.prepare("SELECT * FROM Ticket WHERE status != 'resolved' ORDER BY createdAt DESC LIMIT 4").all() as Ticket[]
-
   const online = employees.filter(e => e.status === "online").length
   const away = employees.filter(e => e.status === "away").length
   const totalWeekHours = weekRecords.reduce((s, r) => s + r.hours, 0)

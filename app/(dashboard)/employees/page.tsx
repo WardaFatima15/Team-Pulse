@@ -1,10 +1,10 @@
-import { db, serialize } from "@/lib/db"
+import { queryAll } from "@/lib/db"
 import EmployeesClient from "./EmployeesClient"
 
-export default function EmployeesPage() {
-  const employees = serialize(db.prepare("SELECT * FROM Employee ORDER BY name").all() as {
+export default async function EmployeesPage() {
+  const employees = await queryAll<{
     id: string; name: string; email: string; role: string; department: string
     avatar: string; status: string; location: string; phone: string
-  }[])
+  }>(`SELECT * FROM "Employee" ORDER BY name`)
   return <EmployeesClient employees={employees} />
 }

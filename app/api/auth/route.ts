@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db"
+import { queryOne } from "@/lib/db"
 import bcrypt from "bcryptjs"
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
 
-  // Check admin table first
-  const admin = db.prepare("SELECT * FROM Admin WHERE email = ?").get(email) as
-    | { id: string; passwordHash: string } | undefined
+  const admin = await queryOne<{ id: string; passwordHash: string }>(
+    `SELECT id, "passwordHash" FROM "Admin" WHERE email = $1`,
+    [email]
+  )
 
   if (admin && bcrypt.compareSync(password, admin.passwordHash)) {
     const res = NextResponse.json({ ok: true, role: "admin" })
@@ -15,9 +16,10 @@ export async function POST(req: NextRequest) {
     return res
   }
 
-  // Check employee table
-  const emp = db.prepare("SELECT id, passwordHash FROM Employee WHERE email = ?").get(email) as
-    | { id: string; passwordHash: string } | undefined
+  const emp = await queryOne<{ id: string; passwordHash: string }>(
+    `SELECT id, "passwordHash" FROM "Employee" WHERE email = $1`,
+    [email]
+  )
 
   if (emp && bcrypt.compareSync(password, emp.passwordHash)) {
     const res = NextResponse.json({ ok: true, role: "employee" })

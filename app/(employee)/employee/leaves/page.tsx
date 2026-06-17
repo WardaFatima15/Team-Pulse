@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getEmployeeSession } from "@/lib/employee-auth"
-import { db, serialize } from "@/lib/db"
+import { queryAll } from "@/lib/db"
 import LeavesClient from "./LeavesClient"
 
 type LeaveRequest = {
@@ -12,8 +12,9 @@ export default async function EmployeeLeavesPage() {
   const emp = await getEmployeeSession()
   if (!emp) redirect("/login")
 
-  const leaves = serialize(
-    db.prepare("SELECT * FROM LeaveRequest WHERE employeeId = ? ORDER BY createdAt DESC").all(emp.id) as LeaveRequest[]
+  const leaves = await queryAll<LeaveRequest>(
+    `SELECT * FROM "LeaveRequest" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`,
+    [emp.id]
   )
 
   return <LeavesClient leaves={leaves} />

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { db } from "@/lib/db"
+import { queryOne } from "@/lib/db"
 import bcrypt from "bcryptjs"
-
-type Employee = { id: string; passwordHash: string }
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
-  const emp = db.prepare("SELECT id, passwordHash FROM Employee WHERE email = ?").get(email) as Employee | undefined
+  const emp = await queryOne<{ id: string; passwordHash: string }>(
+    `SELECT id, "passwordHash" FROM "Employee" WHERE email = $1`,
+    [email]
+  )
   if (!emp || !bcrypt.compareSync(password, emp.passwordHash)) {
     return NextResponse.json({ ok: false, error: "Invalid email or password" }, { status: 401 })
   }

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import { getEmployeeSession } from "@/lib/employee-auth"
-import { db, serialize } from "@/lib/db"
+import { queryOne, queryAll } from "@/lib/db"
 import DashboardClient from "./DashboardClient"
 
 type TimeRecord = { clockIn: string; clockOut: string | null; hours: number }
@@ -12,22 +12,31 @@ export default async function EmployeeDashboardPage() {
 
   const today = new Date().toISOString().split("T")[0]
 
-  const rawRecord = db.prepare("SELECT clockIn, clockOut, hours FROM TimeRecord WHERE employeeId = ? AND date = ?").get(emp.id, today) as TimeRecord | undefined
-  const todayRecord = rawRecord ? serialize(rawRecord) : null
-
-  const pendingLeaves = (db.prepare("SELECT COUNT(*) as n FROM LeaveRequest WHERE employeeId = ? AND status = 'pending'").get(emp.id) as { n: number }).n
-  const openTickets = (db.prepare("SELECT COUNT(*) as n FROM Ticket WHERE employeeId = ? AND status != 'resolved'").get(emp.id) as { n: number }).n
-  const announcements = serialize(
-    db.prepare("SELECT id, title, body, pinned, createdAt FROM Announcement ORDER BY pinned DESC, createdAt DESC LIMIT 3").all() as Announcement[]
-  )
+  const [todayRecord, pendingCount, openCount, announcements] = await Promise.all([
+    queryOne<TimeRecord>(
+      `SELECT "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`,
+      [emp.id, today]
+    ),
+    queryOne<{ n: number }>(
+      `SELECT COUNT(*) as n FROM "LeaveRequest" WHERE "employeeId" = $1 AND status = 'pending'`,
+      [emp.id]
+    ),
+    queryOne<{ n: number }>(
+      `SELECT COUNT(*) as n FROM "Ticket" WHERE "employeeId" = $1 AND status != 'resolved'`,
+      [emp.id]
+    ),
+    queryAll<Announcement>(
+      `SELECT id, title, body, pinned, "createdAt" FROM "Announcement" ORDER BY pinned DESC, "createdAt" DESC LIMIT 3`
+    ),
+  ])
 
   return (
     <DashboardClient
       name={emp.name}
       status={emp.status}
-      todayRecord={todayRecord}
-      pendingLeaves={pendingLeaves}
-      openTickets={openTickets}
+      todayRecord={todayRecord ?? null}
+      pendingLeaves={Number(pendingCount?.n ?? 0)}
+      openTickets={Number(openCount?.n ?? 0)}
       announcements={announcements}
     />
   )
