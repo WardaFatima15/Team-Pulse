@@ -24,10 +24,10 @@ export async function GET(req: NextRequest) {
   const base = domain.startsWith("http") ? domain : `https://${domain}`
   const auth = Buffer.from(`${email}:${token}`).toString("base64")
 
-  const jqlParts: string[] = []
+  const jqlParts: string[] = ["project IS NOT EMPTY"]
   if (project) jqlParts.push(`project = "${project}"`)
   if (assignee) jqlParts.push(`assignee = "${assignee}"`)
-  const jql = jqlParts.length ? jqlParts.join(" AND ") + " ORDER BY updated DESC" : "ORDER BY updated DESC"
+  const jql = jqlParts.join(" AND ") + " ORDER BY updated DESC"
 
   const url = `${base}/rest/api/3/search/jql?jql=${encodeURIComponent(jql)}&maxResults=50&fields=summary,status,priority,assignee,reporter,project,created,updated,duedate,issuetype,description`
 
