@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Employee {
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  role           String
+  department     String
+  avatar         String
+  status         String         @default("offline")
+  phone          String         @default("")
+  location       String         @default("")
+  jiraAccountId  String         @default("")
+  joinDate       DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  timeRecords    TimeRecord[]
+  leaveRequests  LeaveRequest[]
+  tickets        Ticket[]
+}
+
+model TimeRecord {
+  id         String    @id @default(cuid())
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+  date       String
+  clockIn    String
+  clockOut   String?
+  hours      Float
+  notes      String    @default("")
+  createdAt  DateTime  @default(now())
+}
+
+model LeaveRequest {
+  id         String   @id @default(cuid())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId String
+  type       String
+  startDate  String
+  endDate    String
+  days       Int
+  reason     String
+  status     String   @default("pending")
+  appliedOn  String
+  createdAt  DateTime @default(now())
+}
+
+model Ticket {
+  id          String        @id @default(cuid())
+  employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  title       String
+  description String
+  status      String        @default("open")
+  priority    String        @default("medium")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  replies     TicketReply[]
+}
+
+model TicketReply {
+  id         String   @id @default(cuid())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId   String
+  authorId   String
+  authorName String
+  isAdmin    Boolean  @default(false)
+  message    String
+  createdAt  DateTime @default(now())
+}
+
+model Announcement {
+  id         String   @id @default(cuid())
+  title      String
+  body       String
+  authorId   String
+  authorName String
+  pinned     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
