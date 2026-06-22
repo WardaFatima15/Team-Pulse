@@ -39,26 +39,26 @@ export default function AnnouncementsClient({ announcements }: { announcements: 
   return (
     <div className="space-y-5 max-w-3xl">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-500">{announcements.length} total · {announcements.filter(a => a.pinned).length} pinned</p>
-        <Button onClick={() => setShowForm(!showForm)} className="bg-indigo-600 hover:bg-indigo-700 text-white h-8" size="sm">
+        <p className="text-xs text-white/60">{announcements.length} total · {announcements.filter(a => a.pinned).length} pinned</p>
+        <Button onClick={() => setShowForm(!showForm)} className="bg-[#512feb] hover:bg-[#3f1fd4] text-white h-8" size="sm">
           <Plus className="size-3.5 mr-1.5" />New Announcement
         </Button>
       </div>
 
       {showForm && (
-        <Card className="border-indigo-200 bg-indigo-50/40">
+        <Card className="border-[#512feb]/30">
           <CardContent className="pt-5 space-y-3">
-            <Input placeholder="Announcement title..." value={title} onChange={e => setTitle(e.target.value)} className="bg-white" />
+            <Input placeholder="Announcement title..." value={title} onChange={e => setTitle(e.target.value)} className="bg-white/5 border-white/10 text-white placeholder:text-white/30" />
             <textarea placeholder="Write your announcement here..." value={body} onChange={e => setBody(e.target.value)} rows={4}
-              className="w-full px-3 py-2 rounded-lg border border-input bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+              className="w-full px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 placeholder:text-white/30" />
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer">
                 <input type="checkbox" checked={pinned} onChange={e => setPinned(e.target.checked)} className="rounded" />
                 Pin this announcement
               </label>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowForm(false)} className="h-7">Cancel</Button>
-                <Button size="sm" onClick={handleCreate} disabled={pending} className="h-7 bg-indigo-600 hover:bg-indigo-700 text-white">
+                <Button variant="outline" size="sm" onClick={() => setShowForm(false)} className="h-7 border-white/10 text-white/70 hover:bg-white/5">Cancel</Button>
+                <Button size="sm" onClick={handleCreate} disabled={pending} className="h-7 bg-[#512feb] hover:bg-[#3f1fd4] text-white">
                   {pending ? "Publishing..." : "Publish"}
                 </Button>
               </div>
@@ -69,25 +69,25 @@ export default function AnnouncementsClient({ announcements }: { announcements: 
 
       <div className="space-y-3">
         {announcements.map(ann => (
-          <Card key={ann.id} className={ann.pinned ? "border-indigo-200" : ""}>
+          <Card key={ann.id} className={ann.pinned ? "border-[#512feb]/30" : ""}>
             <CardContent className="py-4">
               <div className="flex items-start gap-3">
-                <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${ann.pinned ? "bg-indigo-100" : "bg-slate-100"}`}>
-                  {ann.pinned ? <Pin className="size-4 text-indigo-500" /> : <Megaphone className="size-4 text-slate-400" />}
+                <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${ann.pinned ? "bg-[#512feb]/15" : "bg-white/8"}`}>
+                  {ann.pinned ? <Pin className="size-4 text-[#7c5af5]" /> : <Megaphone className="size-4 text-white/50" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-slate-900 text-sm">{ann.title}</p>
-                      {ann.pinned ? <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-medium">Pinned</span> : null}
+                      <p className="font-semibold text-white text-sm">{ann.title}</p>
+                      {ann.pinned ? <span className="text-xs bg-[#512feb]/15 text-[#7c5af5] px-1.5 py-0.5 rounded font-medium">Pinned</span> : null}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => handlePin(ann.id, ann.pinned)} disabled={pending} title={ann.pinned ? "Unpin" : "Pin"} className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-indigo-500 transition-colors"><Pin className="size-3.5" /></button>
-                      <button onClick={() => handleDelete(ann.id)} disabled={pending} className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-colors"><X className="size-3.5" /></button>
+                      <button onClick={() => handlePin(ann.id, ann.pinned)} disabled={pending} title={ann.pinned ? "Unpin" : "Pin"} className="p-1 rounded hover:bg-white/8 text-white/40 hover:text-[#7c5af5] transition-colors"><Pin className="size-3.5" /></button>
+                      <button onClick={() => handleDelete(ann.id)} disabled={pending} className="p-1 rounded hover:bg-white/8 text-white/40 hover:text-red-400 transition-colors"><X className="size-3.5" /></button>
                     </div>
                   </div>
-                  <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{ann.body}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                  <p className="text-sm text-white/80 mt-1.5 leading-relaxed">{ann.body}</p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-white/50">
                     <span>{ann.authorName}</span>
                     <span>·</span>
                     <span>{format(new Date(ann.createdAt), "MMM d, yyyy")}</span>
@@ -99,7 +99,7 @@ export default function AnnouncementsClient({ announcements }: { announcements: 
             </CardContent>
           </Card>
         ))}
-        {announcements.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">No announcements yet.</div>}
+        {announcements.length === 0 && <div className="text-center py-12 text-white/50 text-sm">No announcements yet.</div>}
       </div>
     </div>
   )

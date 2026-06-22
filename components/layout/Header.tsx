@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { usePathname } from "next/navigation"
 import { Bell, Users2 } from "lucide-react"
@@ -22,24 +22,24 @@ export default function Header() {
   const page = titles[base] ?? { title: "TeamPulse", sub: "" }
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+    <header className="h-16 bg-[#0d0d0d] border-b border-white/10 flex items-center justify-between px-6 shrink-0">
       <div>
-        <h1 className="text-base font-bold text-slate-900 leading-tight">{page.title}</h1>
-        {page.sub && <p className="text-xs text-slate-400 leading-tight mt-0.5">{page.sub}</p>}
+        <h1 className="text-base font-bold text-white leading-tight">{page.title}</h1>
+        {page.sub && <p className="text-xs text-white/40 leading-tight mt-0.5">{page.sub}</p>}
       </div>
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-700 relative size-8">
+        <Button variant="ghost" size="icon" className="text-white/40 hover:text-white hover:bg-white/10 relative size-8">
           <Bell className="size-4" />
           <span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-red-500" />
         </Button>
-        <div className="w-px h-6 bg-slate-200" />
+        <div className="w-px h-6 bg-white/10" />
         <div className="flex items-center gap-2.5">
           <Avatar className="size-8">
-            <AvatarFallback className="text-xs bg-indigo-600 text-white font-bold">AD</AvatarFallback>
+            <AvatarFallback className="text-xs bg-[#512feb] text-white font-bold">AD</AvatarFallback>
           </Avatar>
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-slate-900 leading-tight">Admin</p>
-            <p className="text-xs text-slate-400 leading-tight">admin@company.com</p>
+            <p className="text-sm font-semibold text-white leading-tight">Admin</p>
+            <p className="text-xs text-white/40 leading-tight">admin@company.com</p>
           </div>
         </div>
       </div>

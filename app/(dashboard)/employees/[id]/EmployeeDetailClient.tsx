@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,27 +22,27 @@ type Stats = { hoursToday: number; hoursWeek: number; hoursMonth: number; totalH
 type DayBar = { label: string; date: string; hours: number }
 
 const STATUS_OPTIONS = [
-  { value: "online", label: "Online", dot: "bg-green-500", badge: "bg-green-100 text-green-700 border-green-200" },
-  { value: "away", label: "Away", dot: "bg-yellow-400", badge: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-  { value: "offline", label: "Offline", dot: "bg-slate-300", badge: "bg-slate-100 text-slate-500 border-slate-200" },
+  { value: "online", label: "Online", dot: "bg-green-500", badge: "bg-green-500/15 text-green-400 border-green-500/30" },
+  { value: "away", label: "Away", dot: "bg-yellow-400", badge: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  { value: "offline", label: "Offline", dot: "bg-white/30", badge: "bg-white/10 text-white/60 border-white/15" },
 ]
 
 const PRIORITY_COLOR: Record<string, string> = {
-  urgent: "bg-red-100 text-red-700 border-red-200",
-  high: "bg-orange-100 text-orange-700 border-orange-200",
-  medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  low: "bg-slate-100 text-slate-500 border-slate-200",
+  urgent: "bg-red-500/15 text-red-400 border-red-500/30",
+  high: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+  medium: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+  low: "bg-white/10 text-white/60 border-white/15",
 }
 const TICKET_STATUS_COLOR: Record<string, string> = {
-  open: "bg-blue-100 text-blue-700",
-  "in-progress": "bg-indigo-100 text-indigo-700",
-  resolved: "bg-green-100 text-green-700",
-  closed: "bg-slate-100 text-slate-500",
+  open: "bg-blue-500/15 text-blue-400",
+  "in-progress": "bg-[#512feb]/15 text-[#7c5af5]",
+  resolved: "bg-green-500/15 text-green-400",
+  closed: "bg-white/10 text-white/50",
 }
 const LEAVE_STATUS_COLOR: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  approved: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
+  pending: "bg-yellow-500/15 text-yellow-400",
+  approved: "bg-green-500/15 text-green-400",
+  rejected: "bg-red-500/15 text-red-400",
 }
 const TAB_LABELS = ["Overview", "Time Tracking", "Leave", "Tickets", "Account"] as const
 type Tab = typeof TAB_LABELS[number]
@@ -72,7 +71,7 @@ export default function EmployeeDetailClient({
 
   return (
     <div className="max-w-5xl space-y-6">
-      <Link href="/employees" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 transition-colors">
+      <Link href="/employees" className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors">
         <ArrowLeft className="size-4" />
         Back to Employees
       </Link>
@@ -82,30 +81,27 @@ export default function EmployeeDetailClient({
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-start gap-5">
             <Avatar className="size-20 shrink-0">
-              <AvatarFallback className="text-2xl bg-indigo-100 text-indigo-700 font-bold">{employee.avatar}</AvatarFallback>
+              <AvatarFallback className="text-2xl bg-[#512feb]/15 text-[#7c5af5] font-bold">{employee.avatar}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900">{employee.name}</h2>
-                  <p className="text-slate-500 mt-0.5">{employee.role} · {employee.department}</p>
+                  <h2 className="text-2xl font-bold text-white">{employee.name}</h2>
+                  <p className="text-white/60 mt-0.5">{employee.role} · {employee.department}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {/* Status toggle */}
                   <div className="relative">
-                    <button
-                      onClick={() => setStatusOpen(v => !v)}
-                      className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border transition-colors ${sc.badge}`}
-                    >
+                    <button onClick={() => setStatusOpen(v => !v)}
+                      className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border transition-colors ${sc.badge}`}>
                       <span className={`size-1.5 rounded-full ${sc.dot}`} />
                       {sc.label}
                       <svg className="size-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     {statusOpen && (
-                      <div className="absolute right-0 top-full mt-1 z-10 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden min-w-[120px]">
+                      <div className="absolute right-0 top-full mt-1 z-10 bg-[#1c1c24] border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[120px]">
                         {STATUS_OPTIONS.map(opt => (
                           <button key={opt.value} onClick={() => changeStatus(opt.value)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition-colors">
+                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/8 transition-colors">
                             <span className={`size-2 rounded-full ${opt.dot}`} />
                             {opt.label}
                           </button>
@@ -114,16 +110,16 @@ export default function EmployeeDetailClient({
                     )}
                   </div>
                   <button onClick={() => setTab("Account")}
-                    className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+                    className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-white/10 text-white/60 hover:bg-white/8 transition-colors">
                     <Pencil className="size-3" /> Edit
                   </button>
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-4">
-                <span className="flex items-center gap-1.5 text-xs text-slate-500"><Mail className="size-3.5 text-slate-400" />{employee.email}</span>
-                {employee.phone && <span className="flex items-center gap-1.5 text-xs text-slate-500"><Phone className="size-3.5 text-slate-400" />{employee.phone}</span>}
-                {employee.location && <span className="flex items-center gap-1.5 text-xs text-slate-500"><MapPin className="size-3.5 text-slate-400" />{employee.location}</span>}
-                <span className="flex items-center gap-1.5 text-xs text-slate-500"><Calendar className="size-3.5 text-slate-400" />Joined {format(new Date(employee.joinDate), "MMM yyyy")}</span>
+                <span className="flex items-center gap-1.5 text-xs text-white/60"><Mail className="size-3.5 text-white/40" />{employee.email}</span>
+                {employee.phone && <span className="flex items-center gap-1.5 text-xs text-white/60"><Phone className="size-3.5 text-white/40" />{employee.phone}</span>}
+                {employee.location && <span className="flex items-center gap-1.5 text-xs text-white/60"><MapPin className="size-3.5 text-white/40" />{employee.location}</span>}
+                <span className="flex items-center gap-1.5 text-xs text-white/60"><Calendar className="size-3.5 text-white/40" />Joined {format(new Date(employee.joinDate), "MMM yyyy")}</span>
               </div>
             </div>
           </div>
@@ -131,12 +127,12 @@ export default function EmployeeDetailClient({
       </Card>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200">
+      <div className="border-b border-white/10">
         <nav className="flex gap-1 -mb-px overflow-x-auto">
           {TAB_LABELS.map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                tab === t ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500 hover:text-slate-900"
+                tab === t ? "border-[#512feb] text-[#7c5af5]" : "border-transparent text-white/50 hover:text-white"
               }`}>
               {t}
             </button>
@@ -144,33 +140,32 @@ export default function EmployeeDetailClient({
         </nav>
       </div>
 
-      {/* ── OVERVIEW ──────────────────────────────────────── */}
+      {/* ── OVERVIEW ── */}
       {tab === "Overview" && (
         <div className="space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { icon: Clock, label: "Today", value: `${stats.hoursToday}h`, color: "text-indigo-600", bg: "bg-indigo-50" },
-              { icon: TrendingUp, label: "This Week", value: `${Number(stats.hoursWeek).toFixed(1)}h`, color: "text-blue-600", bg: "bg-blue-50" },
-              { icon: Calendar, label: "This Month", value: `${Number(stats.hoursMonth).toFixed(0)}h`, color: "text-violet-600", bg: "bg-violet-50" },
-              { icon: TicketCheck, label: "Total Hours", value: `${Number(stats.totalHours).toFixed(0)}h`, color: "text-emerald-600", bg: "bg-emerald-50" },
+              { icon: Clock, label: "Today", value: `${stats.hoursToday}h`, color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
+              { icon: TrendingUp, label: "This Week", value: `${Number(stats.hoursWeek).toFixed(1)}h`, color: "text-blue-400", bg: "bg-blue-500/10" },
+              { icon: Calendar, label: "This Month", value: `${Number(stats.hoursMonth).toFixed(0)}h`, color: "text-violet-400", bg: "bg-violet-500/10" },
+              { icon: TicketCheck, label: "Total Hours", value: `${Number(stats.totalHours).toFixed(0)}h`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
             ].map(({ icon: Icon, label, value, color, bg }) => (
               <Card key={label}>
                 <CardContent className="pt-4">
                   <div className={`size-8 rounded-lg ${bg} flex items-center justify-center mb-2`}>
                     <Icon className={`size-4 ${color}`} />
                   </div>
-                  <p className="text-xl font-bold text-slate-900">{value}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{label}</p>
+                  <p className="text-xl font-bold text-white">{value}</p>
+                  <p className="text-xs text-white/60 mt-0.5">{label}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Weekly chart */}
             <Card className="lg:col-span-2">
-              <CardHeader className="border-b border-slate-100 pb-4">
-                <CardTitle className="text-sm font-semibold">Hours Logged — Last 7 Days</CardTitle>
+              <CardHeader className="border-b border-white/10 pb-4">
+                <CardTitle className="text-sm font-semibold text-white">Hours Logged — Last 7 Days</CardTitle>
               </CardHeader>
               <CardContent className="pt-5">
                 <div className="flex items-end gap-2 h-28">
@@ -178,14 +173,12 @@ export default function EmployeeDetailClient({
                     const pct = Math.round((bar.hours / maxBar) * 100)
                     return (
                       <div key={bar.date} className="flex-1 flex flex-col items-center gap-1">
-                        <span className="text-xs font-medium text-slate-600">{bar.hours > 0 ? `${bar.hours}h` : ""}</span>
+                        <span className="text-xs font-medium text-white/70">{bar.hours > 0 ? `${bar.hours}h` : ""}</span>
                         <div className="w-full flex items-end" style={{ height: "72px" }}>
-                          <div
-                            className={`w-full rounded-t-md ${bar.hours > 0 ? "bg-indigo-400" : "bg-slate-100"}`}
-                            style={{ height: `${Math.max(pct, bar.hours > 0 ? 10 : 4)}%` }}
-                          />
+                          <div className={`w-full rounded-t-md ${bar.hours > 0 ? "bg-[#512feb]/60" : "bg-white/8"}`}
+                            style={{ height: `${Math.max(pct, bar.hours > 0 ? 10 : 4)}%` }} />
                         </div>
-                        <span className="text-xs text-slate-400">{bar.label}</span>
+                        <span className="text-xs text-white/40">{bar.label}</span>
                       </div>
                     )
                   })}
@@ -193,63 +186,61 @@ export default function EmployeeDetailClient({
               </CardContent>
             </Card>
 
-            {/* Quick stats */}
             <Card>
-              <CardHeader className="border-b border-slate-100 pb-4">
-                <CardTitle className="text-sm font-semibold">Quick Stats</CardTitle>
+              <CardHeader className="border-b border-white/10 pb-4">
+                <CardTitle className="text-sm font-semibold text-white">Quick Stats</CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-3">
                 {[
-                  { label: "Days Worked", value: `${stats.totalDays} days`, icon: Calendar, color: "text-indigo-500" },
-                  { label: "Open Tickets", value: stats.openTickets, icon: AlertCircle, color: "text-amber-500" },
-                  { label: "Pending Leaves", value: stats.pendingLeaves, icon: Clock, color: "text-yellow-500" },
-                  { label: "Leave Days Taken", value: `${stats.approvedLeaveDays}d approved`, icon: CheckCircle2, color: "text-green-500" },
+                  { label: "Days Worked", value: `${stats.totalDays} days`, icon: Calendar, color: "text-[#7c5af5]" },
+                  { label: "Open Tickets", value: stats.openTickets, icon: AlertCircle, color: "text-amber-400" },
+                  { label: "Pending Leaves", value: stats.pendingLeaves, icon: Clock, color: "text-yellow-400" },
+                  { label: "Leave Days Taken", value: `${stats.approvedLeaveDays}d approved`, icon: CheckCircle2, color: "text-green-400" },
                 ].map(({ label, value, icon: Icon, color }) => (
                   <div key={label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Icon className={`size-3.5 ${color}`} />
-                      <span className="text-xs text-slate-600">{label}</span>
+                      <span className="text-xs text-white/70">{label}</span>
                     </div>
-                    <span className="text-xs font-semibold text-slate-900">{value}</span>
+                    <span className="text-xs font-semibold text-white">{value}</span>
                   </div>
                 ))}
                 {employee.jiraAccountId && (
-                  <div className="pt-2 border-t border-slate-100">
-                    <p className="text-xs text-slate-400">Jira ID: <span className="font-mono text-slate-600">{employee.jiraAccountId}</span></p>
+                  <div className="pt-2 border-t border-white/10">
+                    <p className="text-xs text-white/40">Jira ID: <span className="font-mono text-white/60">{employee.jiraAccountId}</span></p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Recent time logs */}
           <Card>
-            <CardHeader className="border-b border-slate-100 pb-4">
+            <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold">Recent Time Logs</CardTitle>
-                <button onClick={() => setTab("Time Tracking")} className="text-xs text-indigo-600 hover:underline">View all</button>
+                <CardTitle className="text-sm font-semibold text-white">Recent Time Logs</CardTitle>
+                <button onClick={() => setTab("Time Tracking")} className="text-xs text-[#7c5af5] hover:underline">View all</button>
               </div>
             </CardHeader>
             <CardContent className="pt-2">
               {timeRecords.length === 0 ? (
-                <p className="text-xs text-slate-400 py-4 text-center">No time records yet.</p>
+                <p className="text-xs text-white/40 py-4 text-center">No time records yet.</p>
               ) : (
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-slate-100">
-                      <th className="py-2 text-left font-medium text-slate-500">Date</th>
-                      <th className="py-2 text-left font-medium text-slate-500">Clock In</th>
-                      <th className="py-2 text-left font-medium text-slate-500">Clock Out</th>
-                      <th className="py-2 text-right font-medium text-slate-500">Hours</th>
+                    <tr className="border-b border-white/10">
+                      <th className="py-2 text-left font-medium text-white/60">Date</th>
+                      <th className="py-2 text-left font-medium text-white/60">Clock In</th>
+                      <th className="py-2 text-left font-medium text-white/60">Clock Out</th>
+                      <th className="py-2 text-right font-medium text-white/60">Hours</th>
                     </tr>
                   </thead>
                   <tbody>
                     {timeRecords.slice(0, 5).map(rec => (
-                      <tr key={rec.id} className="border-b border-slate-50 last:border-0">
-                        <td className="py-2.5 font-medium text-slate-800">{format(new Date(rec.date), "EEE, MMM d")}</td>
-                        <td className="py-2.5 text-slate-500">{rec.clockIn}</td>
-                        <td className="py-2.5 text-slate-500">{rec.clockOut ?? <span className="text-green-600 font-medium">Active</span>}</td>
-                        <td className="py-2.5 text-right font-semibold text-slate-900">{rec.hours}h</td>
+                      <tr key={rec.id} className="border-b border-white/5 last:border-0">
+                        <td className="py-2.5 font-medium text-white/80">{format(new Date(rec.date), "EEE, MMM d")}</td>
+                        <td className="py-2.5 text-white/60">{rec.clockIn}</td>
+                        <td className="py-2.5 text-white/60">{rec.clockOut ?? <span className="text-green-400 font-medium">Active</span>}</td>
+                        <td className="py-2.5 text-right font-semibold text-white">{rec.hours}h</td>
                       </tr>
                     ))}
                   </tbody>
@@ -260,42 +251,42 @@ export default function EmployeeDetailClient({
         </div>
       )}
 
-      {/* ── TIME TRACKING ─────────────────────────────────── */}
+      {/* ── TIME TRACKING ── */}
       {tab === "Time Tracking" && (
         <Card>
-          <CardHeader className="border-b border-slate-100 pb-4">
+          <CardHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Full Time History</CardTitle>
-              <span className="text-xs text-slate-400">{timeRecords.length} records</span>
+              <CardTitle className="text-sm font-semibold text-white">Full Time History</CardTitle>
+              <span className="text-xs text-white/40">{timeRecords.length} records</span>
             </div>
           </CardHeader>
           <CardContent className="pt-2">
             {timeRecords.length === 0 ? (
-              <p className="text-xs text-slate-400 py-8 text-center">No time records yet.</p>
+              <p className="text-xs text-white/40 py-8 text-center">No time records yet.</p>
             ) : (
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="py-2 text-left font-medium text-slate-500">Date</th>
-                    <th className="py-2 text-left font-medium text-slate-500">Clock In</th>
-                    <th className="py-2 text-left font-medium text-slate-500">Clock Out</th>
-                    <th className="py-2 text-right font-medium text-slate-500">Hours</th>
+                  <tr className="border-b border-white/10">
+                    <th className="py-2 text-left font-medium text-white/60">Date</th>
+                    <th className="py-2 text-left font-medium text-white/60">Clock In</th>
+                    <th className="py-2 text-left font-medium text-white/60">Clock Out</th>
+                    <th className="py-2 text-right font-medium text-white/60">Hours</th>
                   </tr>
                 </thead>
                 <tbody>
                   {timeRecords.map(rec => (
-                    <tr key={rec.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
-                      <td className="py-2.5 font-medium text-slate-800">{format(new Date(rec.date), "EEE, MMM d yyyy")}</td>
-                      <td className="py-2.5 text-slate-600">{rec.clockIn}</td>
-                      <td className="py-2.5 text-slate-600">{rec.clockOut ?? <span className="text-green-600 font-medium">Active</span>}</td>
-                      <td className="py-2.5 text-right font-semibold text-slate-900">{Number(rec.hours).toFixed(1)}h</td>
+                    <tr key={rec.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
+                      <td className="py-2.5 font-medium text-white/80">{format(new Date(rec.date), "EEE, MMM d yyyy")}</td>
+                      <td className="py-2.5 text-white/60">{rec.clockIn}</td>
+                      <td className="py-2.5 text-white/60">{rec.clockOut ?? <span className="text-green-400 font-medium">Active</span>}</td>
+                      <td className="py-2.5 text-right font-semibold text-white">{Number(rec.hours).toFixed(1)}h</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
-                  <tr className="border-t-2 border-slate-200">
-                    <td colSpan={3} className="py-2.5 font-semibold text-slate-700">Total</td>
-                    <td className="py-2.5 text-right font-bold text-indigo-600">
+                  <tr className="border-t-2 border-white/15">
+                    <td colSpan={3} className="py-2.5 font-semibold text-white/80">Total</td>
+                    <td className="py-2.5 text-right font-bold text-[#7c5af5]">
                       {Number(timeRecords.reduce((s, r) => s + r.hours, 0)).toFixed(1)}h
                     </td>
                   </tr>
@@ -306,18 +297,18 @@ export default function EmployeeDetailClient({
         </Card>
       )}
 
-      {/* ── LEAVE ─────────────────────────────────────────── */}
+      {/* ── LEAVE ── */}
       {tab === "Leave" && (
         <Card>
-          <CardHeader className="border-b border-slate-100 pb-4">
+          <CardHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Leave History</CardTitle>
-              <span className="text-xs text-slate-400">{leaves.length} requests</span>
+              <CardTitle className="text-sm font-semibold text-white">Leave History</CardTitle>
+              <span className="text-xs text-white/40">{leaves.length} requests</span>
             </div>
           </CardHeader>
           <CardContent className="pt-2">
             {leaves.length === 0 ? (
-              <p className="text-xs text-slate-400 py-8 text-center">No leave requests yet.</p>
+              <p className="text-xs text-white/40 py-8 text-center">No leave requests yet.</p>
             ) : (
               <div className="space-y-3 pt-2">
                 {leaves.map(leave => (
@@ -329,35 +320,35 @@ export default function EmployeeDetailClient({
         </Card>
       )}
 
-      {/* ── TICKETS ───────────────────────────────────────── */}
+      {/* ── TICKETS ── */}
       {tab === "Tickets" && (
         <Card>
-          <CardHeader className="border-b border-slate-100 pb-4">
+          <CardHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Support Tickets</CardTitle>
-              <span className="text-xs text-slate-400">{tickets.length} total</span>
+              <CardTitle className="text-sm font-semibold text-white">Support Tickets</CardTitle>
+              <span className="text-xs text-white/40">{tickets.length} total</span>
             </div>
           </CardHeader>
           <CardContent className="pt-2">
             {tickets.length === 0 ? (
-              <p className="text-xs text-slate-400 py-8 text-center">No tickets submitted yet.</p>
+              <p className="text-xs text-white/40 py-8 text-center">No tickets submitted yet.</p>
             ) : (
               <div className="space-y-2 pt-2">
                 {tickets.map(ticket => (
-                  <div key={ticket.id} className="flex items-start justify-between gap-3 py-3 border-b border-slate-50 last:border-0">
+                  <div key={ticket.id} className="flex items-start justify-between gap-3 py-3 border-b border-white/5 last:border-0">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-medium text-slate-900">{ticket.title}</p>
+                        <p className="text-sm font-medium text-white">{ticket.title}</p>
                         <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium border ${PRIORITY_COLOR[ticket.priority] ?? ""}`}>
                           {ticket.priority}
                         </span>
                       </div>
                       {ticket.description && (
-                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">{ticket.description}</p>
+                        <p className="text-xs text-white/50 mt-1 line-clamp-2">{ticket.description}</p>
                       )}
-                      <p className="text-xs text-slate-400 mt-1">{format(new Date(ticket.createdAt), "MMM d, yyyy")}</p>
+                      <p className="text-xs text-white/40 mt-1">{format(new Date(ticket.createdAt), "MMM d, yyyy")}</p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${TICKET_STATUS_COLOR[ticket.status] ?? "bg-slate-100 text-slate-500"}`}>
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium shrink-0 ${TICKET_STATUS_COLOR[ticket.status] ?? "bg-white/10 text-white/50"}`}>
                       {ticket.status}
                     </span>
                   </div>
@@ -368,7 +359,7 @@ export default function EmployeeDetailClient({
         </Card>
       )}
 
-      {/* ── ACCOUNT ───────────────────────────────────────── */}
+      {/* ── ACCOUNT ── */}
       {tab === "Account" && (
         <div className="space-y-5">
           <EditEmployeeForm employee={employee} />
@@ -379,7 +370,6 @@ export default function EmployeeDetailClient({
   )
 }
 
-/* ── Leave row with inline approve/reject ──────────────── */
 function LeaveRow({ leave, employeeId }: { leave: LeaveRequest; employeeId: string }) {
   const [pending, startTransition] = useTransition()
   const [done, setDone] = useState(false)
@@ -394,27 +384,27 @@ function LeaveRow({ leave, employeeId }: { leave: LeaveRequest; employeeId: stri
   }
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-slate-50 last:border-0">
+    <div className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-medium text-slate-900 capitalize">{leave.type} leave</p>
+          <p className="text-sm font-medium text-white capitalize">{leave.type} leave</p>
           <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${LEAVE_STATUS_COLOR[currentStatus] ?? ""}`}>
             {currentStatus}
           </span>
         </div>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="text-xs text-white/50 mt-0.5">
           {format(new Date(leave.startDate), "MMM d")} — {format(new Date(leave.endDate), "MMM d, yyyy")} · {leave.days} day{leave.days !== 1 ? "s" : ""}
         </p>
-        {leave.reason && <p className="text-xs text-slate-500 mt-1 italic">"{leave.reason}"</p>}
+        {leave.reason && <p className="text-xs text-white/50 mt-1 italic">"{leave.reason}"</p>}
       </div>
       {currentStatus === "pending" && !done && (
         <div className="flex gap-1.5 shrink-0">
           <button disabled={pending} onClick={() => handle("approved")}
-            className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 disabled:opacity-50 transition-colors">
+            className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20 disabled:opacity-50 transition-colors">
             <CheckCircle2 className="size-3" /> Approve
           </button>
           <button disabled={pending} onClick={() => handle("rejected")}
-            className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 disabled:opacity-50 transition-colors">
+            className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 disabled:opacity-50 transition-colors">
             <XCircle className="size-3" /> Reject
           </button>
         </div>
@@ -423,7 +413,6 @@ function LeaveRow({ leave, employeeId }: { leave: LeaveRequest; employeeId: stri
   )
 }
 
-/* ── Edit employee form ────────────────────────────────── */
 function EditEmployeeForm({ employee }: { employee: Employee }) {
   const [form, setForm] = useState({
     name: employee.name,
@@ -454,8 +443,8 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
 
   return (
     <Card>
-      <CardHeader className="border-b border-slate-100 pb-4">
-        <CardTitle className="text-sm font-semibold">Employee Details</CardTitle>
+      <CardHeader className="border-b border-white/10 pb-4">
+        <CardTitle className="text-sm font-semibold text-white">Employee Details</CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -469,30 +458,24 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
             { key: "jiraAccountId", label: "Jira Account ID" },
           ] as { key: keyof typeof form; label: string }[]).map(({ key, label }) => (
             <div key={key} className={key === "jiraAccountId" ? "sm:col-span-2" : ""}>
-              <label className="block text-xs font-medium text-slate-600 mb-1.5">{label}</label>
-              <Input
-                value={form[key]}
-                onChange={e => set(key, e.target.value)}
-                className="h-9 text-sm"
-                placeholder={label}
-              />
+              <label className="block text-xs font-medium text-white/70 mb-1.5">{label}</label>
+              <Input value={form[key]} onChange={e => set(key, e.target.value)} className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30" placeholder={label} />
             </div>
           ))}
         </div>
-        {error && <p className="text-xs text-red-600 mt-3">{error}</p>}
+        {error && <p className="text-xs text-red-400 mt-3">{error}</p>}
         <div className="flex items-center gap-3 mt-5">
-          <Button size="sm" onClick={save} disabled={pending} className="gap-1.5">
+          <Button size="sm" onClick={save} disabled={pending} className="gap-1.5 bg-[#512feb] hover:bg-[#3f1fd4] text-white">
             <Save className="size-3.5" />
             {pending ? "Saving…" : "Save Changes"}
           </Button>
-          {saved && <span className="text-xs text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="size-3.5" /> Saved</span>}
+          {saved && <span className="text-xs text-green-400 font-medium flex items-center gap-1"><CheckCircle2 className="size-3.5" /> Saved</span>}
         </div>
       </CardContent>
     </Card>
   )
 }
 
-/* ── Password reset card ───────────────────────────────── */
 function PasswordResetCard({ employeeId }: { employeeId: string }) {
   const [pw, setPw] = useState("")
   const [pending, startTransition] = useTransition()
@@ -511,31 +494,26 @@ function PasswordResetCard({ employeeId }: { employeeId: string }) {
 
   return (
     <Card>
-      <CardHeader className="border-b border-slate-100 pb-4">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <KeyRound className="size-3.5 text-slate-400" /> Password Reset
+      <CardHeader className="border-b border-white/10 pb-4">
+        <CardTitle className="text-sm font-semibold text-white flex items-center gap-2">
+          <KeyRound className="size-3.5 text-white/50" /> Password Reset
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
-        <p className="text-xs text-slate-500 mb-4">Set a new password for this employee's account. The employee will use it on their next login.</p>
+        <p className="text-xs text-white/60 mb-4">Set a new password for this employee's portal account.</p>
         <div className="flex items-end gap-3 max-w-sm">
           <div className="flex-1">
-            <label className="block text-xs font-medium text-slate-600 mb-1.5">New Password</label>
-            <Input
-              type="password"
-              value={pw}
-              onChange={e => { setPw(e.target.value); setDone(false); setError("") }}
-              placeholder="Min. 6 characters"
-              className="h-9 text-sm"
-            />
+            <label className="block text-xs font-medium text-white/70 mb-1.5">New Password</label>
+            <Input type="password" value={pw} onChange={e => { setPw(e.target.value); setDone(false); setError("") }}
+              placeholder="Min. 6 characters" className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30" />
           </div>
-          <Button size="sm" onClick={reset} disabled={pending || !pw} className="gap-1.5 shrink-0">
+          <Button size="sm" onClick={reset} disabled={pending || !pw} className="gap-1.5 shrink-0 bg-[#512feb] hover:bg-[#3f1fd4] text-white">
             <KeyRound className="size-3.5" />
             {pending ? "Setting…" : "Set Password"}
           </Button>
         </div>
-        {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
-        {done && <p className="text-xs text-green-600 font-medium mt-2 flex items-center gap-1"><CheckCircle2 className="size-3.5" /> Password updated successfully.</p>}
+        {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
+        {done && <p className="text-xs text-green-400 font-medium mt-2 flex items-center gap-1"><CheckCircle2 className="size-3.5" /> Password updated.</p>}
       </CardContent>
     </Card>
   )

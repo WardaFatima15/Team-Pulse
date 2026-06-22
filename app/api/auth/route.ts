@@ -13,6 +13,7 @@ export async function POST(req: NextRequest) {
   if (admin && bcrypt.compareSync(password, admin.passwordHash)) {
     const res = NextResponse.json({ ok: true, role: "admin" })
     res.cookies.set("auth_token", admin.id, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/" })
+    res.cookies.delete("employee_token")
     return res
   }
 
@@ -24,6 +25,7 @@ export async function POST(req: NextRequest) {
   if (emp && bcrypt.compareSync(password, emp.passwordHash)) {
     const res = NextResponse.json({ ok: true, role: "employee" })
     res.cookies.set("employee_token", emp.id, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/" })
+    res.cookies.delete("auth_token")
     return res
   }
 

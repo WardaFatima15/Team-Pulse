@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Users, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,77 +39,84 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 flex-col justify-between p-12">
+    <div className="min-h-screen flex bg-[#0a0a0c]">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#0d0d0d] border-r border-white/8 flex-col justify-between p-12">
         <div className="flex items-center gap-3">
-          <div className="size-9 rounded-xl bg-indigo-500 flex items-center justify-center">
-            <Users className="size-5 text-white" />
+          <img
+            src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png"
+            alt="Binary Next"
+            className="size-9 rounded-xl object-contain"
+          />
+          <div>
+            <p className="text-white font-bold text-base leading-tight">Binary Next</p>
+            <p className="text-white/40 text-xs">AI Automation Partner</p>
           </div>
-          <span className="text-white font-semibold text-lg">TeamPulse</span>
         </div>
         <div className="space-y-5">
-          <p className="text-slate-400 text-sm uppercase tracking-widest font-medium">What's inside</p>
+          <p className="text-white/30 text-xs uppercase tracking-widest font-medium">TeamPulse CRM Features</p>
           {[
             { title: "Real-time team status", desc: "See who's online, away, or offline across all timezones at a glance." },
-            { title: "Jira integration", desc: "Pull tasks and issues directly from your Jira workspace." },
+            { title: "Built-in task tracking", desc: "Kanban boards with projects, priorities, and assignments — no Jira needed." },
             { title: "Time tracking & attendance", desc: "Clock-in/out logs, weekly hours, and attendance history per employee." },
-            { title: "Leave & ticket management", desc: "Approve leave requests and handle internal support tickets in one place." },
+            { title: "AI daily reports", desc: "One-click AI summaries of each employee's daily activity and productivity." },
           ].map(f => (
             <div key={f.title} className="flex items-start gap-3">
-              <div className="size-5 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center shrink-0 mt-0.5">
-                <svg className="size-2.5 text-indigo-400" fill="currentColor" viewBox="0 0 12 12"><path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
+              <div className="size-5 rounded-full bg-[#512feb]/20 border border-[#512feb]/40 flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="size-2.5 text-[#7c5af5]" fill="none" viewBox="0 0 12 12"><path d="M10 3L5 8.5 2 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
               <div>
-                <p className="text-slate-200 text-sm font-medium">{f.title}</p>
-                <p className="text-slate-500 text-xs mt-0.5">{f.desc}</p>
+                <p className="text-white/80 text-sm font-medium">{f.title}</p>
+                <p className="text-white/45 text-xs mt-0.5">{f.desc}</p>
               </div>
             </div>
           ))}
         </div>
-        <p className="text-slate-500 text-sm">© 2026 TeamPulse. All rights reserved.</p>
+        <p className="text-white/25 text-xs">© 2026 Binary Next. All rights reserved.</p>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8 bg-slate-50">
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#0a0a0c]">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="size-9 rounded-xl bg-indigo-500 flex items-center justify-center">
-              <Users className="size-5 text-white" />
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+            <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Binary Next" className="size-8 object-contain" />
+            <div>
+              <p className="font-bold text-white text-sm">Binary Next</p>
+              <p className="text-[10px] text-white/40">TeamPulse CRM</p>
             </div>
-            <span className="font-semibold text-lg text-slate-900">TeamPulse</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
-            <p className="text-slate-500 text-sm mb-7">Sign in to continue</p>
+          <div className="bg-[#131318] rounded-2xl border border-white/10 p-8">
+            <h1 className="text-2xl font-bold text-white mb-1">Welcome back</h1>
+            <p className="text-white/60 text-sm mb-7">Sign in to continue</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
+                <label className="block text-sm font-medium text-white/80 mb-1.5">Email address</label>
                 <Input type="email" placeholder="you@company.com" value={email}
-                  onChange={e => setEmail(e.target.value)} required className="h-10" />
+                  onChange={e => setEmail(e.target.value)} required className="h-10 bg-white/5 border-white/10 text-white placeholder:text-white/30" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-white/80 mb-1.5">Password</label>
                 <div className="relative">
                   <Input type={showPass ? "text" : "password"} placeholder="••••••••" value={password}
-                    onChange={e => setPassword(e.target.value)} required className="h-10 pr-10" />
+                    onChange={e => setPassword(e.target.value)} required className="h-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-white/30" />
                   <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70">
                     {showPass ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
                 </div>
               </div>
 
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>
+                <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</div>
               )}
 
-              <Button type="submit" disabled={loading} className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white">
+              <Button type="submit" disabled={loading} className="w-full h-10 bg-[#512feb] hover:bg-[#3f1fd4] text-white">
                 {loading ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
                 Sign in
               </Button>
             </form>
-
           </div>
         </div>
       </div>

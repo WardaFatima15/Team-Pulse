@@ -14,11 +14,11 @@ type Ticket = { id: string; employeeId: string; title: string; description: stri
 type TicketReply = { id: string; ticketId: string; authorId: string; authorName: string; isAdmin: number; message: string; createdAt: string }
 
 const priorityColors: Record<string, string> = {
-  urgent: "bg-red-100 text-red-700", high: "bg-orange-100 text-orange-700",
-  medium: "bg-yellow-100 text-yellow-700", low: "bg-slate-100 text-slate-600",
+  urgent: "bg-red-500/15 text-red-400", high: "bg-orange-500/15 text-orange-400",
+  medium: "bg-yellow-500/15 text-yellow-400", low: "bg-white/10 text-white/60",
 }
 const statusColors: Record<string, string> = {
-  open: "bg-blue-100 text-blue-700", "in-progress": "bg-indigo-100 text-indigo-700", resolved: "bg-green-100 text-green-700",
+  open: "bg-blue-500/15 text-blue-400", "in-progress": "bg-[#512feb]/15 text-[#7c5af5]", resolved: "bg-green-500/15 text-green-400",
 }
 
 export default function TicketsClient({ tickets, replies, employees }: { tickets: Ticket[]; replies: TicketReply[]; employees: Employee[] }) {
@@ -49,7 +49,7 @@ export default function TicketsClient({ tickets, replies, employees }: { tickets
     <div className="space-y-5 max-w-4xl">
       <div className="flex flex-wrap gap-2">
         {(["all", "open", "in-progress", "resolved"] as const).map(s => (
-          <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${filter === s ? "bg-indigo-600 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+          <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${filter === s ? "bg-[#512feb] text-white" : "bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white"}`}>
             {s === "all" ? "All Tickets" : s.charAt(0).toUpperCase() + s.slice(1).replace("-", " ")}
             {s !== "all" && <span className="opacity-70">{counts[s as keyof typeof counts]}</span>}
           </button>
@@ -66,26 +66,26 @@ export default function TicketsClient({ tickets, replies, employees }: { tickets
               <CardContent className="py-0">
                 <button className="w-full text-left py-4 flex items-start gap-3" onClick={() => setExpanded(isExpanded ? null : ticket.id)}>
                   <Avatar className="size-8 shrink-0 mt-0.5">
-                    <AvatarFallback className="text-xs bg-indigo-100 text-indigo-700 font-medium">{emp?.avatar}</AvatarFallback>
+                    <AvatarFallback className="text-xs bg-[#512feb]/15 text-[#7c5af5] font-medium">{emp?.avatar}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-semibold text-slate-900 text-sm">{ticket.title}</span>
+                      <span className="font-semibold text-white text-sm">{ticket.title}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${priorityColors[ticket.priority] ?? ""}`}>{ticket.priority}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${statusColors[ticket.status] ?? ""}`}>{ticket.status.replace("-", " ")}</span>
                     </div>
-                    <p className="text-xs text-slate-500">{emp?.name} · {format(new Date(ticket.createdAt), "MMM d, yyyy")}{ticketReplies.length > 0 ? ` · ${ticketReplies.length} repl${ticketReplies.length === 1 ? "y" : "ies"}` : ""}</p>
+                    <p className="text-xs text-white/60">{emp?.name} · {format(new Date(ticket.createdAt), "MMM d, yyyy")}{ticketReplies.length > 0 ? ` · ${ticketReplies.length} repl${ticketReplies.length === 1 ? "y" : "ies"}` : ""}</p>
                   </div>
-                  {isExpanded ? <ChevronUp className="size-4 text-slate-400 shrink-0 mt-1" /> : <ChevronDown className="size-4 text-slate-400 shrink-0 mt-1" />}
+                  {isExpanded ? <ChevronUp className="size-4 text-white/40 shrink-0 mt-1" /> : <ChevronDown className="size-4 text-white/40 shrink-0 mt-1" />}
                 </button>
 
                 {isExpanded && (
-                  <div className="border-t border-slate-100 pt-4 pb-4 space-y-4">
-                    <p className="text-sm text-slate-700 bg-slate-50 rounded-lg p-3">{ticket.description}</p>
+                  <div className="border-t border-white/10 pt-4 pb-4 space-y-4">
+                    <p className="text-sm text-white/80 bg-white/5 rounded-lg p-3">{ticket.description}</p>
                     <div className="flex gap-2 flex-wrap">
-                      <span className="text-xs text-slate-500 self-center">Change status:</span>
+                      <span className="text-xs text-white/60 self-center">Change status:</span>
                       {(["open", "in-progress", "resolved"] as const).map(s => (
-                        <button key={s} onClick={() => handleStatus(ticket.id, s)} disabled={pending} className={`text-xs px-2 py-1 rounded-lg font-medium transition-colors ${ticket.status === s ? statusColors[s] : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+                        <button key={s} onClick={() => handleStatus(ticket.id, s)} disabled={pending} className={`text-xs px-2 py-1 rounded-lg font-medium transition-colors ${ticket.status === s ? statusColors[s] : "bg-white/8 text-white/60 hover:bg-white/15"}`}>
                           {s.charAt(0).toUpperCase() + s.slice(1).replace("-", " ")}
                         </button>
                       ))}
@@ -94,12 +94,12 @@ export default function TicketsClient({ tickets, replies, employees }: { tickets
                       <div className="space-y-3">
                         {ticketReplies.map(reply => (
                           <div key={reply.id} className={`flex gap-2.5 ${reply.isAdmin ? "flex-row-reverse" : ""}`}>
-                            <div className={`size-6 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${reply.isAdmin ? "bg-indigo-500 text-white" : "bg-slate-200 text-slate-600"}`}>
+                            <div className={`size-6 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${reply.isAdmin ? "bg-[#512feb] text-white" : "bg-white/15 text-white/80"}`}>
                               {reply.isAdmin ? "A" : reply.authorName.charAt(0)}
                             </div>
                             <div className={`max-w-[80%] ${reply.isAdmin ? "items-end" : ""}`}>
-                              <div className={`text-xs px-3 py-2 rounded-xl ${reply.isAdmin ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-800"}`}>{reply.message}</div>
-                              <p className={`text-xs text-slate-400 mt-0.5 ${reply.isAdmin ? "text-right" : ""}`}>{reply.authorName} · {format(new Date(reply.createdAt), "MMM d, HH:mm")}</p>
+                              <div className={`text-xs px-3 py-2 rounded-xl ${reply.isAdmin ? "bg-[#512feb] text-white" : "bg-white/10 text-white/90"}`}>{reply.message}</div>
+                              <p className={`text-xs text-white/40 mt-0.5 ${reply.isAdmin ? "text-right" : ""}`}>{reply.authorName} · {format(new Date(reply.createdAt), "MMM d, HH:mm")}</p>
                             </div>
                           </div>
                         ))}
@@ -110,8 +110,8 @@ export default function TicketsClient({ tickets, replies, employees }: { tickets
                         <input type="text" placeholder="Type a reply..." value={replyText[ticket.id] ?? ""}
                           onChange={e => setReplyText(p => ({ ...p, [ticket.id]: e.target.value }))}
                           onKeyDown={e => e.key === "Enter" && handleReply(ticket.id)}
-                          className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
-                        <Button size="sm" onClick={() => handleReply(ticket.id)} disabled={pending} className="h-8 bg-indigo-600 hover:bg-indigo-700 text-white"><Send className="size-3.5" /></Button>
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 placeholder:text-white/30" />
+                        <Button size="sm" onClick={() => handleReply(ticket.id)} disabled={pending} className="h-8 bg-[#512feb] hover:bg-[#3f1fd4] text-white"><Send className="size-3.5" /></Button>
                       </div>
                     )}
                   </div>
@@ -120,7 +120,7 @@ export default function TicketsClient({ tickets, replies, employees }: { tickets
             </Card>
           )
         })}
-        {filtered.length === 0 && <div className="text-center py-12 text-slate-400 text-sm">No tickets in this category.</div>}
+        {filtered.length === 0 && <div className="text-center py-12 text-white/50 text-sm">No tickets in this category.</div>}
       </div>
     </div>
   )

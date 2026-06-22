@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation"
+﻿import { redirect } from "next/navigation"
 import { getEmployeeSession } from "@/lib/employee-auth"
 import { queryAll } from "@/lib/db"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,18 +24,18 @@ export default async function EmployeeAnnouncementsPage() {
 
       <div className="space-y-3">
         {announcements.map(ann => (
-          <Card key={ann.id} className={ann.pinned ? "border-indigo-200" : ""}>
+          <Card key={ann.id} className={ann.pinned ? "border-[#512feb]/30" : ""}>
             <CardContent className="py-4">
               <div className="flex items-start gap-3">
-                <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${ann.pinned ? "bg-indigo-100" : "bg-slate-100"}`}>
+                <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${ann.pinned ? "bg-[#512feb]/10" : "bg-slate-100"}`}>
                   {ann.pinned
-                    ? <Pin className="size-4 text-indigo-500" />
+                    ? <Pin className="size-4 text-[#7c5af5]" />
                     : <Megaphone className="size-4 text-slate-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <p className="font-semibold text-slate-900 text-sm">{ann.title}</p>
-                    {ann.pinned ? <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-medium">Pinned</span> : null}
+                    {ann.pinned ? <span className="text-xs bg-[#512feb]/10 text-[#512feb] px-1.5 py-0.5 rounded font-medium">Pinned</span> : null}
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed">{ann.body}</p>
                   <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">

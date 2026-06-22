@@ -103,6 +103,102 @@ async function setupSchema(): Promise<void> {
         value TEXT NOT NULL DEFAULT ''
       )
     `)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "Project" (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        key TEXT UNIQUE NOT NULL,
+        color TEXT NOT NULL DEFAULT '#6366f1',
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "Task" (
+        id TEXT PRIMARY KEY,
+        "projectId" TEXT NOT NULL REFERENCES "Project"(id) ON DELETE CASCADE,
+        number INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'todo',
+        priority TEXT NOT NULL DEFAULT 'medium',
+        "assigneeId" TEXT REFERENCES "Employee"(id) ON DELETE SET NULL,
+        "dueDate" TEXT,
+        "createdAt" TEXT NOT NULL,
+        "updatedAt" TEXT NOT NULL,
+        UNIQUE("projectId", number)
+      )
+    `)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "ChatMessage" (
+        id TEXT PRIMARY KEY,
+        "fromId" TEXT NOT NULL,
+        "fromName" TEXT NOT NULL,
+        "toId" TEXT NOT NULL,
+        "toName" TEXT NOT NULL,
+        content TEXT NOT NULL,
+        "isRead" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS chat_to_idx ON "ChatMessage"("toId")`)
+    await client.query(`CREATE INDEX IF NOT EXISTS chat_from_idx ON "ChatMessage"("fromId")`)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "GroupChat" (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        "createdBy" TEXT NOT NULL,
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "GroupMember" (
+        id TEXT PRIMARY KEY,
+        "groupId" TEXT NOT NULL REFERENCES "GroupChat"(id) ON DELETE CASCADE,
+        "memberId" TEXT NOT NULL,
+        "memberName" TEXT NOT NULL,
+        "joinedAt" TEXT NOT NULL,
+        UNIQUE("groupId", "memberId")
+      )
+    `)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "GroupMessage" (
+        id TEXT PRIMARY KEY,
+        "groupId" TEXT NOT NULL REFERENCES "GroupChat"(id) ON DELETE CASCADE,
+        "fromId" TEXT NOT NULL,
+        "fromName" TEXT NOT NULL,
+        content TEXT NOT NULL,
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS grp_msg_idx ON "GroupMessage"("groupId")`)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "CallSession" (
+        id TEXT PRIMARY KEY,
+        "callerId" TEXT NOT NULL,
+        "callerName" TEXT NOT NULL,
+        "calleeId" TEXT NOT NULL,
+        "calleeName" TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'ringing',
+        "sdpOffer" TEXT NOT NULL DEFAULT '',
+        "sdpAnswer" TEXT NOT NULL DEFAULT '',
+        "createdAt" TEXT NOT NULL,
+        "updatedAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS call_callee_idx ON "CallSession"("calleeId")`)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "CallCandidate" (
+        id TEXT PRIMARY KEY,
+        "callId" TEXT NOT NULL,
+        side TEXT NOT NULL,
+        candidate TEXT NOT NULL,
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS cand_call_idx ON "CallCandidate"("callId", side, "createdAt")`)
 
     // Auto-seed admin on first run
     const { rows } = await client.query(`SELECT id FROM "Admin" WHERE email = 'admin@company.com'`)

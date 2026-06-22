@@ -1,21 +1,24 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Users, Clock, CheckSquare, Calendar,
-  Megaphone, TicketCheck, Settings, LogOut, Users2,
+  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays,
 } from "lucide-react"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/employees", icon: Users, label: "Employees" },
   { href: "/time-tracking", icon: Clock, label: "Time Tracking" },
-  { href: "/tasks", icon: CheckSquare, label: "Jira Tasks" },
+  { href: "/attendance", icon: CalendarDays, label: "Attendance" },
+  { href: "/tasks", icon: CheckSquare, label: "Tasks" },
   { href: "/leaves", icon: Calendar, label: "Leave Management" },
   { href: "/announcements", icon: Megaphone, label: "Announcements" },
   { href: "/tickets", icon: TicketCheck, label: "Support Tickets" },
+  { href: "/chat", icon: MessageSquare, label: "Chat" },
+  { href: "/reports", icon: BarChart2, label: "Daily Reports" },
 ]
 
 export default function Sidebar() {
@@ -29,15 +32,23 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col bg-slate-900 min-h-screen">
+    <aside className="w-60 shrink-0 flex flex-col bg-[#0d0d0d] min-h-screen">
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-800">
-        <div className="size-8 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0">
-          <Users2 className="size-4 text-white" />
+      <div className="px-5 py-4 border-b border-white/10">
+        <div className="flex items-center gap-2.5 mb-3">
+          <img
+            src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png"
+            alt="Binary Next"
+            className="size-7 rounded object-contain"
+          />
+          <div>
+            <p className="text-white font-bold text-sm leading-tight">Binary Next</p>
+            <p className="text-white/40 text-[10px] tracking-wide uppercase">AI Automation</p>
+          </div>
         </div>
-        <div>
-          <p className="text-white font-semibold text-sm leading-tight">TeamPulse</p>
-          <p className="text-slate-400 text-xs">Remote CRM</p>
+        <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10">
+          <Users2 className="size-3.5 text-[#512feb] shrink-0" />
+          <span className="text-white/80 text-xs font-medium">TeamPulse CRM</span>
         </div>
       </div>
 
@@ -52,8 +63,8 @@ export default function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
                 active
-                  ? "bg-indigo-600 text-white"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+                  ? "bg-[#512feb] text-white"
+                  : "text-white/50 hover:bg-white/8 hover:text-white/90"
               )}
             >
               <Icon className="size-4 shrink-0" />
@@ -64,14 +75,14 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-3 pb-4 space-y-0.5 border-t border-slate-800 pt-3">
+      <div className="px-3 pb-4 space-y-0.5 border-t border-white/10 pt-3">
         <Link
           href="/settings"
           className={cn(
             "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
             pathname === "/settings"
-              ? "bg-indigo-600 text-white"
-              : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+              ? "bg-[#512feb] text-white"
+              : "text-white/50 hover:bg-white/8 hover:text-white/90"
           )}
         >
           <Settings className="size-4 shrink-0" />
@@ -79,11 +90,24 @@ export default function Sidebar() {
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-red-900/40 hover:text-red-400 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/40 hover:bg-red-900/30 hover:text-red-400 transition-colors"
         >
           <LogOut className="size-4 shrink-0" />
           Sign out
         </button>
+      </div>
+
+      {/* Footer */}
+      <div className="px-5 py-3 border-t border-white/5">
+        <a href="https://binarynext.io" target="_blank" rel="noopener noreferrer"
+          className="flex items-center gap-2 opacity-40 hover:opacity-70 transition-opacity">
+          <img
+            src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png"
+            alt="Binary Next"
+            className="size-4 rounded object-contain"
+          />
+          <span className="text-white text-[10px]">binarynext.io</span>
+        </a>
       </div>
     </aside>
   )

@@ -4,6 +4,7 @@ import { queryOne, execute } from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "node:crypto"
 import bcrypt from "bcryptjs"
+import { sendWelcomeEmail, sendPasswordResetEmail } from "@/lib/email"
 
 // ── Leave Requests ────────────────────────────────────────────────────────────
 
@@ -68,7 +69,8 @@ export async function createEmployee(data: {
   phone: string; location: string; password: string
 }) {
   const initials = data.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
-  const passwordHash = bcrypt.hashSync(data.password || "employee123", 10)
+  const password = data.password || "employee123"
+  const passwordHash = bcrypt.hashSync(password, 10)
   await execute(
     `INSERT INTO "Employee" (id, name, email, role, department, avatar, status, phone, location, "jiraAccountId", "joinDate", "createdAt", "passwordHash")
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
@@ -78,6 +80,8 @@ export async function createEmployee(data: {
       new Date().toISOString(), new Date().toISOString(), passwordHash,
     ]
   )
+  // Fire-and-forget welcome email
+  sendWelcomeEmail({ name: data.name, email: data.email, role: data.role, department: data.department, password }).catch(() => {})
   revalidatePath("/employees")
   revalidatePath("/dashboard")
 }
@@ -85,6 +89,8 @@ export async function createEmployee(data: {
 export async function resetEmployeePassword(id: string, newPassword: string) {
   const hash = bcrypt.hashSync(newPassword, 10)
   await execute(`UPDATE "Employee" SET "passwordHash" = $1 WHERE id = $2`, [hash, id])
+  const emp = await queryOne<{ name: string; email: string }>(`SELECT name, email FROM "Employee" WHERE id = $1`, [id])
+  if (emp) sendPasswordResetEmail({ name: emp.name, email: emp.email, newPassword }).catch(() => {})
 }
 
 export async function updateEmployee(id: string, data: {

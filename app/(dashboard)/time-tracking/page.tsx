@@ -1,4 +1,4 @@
-import { queryAll } from "@/lib/db"
+﻿import { queryAll } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Clock, TrendingUp, Users, Timer } from "lucide-react"
@@ -25,7 +25,7 @@ export default async function TimeTrackingPage() {
     <div className="space-y-6 max-w-7xl">
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[
-          { label: "Total Hours Today", value: totalHoursToday.toFixed(1) + "h", icon: Clock, color: "text-indigo-600", bg: "bg-indigo-50" },
+          { label: "Total Hours Today", value: totalHoursToday.toFixed(1) + "h", icon: Clock, color: "text-[#512feb]", bg: "bg-[#512feb]/5" },
           { label: "Currently Active", value: activeNow, icon: Timer, color: "text-green-600", bg: "bg-green-50" },
           { label: "Members Logged In", value: todayRecords.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "Avg Hours Today", value: avgHours.toFixed(1) + "h", icon: TrendingUp, color: "text-amber-600", bg: "bg-amber-50" },
@@ -57,7 +57,7 @@ export default async function TimeTrackingPage() {
                     <tr key={emp.id} className="hover:bg-slate-50/50">
                       <td className="py-3 pr-3">
                         <div className="flex items-center gap-2.5">
-                          <Avatar className="size-7 shrink-0"><AvatarFallback className="text-xs bg-indigo-100 text-indigo-700 font-medium">{emp.avatar}</AvatarFallback></Avatar>
+                          <Avatar className="size-7 shrink-0"><AvatarFallback className="text-xs bg-[#512feb]/10 text-[#512feb] font-medium">{emp.avatar}</AvatarFallback></Avatar>
                           <div><p className="text-sm font-medium text-slate-900">{emp.name}</p><p className="text-xs text-slate-400">{emp.role}</p></div>
                         </div>
                       </td>
@@ -99,7 +99,7 @@ export default async function TimeTrackingPage() {
                     <tr key={emp.id} className="hover:bg-slate-50/50">
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-2">
-                          <Avatar className="size-6 shrink-0"><AvatarFallback className="text-xs bg-indigo-100 text-indigo-700">{emp.avatar}</AvatarFallback></Avatar>
+                          <Avatar className="size-6 shrink-0"><AvatarFallback className="text-xs bg-[#512feb]/10 text-[#512feb]">{emp.avatar}</AvatarFallback></Avatar>
                           <span className="text-sm text-slate-800">{emp.name}</span>
                         </div>
                       </td>
