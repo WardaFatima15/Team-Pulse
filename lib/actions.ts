@@ -11,7 +11,16 @@ import { sendWelcomeEmail, sendPasswordResetEmail } from "@/lib/email"
 export async function updateLeaveStatus(id: string, status: "approved" | "rejected") {
   await execute(`UPDATE "LeaveRequest" SET status = $1 WHERE id = $2`, [status, id])
   revalidatePath("/leaves")
+  revalidatePath("/approvals")
   revalidatePath("/dashboard")
+}
+
+export async function approveLeave(id: string) {
+  return updateLeaveStatus(id, "approved")
+}
+
+export async function rejectLeave(id: string) {
+  return updateLeaveStatus(id, "rejected")
 }
 
 // ── Tickets ───────────────────────────────────────────────────────────────────
