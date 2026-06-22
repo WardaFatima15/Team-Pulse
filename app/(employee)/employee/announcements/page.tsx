@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation"
+import { redirect } from "next/navigation"
 import { getEmployeeSession } from "@/lib/employee-auth"
 import { queryAll } from "@/lib/db"
 import { Card, CardContent } from "@/components/ui/card"
@@ -18,8 +18,8 @@ export default async function EmployeeAnnouncementsPage() {
   return (
     <div className="space-y-5 max-w-2xl">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">Announcements</h1>
-        <p className="text-sm text-slate-500 mt-0.5">{announcements.length} total · {announcements.filter(a => a.pinned).length} pinned</p>
+        <h1 className="text-xl font-bold text-white">Announcements</h1>
+        <p className="text-sm text-white/60 mt-0.5">{announcements.length} total · {announcements.filter(a => a.pinned).length} pinned</p>
       </div>
 
       <div className="space-y-3">
@@ -27,18 +27,18 @@ export default async function EmployeeAnnouncementsPage() {
           <Card key={ann.id} className={ann.pinned ? "border-[#512feb]/30" : ""}>
             <CardContent className="py-4">
               <div className="flex items-start gap-3">
-                <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${ann.pinned ? "bg-[#512feb]/10" : "bg-slate-100"}`}>
+                <div className={`size-9 rounded-lg flex items-center justify-center shrink-0 ${ann.pinned ? "bg-[#512feb]/15" : "bg-white/8"}`}>
                   {ann.pinned
                     ? <Pin className="size-4 text-[#7c5af5]" />
-                    : <Megaphone className="size-4 text-slate-400" />}
+                    : <Megaphone className="size-4 text-white/50" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <p className="font-semibold text-slate-900 text-sm">{ann.title}</p>
-                    {ann.pinned ? <span className="text-xs bg-[#512feb]/10 text-[#512feb] px-1.5 py-0.5 rounded font-medium">Pinned</span> : null}
+                    <p className="font-semibold text-white text-sm">{ann.title}</p>
+                    {ann.pinned ? <span className="text-xs bg-[#512feb]/15 text-[#7c5af5] px-1.5 py-0.5 rounded font-medium">Pinned</span> : null}
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed">{ann.body}</p>
-                  <div className="flex items-center gap-2 mt-2 text-xs text-slate-400">
+                  <p className="text-sm text-white/80 leading-relaxed">{ann.body}</p>
+                  <div className="flex items-center gap-2 mt-2 text-xs text-white/50">
                     <span>{ann.authorName}</span>
                     <span>·</span>
                     <span>{format(new Date(ann.createdAt), "MMM d, yyyy")}</span>
@@ -51,8 +51,8 @@ export default async function EmployeeAnnouncementsPage() {
           </Card>
         ))}
         {announcements.length === 0 && (
-          <div className="text-center py-16 text-slate-400">
-            <Megaphone className="size-8 mx-auto mb-2 text-slate-300" />
+          <div className="text-center py-16 text-white/50">
+            <Megaphone className="size-8 mx-auto mb-2 text-white/20" />
             <p className="text-sm">No announcements yet.</p>
           </div>
         )}

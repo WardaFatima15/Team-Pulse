@@ -5,20 +5,21 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Users, Clock, CheckSquare, Calendar,
-  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays,
+  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon,
 } from "lucide-react"
 
 const navItems = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/employees", icon: Users, label: "Employees" },
-  { href: "/time-tracking", icon: Clock, label: "Time Tracking" },
-  { href: "/attendance", icon: CalendarDays, label: "Attendance" },
-  { href: "/tasks", icon: CheckSquare, label: "Tasks" },
-  { href: "/leaves", icon: Calendar, label: "Leave Management" },
-  { href: "/announcements", icon: Megaphone, label: "Announcements" },
-  { href: "/tickets", icon: TicketCheck, label: "Support Tickets" },
-  { href: "/chat", icon: MessageSquare, label: "Chat" },
-  { href: "/reports", icon: BarChart2, label: "Daily Reports" },
+  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/approvals",     icon: InboxIcon,       label: "Approvals" },
+  { href: "/employees",     icon: Users,           label: "Employees" },
+  { href: "/time-tracking", icon: Clock,           label: "Time Tracking" },
+  { href: "/attendance",    icon: CalendarDays,    label: "Attendance" },
+  { href: "/tasks",         icon: CheckSquare,     label: "Tasks" },
+  { href: "/leaves",        icon: Calendar,        label: "Leave Management" },
+  { href: "/announcements", icon: Megaphone,       label: "Announcements" },
+  { href: "/tickets",       icon: TicketCheck,     label: "Support Tickets" },
+  { href: "/chat",          icon: MessageSquare,   label: "Chat" },
+  { href: "/reports",       icon: BarChart2,       label: "Daily Reports" },
 ]
 
 export default function Sidebar() {
