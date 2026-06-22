@@ -200,6 +200,19 @@ async function setupSchema(): Promise<void> {
     `)
     await client.query(`CREATE INDEX IF NOT EXISTS cand_call_idx ON "CallCandidate"("callId", side, "createdAt")`)
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "ActivityLog" (
+        id TEXT PRIMARY KEY,
+        "employeeId" TEXT NOT NULL,
+        "employeeName" TEXT NOT NULL,
+        action TEXT NOT NULL,
+        detail TEXT NOT NULL DEFAULT '',
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS activity_emp_idx ON "ActivityLog"("employeeId")`)
+    await client.query(`CREATE INDEX IF NOT EXISTS activity_time_idx ON "ActivityLog"("createdAt" DESC)`)
+
     // Auto-seed admin on first run
     const { rows } = await client.query(`SELECT id FROM "Admin" WHERE email = 'admin@company.com'`)
     if (rows.length === 0) {
@@ -251,4 +264,12 @@ export async function execute(text: string, values?: unknown[]): Promise<void> {
   } finally {
     client.release()
   }
+}
+
+export async function logActivity(employeeId: string, employeeName: string, action: string, detail = "") {
+  const { randomUUID } = await import("node:crypto")
+  await execute(
+    `INSERT INTO "ActivityLog" (id, "employeeId", "employeeName", action, detail, "createdAt") VALUES ($1, $2, $3, $4, $5, $6)`,
+    [randomUUID(), employeeId, employeeName, action, detail, new Date().toISOString()]
+  )
 }

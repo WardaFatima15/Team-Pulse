@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Mail, Phone, MapPin, Calendar, Clock, TicketCheck, KeyRound, Save, TrendingUp, CheckCircle2, AlertCircle, XCircle, Pencil } from "lucide-react"
+import { ArrowLeft, Mail, Phone, MapPin, Calendar, Clock, TicketCheck, KeyRound, Save, TrendingUp, CheckCircle2, AlertCircle, XCircle, Pencil, Activity, Download } from "lucide-react"
 import Link from "next/link"
 import { updateEmployee, updateEmployeeStatus, resetEmployeePassword, updateLeaveStatus } from "@/lib/actions"
 
@@ -44,7 +44,7 @@ const LEAVE_STATUS_COLOR: Record<string, string> = {
   approved: "bg-green-500/15 text-green-400",
   rejected: "bg-red-500/15 text-red-400",
 }
-const TAB_LABELS = ["Overview", "Time Tracking", "Leave", "Tickets", "Account"] as const
+const TAB_LABELS = ["Overview", "Time Tracking", "Leave", "Tickets", "Activity", "Account"] as const
 type Tab = typeof TAB_LABELS[number]
 
 export default function EmployeeDetailClient({
@@ -359,6 +359,11 @@ export default function EmployeeDetailClient({
         </Card>
       )}
 
+      {/* ── ACTIVITY ── */}
+      {tab === "Activity" && (
+        <ActivityTab employeeId={employee.id} employeeName={employee.name} />
+      )}
+
       {/* ── ACCOUNT ── */}
       {tab === "Account" && (
         <div className="space-y-5">
@@ -514,6 +519,73 @@ function PasswordResetCard({ employeeId }: { employeeId: string }) {
         </div>
         {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
         {done && <p className="text-xs text-green-400 font-medium mt-2 flex items-center gap-1"><CheckCircle2 className="size-3.5" /> Password updated.</p>}
+      </CardContent>
+    </Card>
+  )
+}
+
+type ActivityEntry = { id: string; action: string; detail: string; createdAt: string }
+
+const ACTION_ICON: Record<string, { label: string; color: string }> = {
+  clock_in:       { label: "Clocked in",       color: "text-green-400" },
+  clock_out:      { label: "Clocked out",      color: "text-blue-400" },
+  status_change:  { label: "Status changed",   color: "text-yellow-400" },
+  leave_request:  { label: "Leave requested",  color: "text-purple-400" },
+  ticket_created: { label: "Ticket opened",    color: "text-orange-400" },
+}
+
+function ActivityTab({ employeeId, employeeName }: { employeeId: string; employeeName: string }) {
+  const [logs, setLogs] = useState<ActivityEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch(`/api/activity?employeeId=${employeeId}`)
+      .then(r => r.json())
+      .then(d => { setLogs(d); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [employeeId])
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-white flex items-center gap-2">
+            <Activity className="size-4 text-white/50" /> Activity Log
+          </CardTitle>
+          <a
+            href={`/api/export/attendance?employeeId=${employeeId}`}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:border-white/20 transition-colors"
+          >
+            <Download className="size-3.5" /> Export Timesheet
+          </a>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-white/40 text-sm py-4">Loading…</p>
+        ) : logs.length === 0 ? (
+          <p className="text-white/40 text-sm py-4 text-center">No activity recorded yet.</p>
+        ) : (
+          <div className="space-y-0 divide-y divide-white/5">
+            {logs.map(log => {
+              const meta = ACTION_ICON[log.action]
+              return (
+                <div key={log.id} className="flex items-start gap-3 py-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white/20 mt-2 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium ${meta?.color ?? "text-white/70"}`}>
+                      {meta?.label ?? log.action}
+                    </p>
+                    {log.detail && <p className="text-xs text-white/50 mt-0.5">{log.detail}</p>}
+                  </div>
+                  <p className="text-xs text-white/30 shrink-0">
+                    {format(new Date(log.createdAt), "MMM d, HH:mm")}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   )

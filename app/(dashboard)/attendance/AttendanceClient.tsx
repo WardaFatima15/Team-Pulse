@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, CheckCircle2, XCircle } from "lucide-react"
+import { ChevronLeft, ChevronRight, CheckCircle2, XCircle, Download } from "lucide-react"
 
 type Employee = { id: string; name: string; role: string; department: string; avatar: string }
 type TimeEntry = { employeeId: string; date: string; clockIn: string; clockOut: string | null; hours: number }
@@ -122,6 +122,13 @@ export default function AttendanceClient({ employees, records: initialRecords, i
           onClick={() => { setAnchor(today); switchMode(mode) }}>
           Today
         </button>
+
+        <a
+          href={`/api/export/attendance?from=${days[0]}&to=${days[days.length - 1]}`}
+          className="ml-auto flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:border-white/20 transition-colors"
+        >
+          <Download className="size-3.5" /> Export CSV
+        </a>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

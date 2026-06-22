@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Users, Clock, CheckSquare, Calendar,
-  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon,
+  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon, Sparkles,
 } from "lucide-react"
 
 const navItems = [
@@ -20,6 +20,7 @@ const navItems = [
   { href: "/tickets",       icon: TicketCheck,     label: "Support Tickets" },
   { href: "/chat",          icon: MessageSquare,   label: "Chat" },
   { href: "/reports",       icon: BarChart2,       label: "Daily Reports" },
+  { href: "/ai",            icon: Sparkles,        label: "AI Assistant" },
 ]
 
 export default function Sidebar() {
