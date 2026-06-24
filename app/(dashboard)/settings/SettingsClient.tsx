@@ -4,7 +4,6 @@ import { useState, useTransition } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Shield, Plus, Trash2, Crown } from "lucide-react"
 import { inviteAdmin, removeAdmin } from "@/lib/actions"
@@ -160,15 +159,15 @@ export default function SettingsClient({
           </DialogHeader>
           <div className="space-y-4 pt-1">
             <div className="space-y-1.5">
-              <Label>Full name</Label>
+              <label className="text-xs font-medium text-white/60">Full name</label>
               <Input placeholder="Jane Smith" value={name} onChange={e => setName(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Email</Label>
+              <label className="text-xs font-medium text-white/60">Email</label>
               <Input type="email" placeholder="jane@company.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label>Password</Label>
+              <label className="text-xs font-medium text-white/60">Password</label>
               <Input type="password" placeholder="Temporary password" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             {error && <p className="text-xs text-red-400">{error}</p>}
