@@ -76,6 +76,144 @@ export async function sendWelcomeEmail(employee: {
   })
 }
 
+export async function sendAdminWelcomeEmail(admin: {
+  email: string
+  orgName: string
+}) {
+  if (!resend) return { error: "RESEND_API_KEY not set" }
+
+  const loginUrl = `${APP_URL}/login`
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+
+    <div style="background:#0d0d0d;padding:28px 32px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" width="36" height="36" style="border-radius:8px;" alt="Binary Next"/>
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:15px;">Binary Next</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:11px;">TeamPulse CRM</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:32px;">
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f172a;">Your workspace is ready 🎉</h1>
+      <p style="margin:0 0 24px;color:#64748b;font-size:14px;line-height:1.6;">
+        <strong style="color:#0f172a;">${admin.orgName}</strong> has been created on TeamPulse. You can now add employees, manage leaves, track attendance, and more.
+      </p>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr>
+            <td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;width:100px;">Workspace</td>
+            <td style="padding:6px 0;color:#0f172a;font-size:13px;font-weight:600;">${admin.orgName}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Admin email</td>
+            <td style="padding:6px 0;color:#0f172a;font-size:13px;font-family:monospace;">${admin.email}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Portal</td>
+            <td style="padding:6px 0;font-size:13px;"><a href="${loginUrl}" style="color:#512feb;text-decoration:none;">${APP_URL}/login</a></td>
+          </tr>
+        </table>
+      </div>
+
+      <a href="${loginUrl}" style="display:block;text-align:center;background:#512feb;color:#fff;text-decoration:none;padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;margin-bottom:20px;">
+        Go to your dashboard →
+      </a>
+
+      <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
+        Need help? Reply to this email or visit our support page.
+      </p>
+    </div>
+
+    <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+      <p style="margin:0;color:#cbd5e1;font-size:11px;text-align:center;">
+        Powered by <a href="https://binarynext.io" style="color:#512feb;text-decoration:none;">Binary Next</a> · AI Automation Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>`
+
+  return resend.emails.send({
+    from: FROM,
+    to: admin.email,
+    subject: `Your TeamPulse workspace "${admin.orgName}" is ready`,
+    html,
+  })
+}
+
+export async function sendAdminInviteEmail(admin: {
+  name: string
+  email: string
+  password: string
+  orgName: string
+}) {
+  if (!resend) return { error: "RESEND_API_KEY not set" }
+
+  const loginUrl = `${APP_URL}/login`
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+    <div style="background:#0d0d0d;padding:28px 32px;display:flex;align-items:center;gap:12px;">
+      <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" width="36" height="36" style="border-radius:8px;" alt="Binary Next"/>
+      <div>
+        <div style="color:#fff;font-weight:700;font-size:15px;">Binary Next</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">TeamPulse CRM</div>
+      </div>
+    </div>
+    <div style="padding:32px;">
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f172a;">You've been added as an admin</h1>
+      <p style="margin:0 0 24px;color:#64748b;font-size:14px;line-height:1.6;">
+        Hi ${admin.name}, you now have admin access to <strong style="color:#0f172a;">${admin.orgName}</strong> on TeamPulse.
+      </p>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;width:100px;">Workspace</td>
+              <td style="padding:6px 0;color:#0f172a;font-size:13px;font-weight:600;">${admin.orgName}</td></tr>
+          <tr><td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Email</td>
+              <td style="padding:6px 0;color:#0f172a;font-size:13px;font-family:monospace;">${admin.email}</td></tr>
+          <tr><td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Password</td>
+              <td style="padding:6px 0;color:#0f172a;font-size:13px;font-family:monospace;">${admin.password}</td></tr>
+          <tr><td style="padding:6px 0;color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Role</td>
+              <td style="padding:6px 0;color:#0f172a;font-size:13px;">Administrator</td></tr>
+        </table>
+      </div>
+      <a href="${loginUrl}" style="display:block;text-align:center;background:#512feb;color:#fff;text-decoration:none;padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;margin-bottom:20px;">
+        Sign in to TeamPulse →
+      </a>
+      <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
+        Please change your password after your first login.
+      </p>
+    </div>
+    <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+      <p style="margin:0;color:#cbd5e1;font-size:11px;text-align:center;">
+        Powered by <a href="https://binarynext.io" style="color:#512feb;text-decoration:none;">Binary Next</a> · AI Automation Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>`
+
+  return resend.emails.send({
+    from: FROM,
+    to: admin.email,
+    subject: `You've been added as admin on TeamPulse — ${admin.orgName}`,
+    html,
+  })
+}
+
 export async function sendPasswordResetEmail(employee: {
   name: string
   email: string

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
@@ -117,6 +118,11 @@ export default function LoginPage() {
                 Sign in
               </Button>
             </form>
+
+            <p className="text-center text-xs text-white/40 mt-5">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-[#7c5af5] hover:underline font-medium">Create workspace</Link>
+            </p>
           </div>
         </div>
       </div>

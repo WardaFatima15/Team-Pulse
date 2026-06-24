@@ -1,4 +1,5 @@
-﻿import { queryAll } from "@/lib/db"
+import { queryAll } from "@/lib/db"
+import { getAdminSession } from "@/lib/admin-auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Users, Clock, TrendingUp, CalendarCheck, ArrowUp, ArrowRight, AlertTriangle } from "lucide-react"
@@ -22,6 +23,8 @@ function getFlag(location: string) {
 function day(n: number) { return new Date(Date.now() - n * 86400000).toISOString().split("T")[0] }
 
 export default async function DashboardPage() {
+  const admin = await getAdminSession()
+  const orgId = admin!.organizationId
   const today = day(0)
   const weekDates = [0, 1, 2, 3, 4, 5, 6].map(n => day(n))
   const days = weekDates.map((date, i) => ({
@@ -30,10 +33,10 @@ export default async function DashboardPage() {
   }))
 
   const [employees, weekRecords, leaves, openTickets] = await Promise.all([
-    queryAll<Employee>(`SELECT * FROM "Employee" ORDER BY status DESC, name ASC`),
-    queryAll<TimeRecord>(`SELECT * FROM "TimeRecord" WHERE date = ANY($1)`, [weekDates]),
-    queryAll<LeaveRequest>(`SELECT * FROM "LeaveRequest" ORDER BY "createdAt" DESC`),
-    queryAll<Ticket>(`SELECT * FROM "Ticket" WHERE status != 'resolved' ORDER BY "createdAt" DESC LIMIT 4`),
+    queryAll<Employee>(`SELECT * FROM "Employee" WHERE "organizationId" = $1 ORDER BY status DESC, name ASC`, [orgId]),
+    queryAll<TimeRecord>(`SELECT t.* FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2)`, [orgId, weekDates]),
+    queryAll<LeaveRequest>(`SELECT l.* FROM "LeaveRequest" l JOIN "Employee" e ON e.id = l."employeeId" WHERE e."organizationId" = $1 ORDER BY l."createdAt" DESC`, [orgId]),
+    queryAll<Ticket>(`SELECT t.* FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.status != 'resolved' ORDER BY t."createdAt" DESC LIMIT 4`, [orgId]),
   ])
 
   const todayRecords = weekRecords.filter(r => r.date === today)
@@ -64,12 +67,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 max-w-7xl">
-
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Team Overview</h1>
-          <p className="text-white/50 text-sm mt-0.5">{format(new Date(), "EEEE, MMMM d yyyy")} · {employees.length} team members across {new Set(employees.map(e => e.location.split(", ").pop())).size} countries</p>
+          <p className="text-white/50 text-sm mt-0.5">{format(new Date(), "EEEE, MMMM d yyyy")} · {employees.length} team members</p>
         </div>
         <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium px-3 py-1.5 rounded-full">
           <span className="size-2 rounded-full bg-green-500 animate-pulse" />
@@ -77,7 +78,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { label: "Online Now", value: `${online}/${employees.length}`, sub: `${away} away`, icon: Users, color: "text-green-400", bg: "bg-green-500/10", trend: "+2 vs yesterday" },
@@ -102,11 +102,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        {/* Left: Team status + weekly chart */}
         <div className="lg:col-span-2 space-y-5">
-
-          {/* Team live status */}
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
@@ -138,11 +134,15 @@ export default async function DashboardPage() {
                     </Link>
                   )
                 })}
+                {employees.length === 0 && (
+                  <div className="col-span-4 text-center py-8 text-white/40 text-sm">
+                    No employees yet. <Link href="/employees" className="text-[#7c5af5] hover:underline">Add your first employee</Link>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Weekly hours chart */}
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
@@ -178,10 +178,7 @@ export default async function DashboardPage() {
           </Card>
         </div>
 
-        {/* Right panel */}
         <div className="space-y-5">
-
-          {/* Department breakdown */}
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <CardTitle className="text-sm font-semibold text-white">Team by Department</CardTitle>
@@ -197,7 +194,7 @@ export default async function DashboardPage() {
                       <span className="text-white/40">{count} people</span>
                     </div>
                     <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
-                      <div className="h-full rounded-full bg-[#7c5af5]" style={{ width: `${(count / employees.length) * 100}%` }} />
+                      <div className="h-full rounded-full bg-[#7c5af5]" style={{ width: `${(count / Math.max(employees.length, 1)) * 100}%` }} />
                     </div>
                   </div>
                 </div>
@@ -205,7 +202,6 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Pending leaves */}
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
@@ -233,7 +229,6 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Open tickets */}
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">

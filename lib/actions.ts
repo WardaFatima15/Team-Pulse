@@ -1,10 +1,11 @@
 "use server"
 
 import { queryOne, execute } from "@/lib/db"
+import { getAdminSession } from "@/lib/admin-auth"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "node:crypto"
 import bcrypt from "bcryptjs"
-import { sendWelcomeEmail, sendPasswordResetEmail } from "@/lib/email"
+import { sendWelcomeEmail, sendPasswordResetEmail, sendAdminInviteEmail } from "@/lib/email"
 
 // ── Leave Requests ────────────────────────────────────────────────────────────
 
@@ -32,10 +33,12 @@ export async function updateTicketStatus(id: string, status: string) {
 }
 
 export async function addTicketReply(ticketId: string, message: string) {
+  const admin = await getAdminSession()
+  const adminName = admin?.orgName ? `${admin.orgName} Admin` : "Admin"
   const now = new Date().toISOString()
   await execute(
     `INSERT INTO "TicketReply" (id, "ticketId", "authorId", "authorName", "isAdmin", message, "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [randomUUID(), ticketId, "admin", "Admin", 1, message, now]
+    [randomUUID(), ticketId, admin?.id ?? "admin", adminName, 1, message, now]
   )
   await execute(
     `UPDATE "Ticket" SET status = CASE WHEN status = 'open' THEN 'in-progress' ELSE status END, "updatedAt" = $1 WHERE id = $2`,
@@ -47,9 +50,11 @@ export async function addTicketReply(ticketId: string, message: string) {
 // ── Announcements ─────────────────────────────────────────────────────────────
 
 export async function createAnnouncement(title: string, body: string, pinned: boolean) {
+  const admin = await getAdminSession()
+  if (!admin) return
   await execute(
-    `INSERT INTO "Announcement" (id, title, body, "authorId", "authorName", pinned, "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [randomUUID(), title, body, "admin", "Admin", pinned ? 1 : 0, new Date().toISOString()]
+    `INSERT INTO "Announcement" (id, title, body, "authorId", "authorName", pinned, "organizationId", "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [randomUUID(), title, body, admin.id, "Admin", pinned ? 1 : 0, admin.organizationId, new Date().toISOString()]
   )
   revalidatePath("/announcements")
   revalidatePath("/dashboard")
@@ -77,19 +82,26 @@ export async function createEmployee(data: {
   name: string; email: string; role: string; department: string
   phone: string; location: string; password: string
 }) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
+
   const initials = data.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
   const password = data.password || "employee123"
   const passwordHash = bcrypt.hashSync(password, 10)
-  await execute(
-    `INSERT INTO "Employee" (id, name, email, role, department, avatar, status, phone, location, "jiraAccountId", "joinDate", "createdAt", "passwordHash")
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-    [
-      randomUUID(), data.name, data.email, data.role, data.department,
-      initials, "offline", data.phone, data.location, "",
-      new Date().toISOString(), new Date().toISOString(), passwordHash,
-    ]
-  )
-  // Fire-and-forget welcome email
+  try {
+    await execute(
+      `INSERT INTO "Employee" (id, name, email, role, department, avatar, status, phone, location, "jiraAccountId", "joinDate", "createdAt", "passwordHash", "organizationId")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      [
+        randomUUID(), data.name, data.email, data.role, data.department,
+        initials, "offline", data.phone, data.location, "",
+        new Date().toISOString(), new Date().toISOString(), passwordHash,
+        admin.organizationId,
+      ]
+    )
+  } catch (err: unknown) {
+    throw new Error("Failed to create employee: " + String(err))
+  }
   sendWelcomeEmail({ name: data.name, email: data.email, role: data.role, department: data.department, password }).catch(() => {})
   revalidatePath("/employees")
   revalidatePath("/dashboard")
@@ -100,6 +112,34 @@ export async function resetEmployeePassword(id: string, newPassword: string) {
   await execute(`UPDATE "Employee" SET "passwordHash" = $1 WHERE id = $2`, [hash, id])
   const emp = await queryOne<{ name: string; email: string }>(`SELECT name, email FROM "Employee" WHERE id = $1`, [id])
   if (emp) sendPasswordResetEmail({ name: emp.name, email: emp.email, newPassword }).catch(() => {})
+}
+
+export async function inviteAdmin(data: { name: string; email: string; password: string }) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
+
+  const passwordHash = bcrypt.hashSync(data.password, 10)
+  try {
+    await execute(
+      `INSERT INTO "Admin" (id, name, email, "passwordHash", "organizationId", "createdAt") VALUES ($1, $2, $3, $4, $5, $6)`,
+      [randomUUID(), data.name, data.email, passwordHash, admin.organizationId, new Date().toISOString()]
+    )
+  } catch (err: unknown) {
+    const msg = String(err)
+    if (msg.includes("unique") || msg.includes("duplicate")) throw new Error("An admin with this email already exists")
+    throw new Error("Failed to add admin: " + msg)
+  }
+
+  sendAdminInviteEmail({ name: data.name, email: data.email, password: data.password, orgName: admin.orgName }).catch(() => {})
+  revalidatePath("/settings")
+}
+
+export async function removeAdmin(id: string) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
+  if (id === admin.id) throw new Error("You cannot remove yourself")
+  await execute(`DELETE FROM "Admin" WHERE id = $1 AND "organizationId" = $2`, [id, admin.organizationId])
+  revalidatePath("/settings")
 }
 
 export async function updateEmployee(id: string, data: {
@@ -115,4 +155,3 @@ export async function updateEmployee(id: string, data: {
   revalidatePath("/employees")
   revalidatePath("/dashboard")
 }
-

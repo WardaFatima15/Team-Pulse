@@ -1,16 +1,20 @@
 import { queryAll } from "@/lib/db"
+import { getAdminSession } from "@/lib/admin-auth"
 import ReportsClient from "./ReportsClient"
 
 export default async function ReportsPage() {
+  const admin = await getAdminSession()
+  const orgId = admin!.organizationId
+
   const employees = await queryAll<{
     id: string; name: string; role: string; department: string; avatar: string; status: string
-  }>(`SELECT id, name, role, department, avatar, status FROM "Employee" ORDER BY name`)
+  }>(`SELECT id, name, role, department, avatar, status FROM "Employee" WHERE "organizationId" = $1 ORDER BY name`, [orgId])
 
   return (
     <div className="max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Daily Reports</h1>
-        <p className="text-slate-500 text-sm mt-1">AI-generated daily summaries based on each employee's activity</p>
+        <h1 className="text-2xl font-bold text-white">Daily Reports</h1>
+        <p className="text-white/50 text-sm mt-1">AI-generated daily summaries based on each employee's activity</p>
       </div>
       <ReportsClient employees={employees} />
     </div>

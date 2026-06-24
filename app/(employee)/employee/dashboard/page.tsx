@@ -26,7 +26,8 @@ export default async function EmployeeDashboardPage() {
       [emp.id]
     ),
     queryAll<Announcement>(
-      `SELECT id, title, body, pinned, "createdAt" FROM "Announcement" ORDER BY pinned DESC, "createdAt" DESC LIMIT 3`
+      `SELECT id, title, body, pinned, "createdAt" FROM "Announcement" WHERE "organizationId" = $1 ORDER BY pinned DESC, "createdAt" DESC LIMIT 3`,
+      [emp.organizationId]
     ),
   ])
 

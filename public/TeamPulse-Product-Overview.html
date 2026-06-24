@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TeamPulse CRM — Product Overview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #fff;
+    color: #0f172a;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ── Cover Page ─────────────────────────────────────── */
+  .cover {
+    background: #0a0a0c;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 60px;
+    page-break-after: always;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(81,47,235,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; left: -100px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(124,90,245,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative; z-index: 1;
+  }
+  .cover-brand img {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    object-fit: contain;
+  }
+  .cover-brand-text { }
+  .cover-brand-name { color: #fff; font-weight: 700; font-size: 17px; }
+  .cover-brand-sub  { color: rgba(255,255,255,0.4); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .cover-main {
+    position: relative; z-index: 1;
+  }
+  .cover-eyebrow {
+    display: inline-block;
+    background: rgba(81,47,235,0.2);
+    border: 1px solid rgba(81,47,235,0.4);
+    color: #a78bfa;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+  .cover-title {
+    font-size: 56px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+  .cover-title span { color: #7c5af5; }
+  .cover-subtitle {
+    font-size: 18px;
+    color: rgba(255,255,255,0.55);
+    max-width: 520px;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  .cover-meta {
+    position: relative; z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 28px;
+  }
+  .cover-meta-label { color: rgba(255,255,255,0.3); font-size: 12px; }
+  .cover-meta-value { color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 500; margin-top: 2px; }
+  .cover-version {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 6px;
+  }
+
+  /* ── Page wrapper ─────────────────────────────────── */
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 64px 60px;
+  }
+
+  /* ── Section headings ─────────────────────────────── */
+  .section { margin-bottom: 56px; }
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7c5af5;
+    margin-bottom: 10px;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 16px; height: 2px;
+    background: #7c5af5;
+    border-radius: 2px;
+  }
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 8px;
+    margin-top: 24px;
+  }
+  p { color: #475569; line-height: 1.75; margin-bottom: 12px; }
+
+  /* ── Divider ─────────────────────────────────────── */
+  .divider {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 48px 0;
+  }
+
+  /* ── Table of contents ───────────────────────────── */
+  .toc {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 32px 36px;
+    margin-bottom: 56px;
+  }
+  .toc-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+  .toc-list { list-style: none; }
+  .toc-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+    padding: 5px 0;
+    border-bottom: 1px dashed #e2e8f0;
+  }
+  .toc-list li:last-child { border-bottom: none; }
+  .toc-num  { color: #7c5af5; font-weight: 600; font-size: 12px; width: 28px; flex-shrink: 0; }
+  .toc-text { color: #334155; font-size: 13px; font-weight: 500; flex: 1; }
+  .toc-dots { flex: 1; border-bottom: 1px dotted #cbd5e1; margin: 0 8px 3px; }
+  .toc-page { color: #94a3b8; font-size: 12px; }
+
+  /* ── Feature grid ────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .feature-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 22px 24px;
+    transition: border-color 0.2s;
+  }
+  .feature-card-icon {
+    width: 36px; height: 36px;
+    background: rgba(81,47,235,0.08);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  .feature-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 6px;
+  }
+  .feature-card p {
+    font-size: 12.5px;
+    color: #64748b;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── Detail list ─────────────────────────────────── */
+  .detail-list { list-style: none; margin: 16px 0; }
+  .detail-list li {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    align-items: flex-start;
+  }
+  .detail-list li:last-child { border-bottom: none; }
+  .detail-list .check {
+    width: 20px; height: 20px;
+    background: rgba(81,47,235,0.08);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    color: #7c5af5;
+    margin-top: 1px;
+  }
+  .detail-list .item-text { color: #334155; font-size: 13.5px; }
+  .detail-list .item-text strong { color: #0f172a; font-weight: 600; }
+
+  /* ── Info box ────────────────────────────────────── */
+  .info-box {
+    background: rgba(81,47,235,0.05);
+    border: 1px solid rgba(81,47,235,0.2);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .info-box p { color: #4338ca; font-size: 13px; margin: 0; line-height: 1.65; }
+  .info-box strong { color: #3730a3; }
+
+  /* ── Steps ───────────────────────────────────────── */
+  .steps { margin: 24px 0; }
+  .step {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .step::before {
+    content: '';
+    position: absolute;
+    left: 17px; top: 40px;
+    width: 2px;
+    height: calc(100% + 4px);
+    background: #e2e8f0;
+  }
+  .step:last-child::before { display: none; }
+  .step-num {
+    width: 36px; height: 36px;
+    background: #512feb;
+    color: #fff;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    position: relative; z-index: 1;
+  }
+  .step-body { flex: 1; padding-top: 6px; }
+  .step-body h4 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+  .step-body p  { font-size: 13px; color: #64748b; margin: 0; }
+
+  /* ── Two col ─────────────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+  .two-col-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px;
+  }
+  .two-col-card h4 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 10px; }
+  .two-col-card ul { list-style: none; }
+  .two-col-card ul li {
+    font-size: 13px;
+    color: #475569;
+    padding: 4px 0;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .two-col-card ul li::before { content: '→'; color: #7c5af5; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+
+  /* ── Highlight stat ──────────────────────────────── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .stat-card {
+    text-align: center;
+    background: #0a0a0c;
+    border-radius: 14px;
+    padding: 24px 16px;
+    color: #fff;
+  }
+  .stat-val { font-size: 28px; font-weight: 800; color: #7c5af5; }
+  .stat-label { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── Tech badge ──────────────────────────────────── */
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .badge {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 8px;
+  }
+
+  /* ── CTA / footer ────────────────────────────────── */
+  .cta {
+    background: #0a0a0c;
+    border-radius: 20px;
+    padding: 48px 48px;
+    text-align: center;
+    margin-top: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 300px;
+    background: radial-gradient(circle, rgba(81,47,235,0.3) 0%, transparent 70%);
+  }
+  .cta * { position: relative; z-index: 1; }
+  .cta h2 { color: #fff; font-size: 28px; margin-bottom: 12px; }
+  .cta p { color: rgba(255,255,255,0.5); margin-bottom: 28px; font-size: 14px; }
+  .cta-btn {
+    display: inline-block;
+    background: #512feb;
+    color: #fff;
+    text-decoration: none;
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    margin: 0 8px;
+  }
+  .cta-link {
+    display: inline-block;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  /* ── Print ───────────────────────────────────────── */
+  @media print {
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stat-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cta { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 48px 48px; }
+    .section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  COVER                                             -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-brand">
+    <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Binary Next" />
+    <div class="cover-brand-text">
+      <div class="cover-brand-name">Binary Next</div>
+      <div class="cover-brand-sub">AI Automation Partner</div>
+    </div>
+  </div>
+
+  <div class="cover-main">
+    <div class="cover-eyebrow">Product Overview · 2026</div>
+    <div class="cover-title">Team<span>Pulse</span><br/>CRM</div>
+    <div class="cover-subtitle">
+      A complete remote employee management platform — built for teams that are distributed, async, and growing.
+    </div>
+  </div>
+
+  <div class="cover-meta">
+    <div>
+      <div class="cover-meta-label">Prepared by</div>
+      <div class="cover-meta-value">Binary Next · binarynext.io</div>
+    </div>
+    <div>
+      <div class="cover-meta-label">Document</div>
+      <div class="cover-meta-value">TeamPulse Product Overview</div>
+    </div>
+    <div>
+      <div class="cover-meta-label">Date</div>
+      <div class="cover-meta-value">June 2026</div>
+    </div>
+    <div class="cover-version">v1.0</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!--  BODY                                              -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="page">
+
+  <!-- Table of contents -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ul class="toc-list">
+      <li><span class="toc-num">01</span><span class="toc-text">What is TeamPulse?</span><span class="toc-dots"></span><span class="toc-page">2</span></li>
+      <li><span class="toc-num">02</span><span class="toc-text">Core Features at a Glance</span><span class="toc-dots"></span><span class="toc-page">2</span></li>
+      <li><span class="toc-num">03</span><span class="toc-text">Employee Management</span><span class="toc-dots"></span><span class="toc-page">3</span></li>
+      <li><span class="toc-num">04</span><span class="toc-text">Attendance &amp; Time Tracking</span><span class="toc-dots"></span><span class="toc-page">3</span></li>
+      <li><span class="toc-num">05</span><span class="toc-text">Leave Management</span><span class="toc-dots"></span><span class="toc-page">4</span></li>
+      <li><span class="toc-num">06</span><span class="toc-text">Support Tickets &amp; Approvals</span><span class="toc-dots"></span><span class="toc-page">4</span></li>
+      <li><span class="toc-num">07</span><span class="toc-text">Team Chat &amp; Communication</span><span class="toc-dots"></span><span class="toc-page">5</span></li>
+      <li><span class="toc-num">08</span><span class="toc-text">Task &amp; Project Management</span><span class="toc-dots"></span><span class="toc-page">5</span></li>
+      <li><span class="toc-num">09</span><span class="toc-text">AI Assistant</span><span class="toc-dots"></span><span class="toc-page">6</span></li>
+      <li><span class="toc-num">10</span><span class="toc-text">Reports &amp; Data Export</span><span class="toc-dots"></span><span class="toc-page">6</span></li>
+      <li><span class="toc-num">11</span><span class="toc-text">Multi-Tenant Workspaces</span><span class="toc-dots"></span><span class="toc-page">7</span></li>
+      <li><span class="toc-num">12</span><span class="toc-text">Security &amp; Access Control</span><span class="toc-dots"></span><span class="toc-page">7</span></li>
+      <li><span class="toc-num">13</span><span class="toc-text">Getting Started</span><span class="toc-dots"></span><span class="toc-page">8</span></li>
+      <li><span class="toc-num">14</span><span class="toc-text">Technology &amp; Infrastructure</span><span class="toc-dots"></span><span class="toc-page">8</span></li>
+    </ul>
+  </div>
+
+  <!-- ─── 01. What is TeamPulse ──────────────────────── -->
+  <div class="section">
+    <div class="section-label">01 — Overview</div>
+    <h2>What is TeamPulse?</h2>
+    <p>
+      TeamPulse is a purpose-built CRM and remote workforce management platform developed by Binary Next. It gives managers and HR teams complete visibility over their distributed workforce — tracking who is working, when, on what, and how they are performing — all from a single, unified dashboard.
+    </p>
+    <p>
+      Unlike generic HR tools, TeamPulse is designed to be lean, fast, and opinionated. It removes the complexity of enterprise software while retaining all the features a growing company needs: real-time status, attendance logs, leave workflows, internal support tickets, team chat, AI-powered summaries, and project tracking.
+    </p>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">12+</div><div class="stat-label">Core Modules</div></div>
+      <div class="stat-card"><div class="stat-val">Real-time</div><div class="stat-label">Status Updates</div></div>
+      <div class="stat-card"><div class="stat-val">AI</div><div class="stat-label">Powered Reports</div></div>
+      <div class="stat-card"><div class="stat-val">Multi</div><div class="stat-label">Tenant Ready</div></div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 02. Core Features ─────────────────────────── -->
+  <div class="section">
+    <div class="section-label">02 — Features</div>
+    <h2>Core Features at a Glance</h2>
+    <p>Everything your team needs to manage remote employees, in one place.</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-card-icon">👥</div>
+        <h4>Employee Profiles</h4>
+        <p>Full employee records with role, department, contact details, join date, and a live activity timeline showing every clock-in, status change, and leave request.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">⏱️</div>
+        <h4>Attendance Tracking</h4>
+        <p>Employees clock in and out from their portal. Admins see daily attendance, weekly breakdowns, and total hours worked — filterable by date range and employee.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">🏖️</div>
+        <h4>Leave Management</h4>
+        <p>Employees submit leave requests with type, dates, and reason. Admins approve or reject from a centralised inbox with one click. Full leave history is kept per employee.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">🎫</div>
+        <h4>Support Tickets</h4>
+        <p>Employees raise IT or HR tickets directly in the portal. Admins reply, change status (open → in progress → resolved), and track resolution time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">💬</div>
+        <h4>Team Chat</h4>
+        <p>Built-in direct messaging between admin and employees. Group chats for teams and departments. Real-time delivery with unread message counters in the notification bell.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">✅</div>
+        <h4>Task &amp; Projects</h4>
+        <p>Kanban-style project boards with tasks, priorities, due dates, and employee assignments. Track work progress across all active projects in one view.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">🤖</div>
+        <h4>AI Assistant</h4>
+        <p>An HR-focused AI powered by Claude. Ask natural language questions about team performance, attendance patterns, or headcount — and get instant summaries.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-icon">📊</div>
+        <h4>Reports &amp; Export</h4>
+        <p>Per-employee and full-team reports. Export attendance records to Excel-ready CSV. AI-generated daily performance summaries for each employee.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 03. Employee Management ──────────────────── -->
+  <div class="section">
+    <div class="section-label">03 — Employees</div>
+    <h2>Employee Management</h2>
+    <p>
+      Every employee in TeamPulse has a dedicated profile page accessible to admins. Profiles contain structured information and a full activity history so managers always have context before a conversation.
+    </p>
+
+    <div class="two-col">
+      <div class="two-col-card">
+        <h4>Profile Information</h4>
+        <ul>
+          <li>Full name, email, phone number</li>
+          <li>Role and department assignment</li>
+          <li>Location and timezone</li>
+          <li>Join date and employment history</li>
+          <li>Current status (Online / Away / Offline)</li>
+          <li>Avatar / display initials</li>
+        </ul>
+      </div>
+      <div class="two-col-card">
+        <h4>Profile Tabs</h4>
+        <ul>
+          <li>Overview — stats, hours summary, quick metrics</li>
+          <li>Attendance — full clock-in/out history with hours</li>
+          <li>Leaves — all leave requests and their status</li>
+          <li>Tickets — support ticket history per employee</li>
+          <li>Activity — chronological log of all actions</li>
+          <li>Export — download individual timesheet as CSV</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top: 20px;">
+      <p>When a new employee is added, TeamPulse automatically sends them a welcome email containing their login credentials, portal URL, and role information — no manual onboarding step required.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 04. Attendance ────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">04 — Attendance</div>
+    <h2>Attendance &amp; Time Tracking</h2>
+    <p>
+      TeamPulse replaces manual attendance sheets with a digital clock-in system. Employees clock in when they start work and clock out when they finish. All records are timestamped and stored permanently.
+    </p>
+
+    <ul class="detail-list">
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Daily attendance board</strong> — admins see every employee's clock-in time, clock-out time, hours worked, and status for any given day at a glance.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Weekly breakdown</strong> — a 5-day table showing each employee's hours per day, colour-coded by threshold (green = 8h+, amber = 4–8h, red = under 4h).</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Monthly attendance view</strong> — filterable attendance grid with date-range selection covering any calendar period.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Live status indicators</strong> — employees who have clocked in but not yet clocked out are shown as "Active" with a pulsing green indicator in real time.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>CSV export</strong> — full attendance records can be exported to a CSV file with Name, Department, Role, Date, Clock In, Clock Out, and Hours columns. Dates are formatted to prevent Excel auto-conversion issues.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Per-employee timesheet</strong> — admins can export a clean timesheet for a specific employee directly from their profile page.</span>
+      </li>
+    </ul>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 05. Leave Management ─────────────────────── -->
+  <div class="section">
+    <div class="section-label">05 — Leaves</div>
+    <h2>Leave Management</h2>
+    <p>
+      The leave module handles the full lifecycle of employee leave requests — from submission to approval — with a clean inbox-style interface for admins.
+    </p>
+
+    <div class="two-col">
+      <div class="two-col-card">
+        <h4>Employee Side</h4>
+        <ul>
+          <li>Submit leave request with type (Annual, Sick, Personal, etc.)</li>
+          <li>Set start date, end date, and reason</li>
+          <li>View all past and pending requests</li>
+          <li>See approval status in real time</li>
+        </ul>
+      </div>
+      <div class="two-col-card">
+        <h4>Admin Side</h4>
+        <ul>
+          <li>Centralised approvals inbox</li>
+          <li>One-click approve or reject</li>
+          <li>Notification badge shows pending count</li>
+          <li>Leave history searchable per employee</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Leave Types Supported</h3>
+    <div class="badges">
+      <span class="badge">Annual Leave</span>
+      <span class="badge">Sick Leave</span>
+      <span class="badge">Personal Leave</span>
+      <span class="badge">Maternity / Paternity</span>
+      <span class="badge">Unpaid Leave</span>
+      <span class="badge">Emergency Leave</span>
+      <span class="badge">Other</span>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 06. Tickets ───────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">06 — Tickets</div>
+    <h2>Support Tickets &amp; Approvals</h2>
+    <p>
+      TeamPulse includes a lightweight internal helpdesk. Employees raise tickets for IT issues, HR queries, or any matter that requires admin attention. The approvals module consolidates both leave requests and tickets into a single inbox.
+    </p>
+
+    <ul class="detail-list">
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Ticket submission</strong> — employees create tickets with a title, description, and priority level (Low / Medium / High / Urgent).</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Threaded replies</strong> — admins and employees exchange messages inside the ticket. Each reply is timestamped and attributed by name.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Status workflow</strong> — tickets move through Open → In Progress → Resolved. Admins update status from a dropdown directly in the approvals inbox.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Priority indicators</strong> — colour-coded priority badges (red for Urgent, orange for High) make critical tickets easy to spot at a glance.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Unified approvals inbox</strong> — a single page shows pending leaves and open tickets in separate tabs, with notification counts in the header bell.</span>
+      </li>
+    </ul>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 07. Chat ──────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">07 — Communication</div>
+    <h2>Team Chat &amp; Communication</h2>
+    <p>
+      TeamPulse has a built-in messaging system so managers can communicate with employees without switching to a third-party tool. Chat is available on both the admin dashboard and the employee portal.
+    </p>
+
+    <div class="two-col">
+      <div class="two-col-card">
+        <h4>Direct Messages</h4>
+        <ul>
+          <li>One-to-one messaging between admin and any employee</li>
+          <li>Message history persisted in the database</li>
+          <li>Unread message count shown in notification bell</li>
+          <li>Read receipts to confirm message delivery</li>
+        </ul>
+      </div>
+      <div class="two-col-card">
+        <h4>Group Chats</h4>
+        <ul>
+          <li>Create named group chats for teams or departments</li>
+          <li>Add multiple employees to a group</li>
+          <li>All group messages visible to all members</li>
+          <li>Admin can create and manage groups</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top: 20px;">
+      <p><strong>Video &amp; Voice Calls:</strong> TeamPulse supports browser-based video and voice calls between admin and employees using WebRTC — no app installation required. Calls work across different networks and locations via TURN relay servers.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 08. Tasks ─────────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">08 — Tasks</div>
+    <h2>Task &amp; Project Management</h2>
+    <p>
+      TeamPulse includes a lightweight project and task tracker designed for remote teams. Admins create projects, break them into tasks, assign them to employees, and track progress — all without needing a separate tool like Jira.
+    </p>
+
+    <ul class="detail-list">
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Project creation</strong> — create named projects with a colour code and unique key (e.g. "ENG", "MKT"). Projects act as containers for related tasks.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Kanban-style board</strong> — tasks are organised by status: To Do, In Progress, In Review, and Done. Drag-and-drop style status management.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Task details</strong> — each task has a title, description, priority (Low / Medium / High / Urgent), due date, and an assigned employee.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Employee task view</strong> — employees see only the tasks assigned to them in their portal, keeping their workspace focused and uncluttered.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Jira integration</strong> — for teams already using Jira, TeamPulse can pull in issues and project data directly, syncing work items without duplication.</span>
+      </li>
+    </ul>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 09. AI Assistant ──────────────────────────── -->
+  <div class="section">
+    <div class="section-label">09 — AI</div>
+    <h2>AI Assistant</h2>
+    <p>
+      TeamPulse includes an AI assistant built directly into the admin dashboard. It is powered by Anthropic's Claude model and is pre-loaded with context about your team — headcount, attendance patterns, open tickets, and leave data — so it can answer real questions without manual reporting.
+    </p>
+
+    <h3>What you can ask</h3>
+    <ul class="detail-list">
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text">"How many employees are currently active?" — pulls live status data</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text">"Which employees have pending leave requests this week?" — scans leave records</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text">"Summarise team attendance for the past month" — generates a readable narrative</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text">"Are there any urgent support tickets open right now?" — queries ticket status</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text">"Write a performance note for [Employee Name]" — HR writing assistance</span>
+      </li>
+    </ul>
+
+    <div class="info-box">
+      <p>Responses are streamed in real time — you see the answer being written character by character, just like a chat conversation. The AI stays in scope: it only answers HR and workforce-related questions.</p>
+    </div>
+
+    <h3>Per-Employee AI Reports</h3>
+    <p>
+      From any employee's profile, admins can trigger a one-click AI report. The report analyses the employee's clock-in patterns, hours worked, leave history, and task completion rate, and produces a readable narrative suitable for a performance review or a management update.
+    </p>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 10. Reports ───────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">10 — Reports</div>
+    <h2>Reports &amp; Data Export</h2>
+    <p>
+      TeamPulse surfaces the key numbers you need on the main dashboard and provides export tools for deeper analysis in Excel or any BI tool.
+    </p>
+
+    <div class="two-col">
+      <div class="two-col-card">
+        <h4>Dashboard Metrics</h4>
+        <ul>
+          <li>Total employees and active headcount</li>
+          <li>Today's attendance rate</li>
+          <li>Total hours worked this week</li>
+          <li>Pending leaves and open tickets</li>
+          <li>Recent activity feed</li>
+        </ul>
+      </div>
+      <div class="two-col-card">
+        <h4>Reports Page</h4>
+        <ul>
+          <li>Per-employee attendance summary</li>
+          <li>Hours breakdown by employee and period</li>
+          <li>Leave utilisation overview</li>
+          <li>AI-generated performance narrative</li>
+          <li>Ticket resolution history</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>CSV Export</h3>
+    <p>
+      Admins can download the full attendance log as a CSV file from the Attendance page, or download an individual employee's timesheet from their profile. Exported files are compatible with Microsoft Excel, Google Sheets, and any data tool. Date columns are formatted to prevent Excel auto-conversion to date serial numbers.
+    </p>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 11. Multi-Tenancy ─────────────────────────── -->
+  <div class="section">
+    <div class="section-label">11 — Workspaces</div>
+    <h2>Multi-Tenant Workspaces</h2>
+    <p>
+      TeamPulse is built as a multi-tenant platform. Each client organisation gets a completely isolated workspace — their employees, attendance records, tickets, announcements, and settings are private and never mixed with another organisation's data.
+    </p>
+
+    <ul class="detail-list">
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Workspace creation via signup</strong> — any company can create their own workspace at <em>/signup</em> by entering their organisation name, admin email, and password. No manual provisioning required.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Complete data isolation</strong> — every database query is scoped to the admin's organisation. It is architecturally impossible for one admin to see another organisation's employees or data.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Organisation branding</strong> — the workspace name appears in the sidebar and header, giving each client a branded experience on the shared platform.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Scalable by design</strong> — there is no limit on the number of organisations or employees. Each new client signup instantly gets a fully functional workspace.</span>
+      </li>
+    </ul>
+
+    <div class="info-box">
+      <p><strong>SaaS-ready:</strong> TeamPulse can be licensed as a white-label SaaS product. Each client organisation signs up, manages their own team, and operates independently on a shared infrastructure — dramatically reducing per-client deployment cost.</p>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 12. Security ──────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">12 — Security</div>
+    <h2>Security &amp; Access Control</h2>
+
+    <ul class="detail-list">
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Password hashing</strong> — all passwords are hashed using bcrypt with a cost factor of 10. Plaintext passwords are never stored.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>HTTP-only cookies</strong> — authentication tokens are stored in HTTP-only, SameSite cookies. They are not accessible to JavaScript, preventing XSS-based token theft.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Route-level middleware</strong> — every admin and employee route is protected by server-side middleware. Unauthenticated requests are redirected to login before any page content is served.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Role separation</strong> — admin and employee roles are authenticated independently via separate cookies. An employee token cannot access admin routes.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Organisation-scoped queries</strong> — all database queries for admin-facing data are parameterised and scoped by organisationId. Cross-tenant data access is prevented at the query level.</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span class="item-text"><strong>Parameterised SQL</strong> — all database interactions use parameterised queries, preventing SQL injection attacks.</span>
+      </li>
+    </ul>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 13. Getting Started ───────────────────────── -->
+  <div class="section">
+    <div class="section-label">13 — Onboarding</div>
+    <h2>Getting Started</h2>
+    <p>Setting up TeamPulse for your organisation takes under five minutes.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Create your workspace</h4>
+          <p>Visit the signup page, enter your company name, admin email address, and a password. Your isolated workspace is created instantly.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Add your employees</h4>
+          <p>From the Employees page, add each team member with their name, email, role, department, and a temporary password. A welcome email with login details is sent to them automatically.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Employees log in</h4>
+          <p>Each employee signs in to the Employee Portal using their email and the temporary password. From there they can clock in, submit leaves, raise tickets, chat, and view their tasks.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>Manage from the admin dashboard</h4>
+          <p>As the admin, you see everything: who is active, who is on leave, who has pending tickets, and how many hours each person has worked this week. Approve or reject requests with one click.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>Use AI to stay informed</h4>
+          <p>Ask the built-in AI assistant any question about your team. Generate individual performance reports, or export attendance data to share with payroll or leadership.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── 14. Technology ────────────────────────────── -->
+  <div class="section">
+    <div class="section-label">14 — Technology</div>
+    <h2>Technology &amp; Infrastructure</h2>
+    <p>
+      TeamPulse is built on modern, proven technologies chosen for performance, reliability, and developer velocity.
+    </p>
+
+    <div class="two-col">
+      <div class="two-col-card">
+        <h4>Frontend &amp; Framework</h4>
+        <ul>
+          <li>Next.js 16 (App Router, React Server Components)</li>
+          <li>React 19 with TypeScript</li>
+          <li>Tailwind CSS v4 with dark-first design system</li>
+          <li>shadcn/ui component library</li>
+          <li>Streaming AI responses (Server-Sent Events)</li>
+        </ul>
+      </div>
+      <div class="two-col-card">
+        <h4>Backend &amp; Data</h4>
+        <ul>
+          <li>Neon Postgres (serverless, globally distributed)</li>
+          <li>Parameterised SQL via @neondatabase/serverless</li>
+          <li>Anthropic Claude (AI assistant + reports)</li>
+          <li>Resend (transactional email)</li>
+          <li>Vercel (global edge deployment)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Infrastructure</h3>
+    <p>
+      TeamPulse is deployed on Vercel's global edge network, meaning pages load from the server closest to the user anywhere in the world. The database runs on Neon's serverless Postgres, which scales to zero when idle and scales up instantly under load — keeping costs low without sacrificing performance.
+    </p>
+
+    <div class="badges">
+      <span class="badge">Next.js 16</span>
+      <span class="badge">React 19</span>
+      <span class="badge">TypeScript</span>
+      <span class="badge">Tailwind CSS v4</span>
+      <span class="badge">Neon Postgres</span>
+      <span class="badge">Vercel Edge</span>
+      <span class="badge">Anthropic Claude</span>
+      <span class="badge">Resend</span>
+      <span class="badge">WebRTC</span>
+      <span class="badge">bcrypt</span>
+      <span class="badge">SSE</span>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ─── CTA ───────────────────────────────────────── -->
+  <div class="cta">
+    <h2>Ready to get started?</h2>
+    <p>Create your workspace in under a minute. No credit card required.</p>
+    <a href="https://crm-app-blue-phi.vercel.app/signup" class="cta-btn">Create free workspace →</a>
+    <br />
+    <span class="cta-link">Questions? Contact us at syed@binarynext.io</span>
+  </div>
+
+  <p style="text-align:center;color:#cbd5e1;font-size:11px;margin-top:40px;padding-bottom:20px;">
+    © 2026 Binary Next · TeamPulse CRM · All rights reserved · binarynext.io
+  </p>
+
+</div>
+</body>
+</html>

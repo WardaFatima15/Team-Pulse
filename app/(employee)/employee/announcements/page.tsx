@@ -12,7 +12,8 @@ export default async function EmployeeAnnouncementsPage() {
   if (!emp) redirect("/login")
 
   const announcements = await queryAll<Announcement>(
-    `SELECT * FROM "Announcement" ORDER BY pinned DESC, "createdAt" DESC`
+    `SELECT * FROM "Announcement" WHERE "organizationId" = $1 ORDER BY pinned DESC, "createdAt" DESC`,
+    [emp.organizationId]
   )
 
   return (

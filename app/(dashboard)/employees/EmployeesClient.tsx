@@ -166,9 +166,18 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
       return
     }
     startTransition(async () => {
-      await createEmployee({ ...form, password: form.password || "employee123" })
-      setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "" })
-      onSuccess()
+      try {
+        await createEmployee({ ...form, password: form.password || "employee123" })
+        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "" })
+        onSuccess()
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        if (msg.includes("duplicate") || msg.includes("unique") || msg.includes("23505")) {
+          setError("An employee with this email already exists.")
+        } else {
+          setError(msg || "Failed to create employee. Please try again.")
+        }
+      }
     })
   }
 

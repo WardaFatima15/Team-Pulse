@@ -24,7 +24,7 @@ const titles: Record<string, { title: string; sub: string }> = {
 
 type NotifCounts = { pendingLeaves: number; openTickets: number; unreadMessages: number; total: number }
 
-export default function Header() {
+export default function Header({ orgName, adminEmail }: { orgName?: string; adminEmail?: string }) {
   const pathname = usePathname()
   const base = "/" + pathname.split("/")[1]
   const page = titles[base] ?? { title: "TeamPulse", sub: "" }
@@ -137,7 +137,7 @@ export default function Header() {
           </Avatar>
           <div className="hidden sm:block">
             <p className="text-sm font-semibold text-white leading-tight">Admin</p>
-            <p className="text-xs text-white/40 leading-tight">admin@company.com</p>
+            <p className="text-xs text-white/40 leading-tight">{adminEmail ?? "admin@company.com"}</p>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { queryOne, queryAll } from "@/lib/db"
+import { getAdminSession } from "@/lib/admin-auth"
 import { format } from "date-fns"
 import EmployeeDetailClient from "./EmployeeDetailClient"
 
@@ -21,6 +22,8 @@ type Ticket = {
 function day(n: number) { return new Date(Date.now() - n * 86400000).toISOString().split("T")[0] }
 
 export default async function EmployeeProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const admin = await getAdminSession()
+  if (!admin) redirect("/login")
   const { id } = await params
   const today = day(0)
   const weekAgo = day(7)
@@ -28,7 +31,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
   const last7Dates = [6, 5, 4, 3, 2, 1, 0].map(n => day(n))
 
   const [emp, timeRecords, leaves, tickets, hourStats, countStats, last7Records] = await Promise.all([
-    queryOne<Employee>(`SELECT * FROM "Employee" WHERE id = $1`, [id]),
+    queryOne<Employee>(`SELECT * FROM "Employee" WHERE id = $1 AND "organizationId" = $2`, [id, admin.organizationId]),
     queryAll<TimeRecord>(`SELECT id, date, "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 ORDER BY date DESC`, [id]),
     queryAll<LeaveRequest>(`SELECT id, type, "startDate", "endDate", days, reason, status, "createdAt" FROM "LeaveRequest" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`, [id]),
     queryAll<Ticket>(`SELECT id, title, description, priority, status, "createdAt" FROM "Ticket" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`, [id]),

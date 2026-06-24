@@ -213,6 +213,31 @@ async function setupSchema(): Promise<void> {
     await client.query(`CREATE INDEX IF NOT EXISTS activity_emp_idx ON "ActivityLog"("employeeId")`)
     await client.query(`CREATE INDEX IF NOT EXISTS activity_time_idx ON "ActivityLog"("createdAt" DESC)`)
 
+    await client.query(`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "name" TEXT NOT NULL DEFAULT 'Admin'`)
+
+    // Employee email is not unique — same person can exist across multiple orgs
+    await client.query(`ALTER TABLE "Employee" DROP CONSTRAINT IF EXISTS "Employee_email_key"`)
+    await client.query(`DROP INDEX IF EXISTS emp_email_org_idx`)
+
+    // ── Multi-tenancy ─────────────────────────────────────────────────────────
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "Organization" (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        slug TEXT UNIQUE NOT NULL,
+        "createdAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
+    await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
+    await client.query(`ALTER TABLE "Announcement" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
+    // Seed default org
+    await client.query(`
+      INSERT INTO "Organization" (id, name, slug, "createdAt")
+      VALUES ('default-org', 'My Organization', 'my-organization', $1)
+      ON CONFLICT (id) DO NOTHING
+    `, [new Date().toISOString()])
+
     // Auto-seed admin on first run
     const { rows } = await client.query(`SELECT id FROM "Admin" WHERE email = 'admin@company.com'`)
     if (rows.length === 0) {

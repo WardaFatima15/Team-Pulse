@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { queryOne } from "@/lib/db"
+import { queryOne, queryAll } from "@/lib/db"
 import bcrypt from "bcryptjs"
 
 export async function POST(req: NextRequest) {
@@ -17,14 +17,16 @@ export async function POST(req: NextRequest) {
     return res
   }
 
-  const emp = await queryOne<{ id: string; passwordHash: string }>(
+  // Same email may exist in multiple orgs — find the one whose password matches
+  const emps = await queryAll<{ id: string; passwordHash: string }>(
     `SELECT id, "passwordHash" FROM "Employee" WHERE email = $1`,
     [email]
   )
 
-  if (emp && bcrypt.compareSync(password, emp.passwordHash)) {
+  const matched = emps.find(e => bcrypt.compareSync(password, e.passwordHash))
+  if (matched) {
     const res = NextResponse.json({ ok: true, role: "employee" })
-    res.cookies.set("employee_token", emp.id, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/" })
+    res.cookies.set("employee_token", matched.id, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/" })
     res.cookies.delete("auth_token")
     return res
   }
