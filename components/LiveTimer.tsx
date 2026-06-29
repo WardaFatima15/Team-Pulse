@@ -7,7 +7,12 @@ export default function LiveTimer({ clockIn }: { clockIn: string }) {
 
   useEffect(() => {
     function tick() {
-      const diffSec = Math.floor((Date.now() - new Date(clockIn).getTime()) / 1000)
+      const now = new Date()
+      // clockIn is stored as "HH:MM:SS" time-only string
+      const [hh, mm, ss] = clockIn.split(":").map(Number)
+      const startSec = hh * 3600 + mm * 60 + (ss ?? 0)
+      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
+      const diffSec = Math.max(0, nowSec - startSec)
       const h = Math.floor(diffSec / 3600)
       const m = Math.floor((diffSec % 3600) / 60)
       const s = diffSec % 60
