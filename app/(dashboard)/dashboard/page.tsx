@@ -5,9 +5,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Users, Clock, TrendingUp, CalendarCheck, ArrowUp, ArrowRight, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
+import LiveTimer from "@/components/LiveTimer"
 
 type Employee = { id: string; name: string; avatar: string; role: string; department: string; status: string; location: string }
-type TimeRecord = { employeeId: string; hours: number; date: string }
+type TimeRecord = { employeeId: string; hours: number; date: string; clockIn: string; clockOut: string | null }
 type LeaveRequest = { id: string; employeeId: string; type: string; days: number; status: string }
 type Ticket = { id: string; employeeId: string; title: string; priority: string; status: string }
 
@@ -129,7 +130,13 @@ export default async function DashboardPage() {
                       <p className="text-xs text-white/40 truncate">{emp.role.split(" ").slice(-1)}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-white/50">{getFlag(emp.location)}</span>
-                        <span className="text-xs font-medium text-white/70">{rec ? `${rec.hours}h` : "—"}</span>
+                        <span className="text-xs font-medium text-white/70">
+                          {rec
+                            ? rec.clockOut === null
+                              ? <span className="text-green-400 flex items-center gap-1"><span className="size-1.5 rounded-full bg-green-400 animate-pulse inline-block" /><LiveTimer clockIn={rec.clockIn} /></span>
+                              : `${rec.hours.toFixed(1)}h`
+                            : "—"}
+                        </span>
                       </div>
                     </Link>
                   )
