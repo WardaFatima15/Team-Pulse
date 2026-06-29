@@ -54,7 +54,8 @@ export default function DashboardClient({ name, status: initialStatus, todayReco
   let elapsed = ""
   if (todayRecord && !todayRecord.clockOut) {
     const [h, m] = todayRecord.clockIn.split(":").map(Number)
-    const mins = Math.max(0, now.getHours() * 60 + now.getMinutes() - (h * 60 + m))
+    let mins = now.getHours() * 60 + now.getMinutes() - (h * 60 + m)
+    if (mins < 0) mins += 24 * 60 // handle midnight crossing
     elapsed = `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, "0")}m`
   }
 

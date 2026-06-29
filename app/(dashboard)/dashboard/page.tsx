@@ -33,6 +33,8 @@ export default async function DashboardPage() {
     label: format(new Date(Date.now() - i * 86400000), "EEE"),
   }))
 
+  const yesterday = day(1)
+
   const [employees, weekRecords, leaves, openTickets] = await Promise.all([
     queryAll<Employee>(`SELECT * FROM "Employee" WHERE "organizationId" = $1 ORDER BY status DESC, name ASC`, [orgId]),
     queryAll<TimeRecord>(`SELECT t.* FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2)`, [orgId, weekDates]),
@@ -40,7 +42,10 @@ export default async function DashboardPage() {
     queryAll<Ticket>(`SELECT t.* FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.status != 'resolved' ORDER BY t."createdAt" DESC LIMIT 4`, [orgId]),
   ])
 
-  const todayRecords = weekRecords.filter(r => r.date === today)
+  // Include yesterday's still-open records for overnight shifts (e.g. 5pm–2am)
+  const todayRecords = weekRecords.filter(r =>
+    (r.date === today) || (r.date === yesterday && r.clockOut === null)
+  )
   const online = employees.filter(e => e.status === "online").length
   const away = employees.filter(e => e.status === "away").length
   const totalWeekHours = weekRecords.reduce((s, r) => s + r.hours, 0)

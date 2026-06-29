@@ -3,12 +3,12 @@ import { queryAll, execute } from "@/lib/db"
 import bcrypt from "bcryptjs"
 
 async function closeStaleSessions(empId: string) {
-  const today = new Date().toISOString().split("T")[0]
-  // Close any open TimeRecord from before today so stale timers don't show
+  // Only close sessions older than 2 days — yesterday's session may still be open (overnight shift)
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0]
   await execute(
     `UPDATE "TimeRecord" SET "clockOut" = "clockIn", hours = 0
      WHERE "employeeId" = $1 AND "clockOut" IS NULL AND date < $2`,
-    [empId, today]
+    [empId, twoDaysAgo]
   )
 }
 
