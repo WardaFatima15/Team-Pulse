@@ -13,6 +13,7 @@ export default function LiveTimer({ clockIn }: { clockIn: string }) {
       const startSec = hh * 3600 + mm * 60 + (ss ?? 0)
       const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
       const diffSec = Math.max(0, nowSec - startSec)
+      if (diffSec > 14 * 3600) { setElapsed("–"); return } // stale session guard
       const h = Math.floor(diffSec / 3600)
       const m = Math.floor((diffSec % 3600) / 60)
       const s = diffSec % 60
