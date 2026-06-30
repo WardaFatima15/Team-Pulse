@@ -5,9 +5,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, MapPin, Mail, Plus, ChevronDown, Eye, EyeOff, UserPlus, X } from "lucide-react"
+import { Search, MapPin, Mail, Plus, Eye, EyeOff, UserPlus, X } from "lucide-react"
 import Link from "next/link"
-import { createEmployee, updateEmployeeStatus } from "@/lib/actions"
+import { createEmployee } from "@/lib/actions"
 import { useRouter } from "next/navigation"
 
 type Employee = {
@@ -21,38 +21,13 @@ const statusConfig = {
   offline: { label: "Offline", dot: "bg-white/30",   badge: "bg-white/10 text-white/50" },
 }
 
-function StatusDropdown({ emp }: { emp: Employee }) {
-  const [open, setOpen] = useState(false)
-  const [pending, start] = useTransition()
-  const router = useRouter()
-
-  function change(s: "online" | "away" | "offline") {
-    setOpen(false)
-    start(async () => { await updateEmployeeStatus(emp.id, s); router.refresh() })
-  }
-
-  const sc = statusConfig[emp.status as keyof typeof statusConfig] ?? statusConfig.offline
-
+function StatusBadge({ status }: { status: string }) {
+  const sc = statusConfig[status as keyof typeof statusConfig] ?? statusConfig.offline
   return (
-    <div className="relative" onClick={e => e.preventDefault()}>
-      <button onClick={() => setOpen(!open)} disabled={pending}
-        className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium ${sc.badge}`}>
-        {sc.label} <ChevronDown className="size-2.5" />
-      </button>
-      {open && (
-        <div className="absolute top-full left-0 mt-1 bg-[#1c1c24] border border-white/10 rounded-lg shadow-xl z-30 py-1 min-w-[100px]">
-          {(["online", "away", "offline"] as const).map(s => {
-            const c = statusConfig[s]
-            return (
-              <button key={s} onClick={() => change(s)}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-white/8 text-white/70 hover:text-white">
-                <span className={`size-2 rounded-full ${c.dot}`} />{c.label}
-              </button>
-            )
-          })}
-        </div>
-      )}
-    </div>
+    <span className={`inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-medium ${sc.badge}`}>
+      <span className={`size-1.5 rounded-full ${sc.dot}`} />
+      {sc.label}
+    </span>
   )
 }
 
@@ -124,7 +99,7 @@ export default function EmployeesClient({ employees }: { employees: Employee[] }
                         <p className="font-semibold text-white truncate">{emp.name}</p>
                         <p className="text-xs text-white/65 truncate">{emp.role}</p>
                         <div className="mt-1">
-                          <StatusDropdown emp={emp} />
+                          <StatusBadge status={emp.status} />
                         </div>
                       </div>
                       <span className="text-xs bg-white/10 text-white/60 px-1.5 py-0.5 rounded shrink-0">{emp.department}</span>

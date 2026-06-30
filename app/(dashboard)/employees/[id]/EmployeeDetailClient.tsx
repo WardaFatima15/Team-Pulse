@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, Mail, Phone, MapPin, Calendar, Clock, TicketCheck, KeyRound, Save, TrendingUp, CheckCircle2, AlertCircle, XCircle, Pencil, Activity, Download } from "lucide-react"
 import Link from "next/link"
-import { updateEmployee, updateEmployeeStatus, resetEmployeePassword, updateLeaveStatus } from "@/lib/actions"
+import { updateEmployee, resetEmployeePassword, updateLeaveStatus } from "@/lib/actions"
 
 type Employee = {
   id: string; name: string; email: string; role: string; department: string
@@ -21,11 +21,11 @@ type Ticket = { id: string; title: string; description: string; priority: string
 type Stats = { hoursToday: number; hoursWeek: number; hoursMonth: number; totalHours: number; totalDays: number; openTickets: number; pendingLeaves: number; approvedLeaveDays: number }
 type DayBar = { label: string; date: string; hours: number }
 
-const STATUS_OPTIONS = [
-  { value: "online", label: "Online", dot: "bg-green-500", badge: "bg-green-500/15 text-green-400 border-green-500/30" },
-  { value: "away", label: "Away", dot: "bg-yellow-400", badge: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-  { value: "offline", label: "Offline", dot: "bg-white/30", badge: "bg-white/10 text-white/60 border-white/15" },
-]
+const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string }> = {
+  online:  { label: "Online",  dot: "bg-green-500",  badge: "bg-green-500/15 text-green-400 border-green-500/30" },
+  away:    { label: "Away",    dot: "bg-yellow-400", badge: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  offline: { label: "Offline", dot: "bg-white/30",   badge: "bg-white/10 text-white/60 border-white/15" },
+}
 
 const PRIORITY_COLOR: Record<string, string> = {
   urgent: "bg-red-500/15 text-red-400 border-red-500/30",
@@ -58,16 +58,10 @@ export default function EmployeeDetailClient({
   weekBars: DayBar[]
 }) {
   const [tab, setTab] = useState<Tab>("Overview")
-  const [statusOpen, setStatusOpen] = useState(false)
   const [pending, startTransition] = useTransition()
 
-  const sc = STATUS_OPTIONS.find(s => s.value === employee.status) ?? STATUS_OPTIONS[2]
+  const sc = STATUS_CONFIG[employee.status] ?? STATUS_CONFIG.offline
   const maxBar = Math.max(...weekBars.map(b => b.hours), 1)
-
-  function changeStatus(val: string) {
-    setStatusOpen(false)
-    startTransition(() => updateEmployeeStatus(employee.id, val as "online" | "away" | "offline"))
-  }
 
   return (
     <div className="max-w-5xl space-y-6">
@@ -90,25 +84,10 @@ export default function EmployeeDetailClient({
                   <p className="text-white/60 mt-0.5">{employee.role} · {employee.department}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <button onClick={() => setStatusOpen(v => !v)}
-                      className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border transition-colors ${sc.badge}`}>
-                      <span className={`size-1.5 rounded-full ${sc.dot}`} />
-                      {sc.label}
-                      <svg className="size-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                    {statusOpen && (
-                      <div className="absolute right-0 top-full mt-1 z-10 bg-[#1c1c24] border border-white/10 rounded-lg shadow-xl overflow-hidden min-w-[120px]">
-                        {STATUS_OPTIONS.map(opt => (
-                          <button key={opt.value} onClick={() => changeStatus(opt.value)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-white/70 hover:bg-white/8 transition-colors">
-                            <span className={`size-2 rounded-full ${opt.dot}`} />
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border ${sc.badge}`}>
+                    <span className={`size-1.5 rounded-full ${sc.dot} ${employee.status === "online" ? "animate-pulse" : ""}`} />
+                    {sc.label}
+                  </span>
                   <button onClick={() => setTab("Account")}
                     className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-white/10 text-white/60 hover:bg-white/8 transition-colors">
                     <Pencil className="size-3" /> Edit

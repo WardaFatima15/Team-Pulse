@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getAdminSession } from "@/lib/admin-auth"
 import Sidebar from "@/components/layout/Sidebar"
 import Header from "@/components/layout/Header"
+import AutoRefresh from "@/components/AutoRefresh"
 
 export const dynamic = "force-dynamic"
 
@@ -11,6 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="dark flex h-screen overflow-hidden bg-[#0a0a0c]">
+      <AutoRefresh ms={30000} />
       <Sidebar orgName={admin.orgName} />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header orgName={admin.orgName} adminEmail={admin.email} />
