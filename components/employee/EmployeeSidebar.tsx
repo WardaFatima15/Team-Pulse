@@ -2,9 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
-import { useTransition, useState } from "react"
+import { useState } from "react"
 import { LayoutDashboard, Calendar, CheckSquare, Megaphone, LogOut, Users, MessageSquare, Building2, ChevronDown, Check } from "lucide-react"
-import { setMyStatus } from "@/lib/employee-actions"
 import type { EmployeeSession } from "@/lib/employee-auth"
 
 const nav = [
@@ -15,26 +14,11 @@ const nav = [
   { href: "/employee/chat",           label: "Chat",          icon: MessageSquare },
 ]
 
-const statusOptions: { value: "online" | "away" | "offline"; label: string; dot: string }[] = [
-  { value: "online",  label: "Online",  dot: "bg-green-500" },
-  { value: "away",    label: "Away",    dot: "bg-yellow-400" },
-  { value: "offline", label: "Offline", dot: "bg-white/30" },
-]
-
 export default function EmployeeSidebar({ employee }: { employee: EmployeeSession }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [pending, startTransition] = useTransition()
-  const [status, setStatus] = useState(employee.status)
-  const [showStatusMenu, setShowStatusMenu] = useState(false)
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false)
   const [switching, setSwitching] = useState(false)
-
-  function handleStatus(s: "online" | "away" | "offline") {
-    setStatus(s)
-    setShowStatusMenu(false)
-    startTransition(() => setMyStatus(s))
-  }
 
   async function handleLogout() {
     await fetch("/api/employee-auth", { method: "DELETE" })
@@ -55,7 +39,6 @@ export default function EmployeeSidebar({ employee }: { employee: EmployeeSessio
     setSwitching(false)
   }
 
-  const currentStatus = statusOptions.find(s => s.value === status) ?? statusOptions[2]
   const hasMultipleWorkspaces = employee.workspaces.length > 1
 
   return (
@@ -113,24 +96,13 @@ export default function EmployeeSidebar({ employee }: { employee: EmployeeSessio
           </div>
         </div>
 
-        <div className="relative">
-          <button onClick={() => setShowStatusMenu(!showStatusMenu)} disabled={pending}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-xs">
-            <span className={`size-2 rounded-full shrink-0 ${currentStatus.dot}`} />
-            <span className="text-white/80 font-medium">{currentStatus.label}</span>
-            <svg className="size-3 ml-auto text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-          </button>
-          {showStatusMenu && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1c1c24] border border-white/10 rounded-lg shadow-xl z-20 py-1">
-              {statusOptions.map(s => (
-                <button key={s.value} onClick={() => handleStatus(s.value)}
-                  className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-white/8 transition-colors ${status === s.value ? "text-white font-medium" : "text-white/60"}`}>
-                  <span className={`size-2 rounded-full shrink-0 ${s.dot}`} />
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
+        <div
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-green-500/10 text-xs"
+          title="Your status is set automatically based on your activity"
+        >
+          <span className="size-2 rounded-full shrink-0 bg-green-500 animate-pulse" />
+          <span className="text-green-400 font-medium">Active</span>
+          <span className="text-white/30 ml-auto text-[10px]">auto</span>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useTransition } from "react"
-import { clockIn, clockOut, setMyStatus } from "@/lib/employee-actions"
+import { clockIn, clockOut } from "@/lib/employee-actions"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { Calendar, Clock, CheckSquare, Megaphone, Pin } from "lucide-react"
@@ -13,23 +13,22 @@ type Announcement = { id: string; title: string; body: string; pinned: number; c
 
 type Props = {
   name: string
-  status: string
+  status?: string
   todayRecord: TodayRecord
   pendingLeaves: number
   openTickets: number
   announcements: Announcement[]
 }
 
-const statusOptions = [
-  { value: "online",  label: "Online",  dot: "bg-green-500",  btn: "bg-green-600 hover:bg-green-700 text-white" },
-  { value: "away",    label: "Away",    dot: "bg-yellow-400", btn: "bg-yellow-500 hover:bg-yellow-600 text-white" },
-  { value: "offline", label: "Offline", dot: "bg-white/30",   btn: "bg-white/15 hover:bg-white/20 text-white/70" },
-] as const
+// Capture the time on the employee's own device so hours/times are in
+// THEIR timezone, not the server's UTC clock.
+function localTime() {
+  return new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+}
 
-export default function DashboardClient({ name, status: initialStatus, todayRecord, pendingLeaves, openTickets, announcements }: Props) {
+export default function DashboardClient({ name, todayRecord, pendingLeaves, openTickets, announcements }: Props) {
   const [now, setNow] = useState(new Date())
   const [pending, startTransition] = useTransition()
-  const [myStatus, setMyStatusLocal] = useState(initialStatus)
   const router = useRouter()
 
   useEffect(() => {
@@ -38,14 +37,10 @@ export default function DashboardClient({ name, status: initialStatus, todayReco
   }, [])
 
   function handleClockIn() {
-    startTransition(async () => { await clockIn(); router.refresh() })
+    startTransition(async () => { await clockIn(localTime()); router.refresh() })
   }
   function handleClockOut() {
-    startTransition(async () => { await clockOut(); router.refresh() })
-  }
-  function handleStatus(s: "online" | "away" | "offline") {
-    setMyStatusLocal(s)
-    startTransition(async () => { await setMyStatus(s) })
+    startTransition(async () => { await clockOut(localTime()); router.refresh() })
   }
 
   const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening"
@@ -118,22 +113,19 @@ export default function DashboardClient({ name, status: initialStatus, todayReco
         </CardContent>
       </Card>
 
-      {/* Status widget */}
+      {/* Status — automatic, activity-based */}
       <div className="bg-[#131318] rounded-2xl border border-white/10 p-5">
         <p className="text-xs text-white/50 font-medium uppercase tracking-widest mb-3">Your Status</p>
-        <div className="flex items-center gap-3">
-          {statusOptions.map(s => {
-            const active = myStatus === s.value
-            return (
-              <button key={s.value} onClick={() => handleStatus(s.value)} disabled={pending}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all border-2 ${active ? `${s.btn} border-transparent shadow-sm` : "bg-white/5 border-white/10 text-white/50 hover:border-white/20"}`}>
-                <span className={`size-2.5 rounded-full ${active ? "bg-white/80" : s.dot}`} />
-                {s.label}
-              </button>
-            )
-          })}
+        <div className="flex items-center gap-2.5">
+          <span className="size-2.5 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-sm font-semibold text-white">Active</span>
+          <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">Automatic</span>
         </div>
-        <p className="text-xs text-white/40 mt-2">Visible to your manager in real-time</p>
+        <p className="text-xs text-white/40 mt-2">
+          Your manager sees your status in real-time. It updates automatically based on your activity —
+          you&apos;ll show as <span className="text-yellow-400/80">away</span> when idle and{" "}
+          <span className="text-white/50">offline</span> when you close the app.
+        </p>
       </div>
 
       {/* Quick stats */}

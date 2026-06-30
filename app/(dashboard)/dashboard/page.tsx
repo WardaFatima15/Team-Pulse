@@ -6,9 +6,10 @@ import { Users, Clock, TrendingUp, CalendarCheck, ArrowUp, ArrowRight, AlertTria
 import Link from "next/link"
 import { format } from "date-fns"
 import LiveTimer from "@/components/LiveTimer"
+import { effectiveStatus } from "@/lib/presence"
 
-type Employee = { id: string; name: string; avatar: string; role: string; department: string; status: string; location: string }
-type TimeRecord = { employeeId: string; hours: number; date: string; clockIn: string; clockOut: string | null }
+type Employee = { id: string; name: string; avatar: string; role: string; department: string; status: string; location: string; lastSeenAt: string }
+type TimeRecord = { employeeId: string; hours: number; date: string; clockIn: string; clockOut: string | null; createdAt: string }
 type LeaveRequest = { id: string; employeeId: string; type: string; days: number; status: string }
 type Ticket = { id: string; employeeId: string; title: string; priority: string; status: string }
 
@@ -35,12 +36,15 @@ export default async function DashboardPage() {
 
   const yesterday = day(1)
 
-  const [employees, weekRecords, leaves, openTickets] = await Promise.all([
+  const [employeesRaw, weekRecords, leaves, openTickets] = await Promise.all([
     queryAll<Employee>(`SELECT * FROM "Employee" WHERE "organizationId" = $1 ORDER BY status DESC, name ASC`, [orgId]),
     queryAll<TimeRecord>(`SELECT t.* FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2)`, [orgId, weekDates]),
     queryAll<LeaveRequest>(`SELECT l.* FROM "LeaveRequest" l JOIN "Employee" e ON e.id = l."employeeId" WHERE e."organizationId" = $1 ORDER BY l."createdAt" DESC`, [orgId]),
     queryAll<Ticket>(`SELECT t.* FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.status != 'resolved' ORDER BY t."createdAt" DESC LIMIT 4`, [orgId]),
   ])
+
+  // Presence is derived from heartbeats, not self-claimed status
+  const employees = employeesRaw.map(e => ({ ...e, status: effectiveStatus(e.status, e.lastSeenAt) }))
 
   // Include yesterday's still-open records for overnight shifts (e.g. 5pm–2am)
   const todayRecords = weekRecords.filter(r =>
@@ -138,7 +142,7 @@ export default async function DashboardPage() {
                         <span className="text-xs font-medium text-white/70">
                           {rec
                             ? rec.clockOut === null
-                              ? <span className="text-green-400 flex items-center gap-1"><span className="size-1.5 rounded-full bg-green-400 animate-pulse inline-block" /><LiveTimer clockIn={rec.clockIn} /></span>
+                              ? <span className="text-green-400 flex items-center gap-1"><span className="size-1.5 rounded-full bg-green-400 animate-pulse inline-block" /><LiveTimer since={rec.createdAt} /></span>
                               : `${rec.hours.toFixed(1)}h`
                             : "—"}
                         </span>

@@ -15,13 +15,15 @@ async function getEmp() {
   return queryOne<{ id: string; name: string }>(`SELECT id, name FROM "Employee" WHERE id = $1`, [id])
 }
 
-export async function clockIn() {
+export async function clockIn(localTime?: string) {
   const emp = await getEmp()
   if (!emp) return { ok: false, error: "Not authenticated" }
   const today = new Date().toISOString().split("T")[0]
   const exists = await queryOne(`SELECT id FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`, [emp.id, today])
   if (exists) return { ok: false, error: "Already clocked in today" }
-  const t = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+  // Display time comes from the employee's own device (their timezone).
+  const t = localTime || new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+  // createdAt is the real UTC instant — used to compute exact hours later.
   await execute(
     `INSERT INTO "TimeRecord" (id, "employeeId", date, "clockIn", hours, notes, "createdAt") VALUES ($1, $2, $3, $4, 0, '', $5)`,
     [randomUUID(), emp.id, today, t, new Date().toISOString()]
@@ -32,21 +34,20 @@ export async function clockIn() {
   return { ok: true }
 }
 
-export async function clockOut() {
+export async function clockOut(localTime?: string) {
   const emp = await getEmp()
   if (!emp) return { ok: false, error: "Not authenticated" }
   const today = new Date().toISOString().split("T")[0]
-  const rec = await queryOne<{ id: string; clockIn: string }>(
-    `SELECT id, "clockIn" FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2 AND "clockOut" IS NULL`,
+  const rec = await queryOne<{ id: string; clockIn: string; createdAt: string }>(
+    `SELECT id, "clockIn", "createdAt" FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2 AND "clockOut" IS NULL`,
     [emp.id, today]
   )
   if (!rec) return { ok: false, error: "Not clocked in" }
   const now = new Date()
-  const tout = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
-  const [h, m] = rec.clockIn.split(":").map(Number)
-  let mins = (now.getHours() * 60 + now.getMinutes()) - (h * 60 + m)
-  if (mins < 0) mins += 24 * 60 // handle midnight crossing (e.g. 5pm–2am shift)
-  const hours = Math.max(0, Math.round(mins / 6) / 10)
+  const tout = localTime || now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+  // Exact elapsed from the real clock-in instant — timezone & midnight proof.
+  const elapsedMs = now.getTime() - new Date(rec.createdAt).getTime()
+  const hours = Math.max(0, Math.round((elapsedMs / 3_600_000) * 10) / 10)
   await execute(`UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2 WHERE id = $3`, [tout, hours, rec.id])
   await logActivity(emp.id, emp.name, "clock_out", `Clocked out at ${tout} · ${hours}h logged`)
   revalidatePath("/employee/dashboard")

@@ -2,19 +2,16 @@
 
 import { useEffect, useState } from "react"
 
-export default function LiveTimer({ clockIn }: { clockIn: string }) {
+// `since` is the real ISO instant of clock-in (createdAt) — so the elapsed
+// time is correct no matter what timezone the admin viewing it is in.
+export default function LiveTimer({ since }: { since: string }) {
   const [elapsed, setElapsed] = useState("")
 
   useEffect(() => {
     function tick() {
-      const now = new Date()
-      // clockIn is stored as "HH:MM:SS" time-only string
-      const [hh, mm, ss] = clockIn.split(":").map(Number)
-      const startSec = hh * 3600 + mm * 60 + (ss ?? 0)
-      const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
-      let diffSec = nowSec - startSec
-      if (diffSec < 0) diffSec += 86400 // handle midnight crossing (overnight shift)
-      if (diffSec > 20 * 3600) { setElapsed("–"); return } // stale session guard (>20h = truly abandoned)
+      const diffSec = Math.floor((Date.now() - new Date(since).getTime()) / 1000)
+      if (diffSec < 0) { setElapsed("0m"); return }
+      if (diffSec > 20 * 3600) { setElapsed("–"); return } // stale/abandoned session guard
       const h = Math.floor(diffSec / 3600)
       const m = Math.floor((diffSec % 3600) / 60)
       const s = diffSec % 60
@@ -24,7 +21,7 @@ export default function LiveTimer({ clockIn }: { clockIn: string }) {
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [clockIn])
+  }, [since])
 
   return <>{elapsed}</>
 }
