@@ -80,7 +80,7 @@ export async function updateEmployeeStatus(id: string, status: "online" | "away"
 
 export async function createEmployee(data: {
   name: string; email: string; role: string; department: string
-  phone: string; location: string; password: string
+  phone: string; location: string; password: string; shiftHours?: number
 }) {
   const admin = await getAdminSession()
   if (!admin) throw new Error("Unauthorized")
@@ -90,13 +90,13 @@ export async function createEmployee(data: {
   const passwordHash = bcrypt.hashSync(password, 10)
   try {
     await execute(
-      `INSERT INTO "Employee" (id, name, email, role, department, avatar, status, phone, location, "jiraAccountId", "joinDate", "createdAt", "passwordHash", "organizationId")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      `INSERT INTO "Employee" (id, name, email, role, department, avatar, status, phone, location, "jiraAccountId", "joinDate", "createdAt", "passwordHash", "organizationId", "shiftHours")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
         randomUUID(), data.name, data.email, data.role, data.department,
         initials, "offline", data.phone, data.location, "",
         new Date().toISOString(), new Date().toISOString(), passwordHash,
-        admin.organizationId,
+        admin.organizationId, data.shiftHours ?? 0,
       ]
     )
   } catch (err: unknown) {
@@ -144,12 +144,12 @@ export async function removeAdmin(id: string) {
 
 export async function updateEmployee(id: string, data: {
   name: string; email: string; role: string; department: string
-  phone: string; location: string; jiraAccountId: string
+  phone: string; location: string; jiraAccountId: string; shiftHours?: number
 }) {
   const initials = data.name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
   await execute(
-    `UPDATE "Employee" SET name=$1, email=$2, role=$3, department=$4, avatar=$5, phone=$6, location=$7, "jiraAccountId"=$8 WHERE id=$9`,
-    [data.name, data.email, data.role, data.department, initials, data.phone, data.location, data.jiraAccountId, id]
+    `UPDATE "Employee" SET name=$1, email=$2, role=$3, department=$4, avatar=$5, phone=$6, location=$7, "jiraAccountId"=$8, "shiftHours"=$9 WHERE id=$10`,
+    [data.name, data.email, data.role, data.department, initials, data.phone, data.location, data.jiraAccountId, data.shiftHours ?? 0, id]
   )
   revalidatePath(`/employees/${id}`)
   revalidatePath("/employees")

@@ -7,7 +7,7 @@ import EmployeeDetailClient from "./EmployeeDetailClient"
 type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
-  joinDate: string; jiraAccountId: string
+  joinDate: string; jiraAccountId: string; shiftHours: number
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
 type LeaveRequest = {

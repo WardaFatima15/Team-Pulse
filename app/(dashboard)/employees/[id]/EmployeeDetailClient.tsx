@@ -13,7 +13,7 @@ import { updateEmployee, updateEmployeeStatus, resetEmployeePassword, updateLeav
 type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
-  joinDate: string; jiraAccountId: string
+  joinDate: string; jiraAccountId: string; shiftHours: number
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
 type LeaveRequest = { id: string; type: string; startDate: string; endDate: string; days: number; reason: string; status: string; createdAt: string }
@@ -427,6 +427,7 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
     phone: employee.phone ?? "",
     location: employee.location ?? "",
     jiraAccountId: employee.jiraAccountId ?? "",
+    shiftHours: String(employee.shiftHours ?? 0),
   })
   const [pending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
@@ -441,7 +442,7 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
     if (!form.name.trim() || !form.email.trim()) { setError("Name and email are required."); return }
     setError("")
     startTransition(async () => {
-      await updateEmployee(employee.id, form)
+      await updateEmployee(employee.id, { ...form, shiftHours: parseFloat(form.shiftHours) || 0 })
       setSaved(true)
     })
   }
@@ -461,10 +462,14 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
             { key: "phone", label: "Phone Number" },
             { key: "location", label: "Location" },
             { key: "jiraAccountId", label: "Jira Account ID" },
+            { key: "shiftHours", label: "Shift Length (hours)" },
           ] as { key: keyof typeof form; label: string }[]).map(({ key, label }) => (
-            <div key={key} className={key === "jiraAccountId" ? "sm:col-span-2" : ""}>
-              <label className="block text-xs font-medium text-white/70 mb-1.5">{label}</label>
-              <Input value={form[key]} onChange={e => set(key, e.target.value)} className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30" placeholder={label} />
+            <div key={key} className={key === "jiraAccountId" || key === "shiftHours" ? "sm:col-span-2" : ""}>
+              <label className="block text-xs font-medium text-white/70 mb-1.5">
+                {label}
+                {key === "shiftHours" && <span className="text-white/30 font-normal ml-1">(e.g. 9 for a 5pm–2am shift · 0 = no auto-clockout)</span>}
+              </label>
+              <Input type={key === "shiftHours" ? "number" : "text"} min={key === "shiftHours" ? "0" : undefined} max={key === "shiftHours" ? "24" : undefined} step={key === "shiftHours" ? "0.5" : undefined} value={form[key]} onChange={e => set(key, e.target.value)} className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30" placeholder={label} />
             </div>
           ))}
         </div>

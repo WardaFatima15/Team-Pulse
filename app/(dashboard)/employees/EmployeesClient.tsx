@@ -150,7 +150,7 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
   onOpenChange: (v: boolean) => void
   onSuccess: () => void
 }) {
-  const [form, setForm] = useState({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "" })
+  const [form, setForm] = useState({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "" })
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState("")
   const [pending, startTransition] = useTransition()
@@ -167,8 +167,8 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
     }
     startTransition(async () => {
       try {
-        await createEmployee({ ...form, password: form.password || "employee123" })
-        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "" })
+        await createEmployee({ ...form, password: form.password || "employee123", shiftHours: form.shiftHours ? parseFloat(form.shiftHours) : 0 })
+        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "" })
         onSuccess()
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err)
@@ -220,6 +220,22 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
                 />
               </div>
             ))}
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-white/60 mb-1">
+              Shift Length (hours) <span className="text-white/30 font-normal">(e.g. 9 for 5pm–2am · 0 = no auto-clockout)</span>
+            </label>
+            <Input
+              type="number"
+              min="0"
+              max="24"
+              step="0.5"
+              value={form.shiftHours}
+              onChange={e => set("shiftHours", e.target.value)}
+              placeholder="0"
+              className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+            />
           </div>
 
           <div>
