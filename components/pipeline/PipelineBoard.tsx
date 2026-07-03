@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, X, Loader2, Trash2, Building2, Mail, Phone, DollarSign, Filter } from "lucide-react"
+import { Plus, X, Loader2, Trash2, Building2, Mail, Phone, DollarSign, Filter, Upload } from "lucide-react"
 import { createLead, updateLead, deleteLead, type Lead, type LeadStage } from "@/lib/lead-actions"
+import ImportLeadsModal from "./ImportLeadsModal"
 
 const STAGES: { key: LeadStage; label: string; color: string }[] = [
   { key: "new",       label: "New",           color: "bg-white/10 text-white/70" },
@@ -146,6 +147,7 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [showNew, setShowNew] = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [editLead, setEditLead] = useState<Lead | null>(null)
   const [view, setView] = useState<"active" | "lost" | "all">("active")
 
@@ -200,9 +202,14 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
             </button>
           ))}
         </div>
-        <Button size="sm" onClick={() => setShowNew(true)} className="ml-auto bg-[#512feb] hover:bg-[#3f1fd4] text-white">
-          <Plus className="size-3.5 mr-1" /> Add Lead
-        </Button>
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowImport(true)} className="border-white/10 text-white/70 hover:bg-white/8">
+            <Upload className="size-3.5 mr-1" /> Import Excel
+          </Button>
+          <Button size="sm" onClick={() => setShowNew(true)} className="bg-[#512feb] hover:bg-[#3f1fd4] text-white">
+            <Plus className="size-3.5 mr-1" /> Add Lead
+          </Button>
+        </div>
       </div>
 
       {view === "active" ? (
@@ -294,6 +301,7 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
       )}
 
       {showNew && <LeadModal lead={null} onClose={() => setShowNew(false)} />}
+      {showImport && <ImportLeadsModal onClose={() => setShowImport(false)} />}
       {editLead && (
         <LeadModal
           lead={editLead}

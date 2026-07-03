@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { queryOne, queryAll, execute } from "@/lib/db"
 import { randomUUID } from "node:crypto"
-import { getAdminSession } from "@/lib/admin-auth"
-import { getEmployeeSession } from "@/lib/employee-auth"
+import { getActor } from "@/lib/actor"
 
 export type LeadStage = "new" | "contacted" | "qualified" | "proposal" | "won" | "lost"
 
@@ -22,18 +21,6 @@ export type Lead = {
   ownerName: string
   createdAt: string
   updatedAt: string
-}
-
-type Actor = { id: string; name: string; organizationId: string; isAdmin: boolean }
-
-// The pipeline is shared between admins and employees — whoever is logged in
-// (either session type) can see and work the same org-wide board.
-async function getActor(): Promise<Actor | null> {
-  const admin = await getAdminSession()
-  if (admin) return { id: admin.id, name: admin.name, organizationId: admin.organizationId, isAdmin: true }
-  const emp = await getEmployeeSession()
-  if (emp) return { id: emp.id, name: emp.name, organizationId: emp.organizationId, isAdmin: false }
-  return null
 }
 
 export async function getLeads(): Promise<Lead[]> {
@@ -94,6 +81,32 @@ export async function updateLead(id: string, data: {
   values.push(id)
   await execute(`UPDATE "Lead" SET ${fields.join(", ")} WHERE id = $${values.length}`, values)
   revalidateBoard()
+}
+
+const MAX_BULK_IMPORT = 500
+
+// Bulk-inserts leads parsed from an uploaded Excel/CSV file (see lib/lead-import.ts).
+// All imported rows are owned by whoever ran the import.
+export async function bulkCreateLeads(rows: {
+  name: string; company: string; email: string; phone: string
+  value: number; stage: string; source: string; notes: string
+}[]): Promise<{ imported: number }> {
+  const actor = await getActor()
+  if (!actor) throw new Error("Unauthorized")
+  const capped = rows.filter(r => r.name.trim()).slice(0, MAX_BULK_IMPORT)
+  const now = new Date().toISOString()
+  for (const r of capped) {
+    await execute(
+      `INSERT INTO "Lead" (id, "organizationId", name, company, email, phone, value, stage, source, notes, "ownerId", "ownerName", "createdAt", "updatedAt")
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      [
+        randomUUID(), actor.organizationId, r.name.trim(), r.company.trim(), r.email.trim(), r.phone.trim(),
+        r.value || 0, r.stage || "new", r.source.trim(), r.notes.trim(), actor.id, actor.name, now, now,
+      ]
+    )
+  }
+  revalidateBoard()
+  return { imported: capped.length }
 }
 
 export async function deleteLead(id: string) {
