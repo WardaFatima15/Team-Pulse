@@ -7,6 +7,8 @@ import { Loader2, Sparkles, Clock, CheckSquare, ChevronDown, ChevronUp, RefreshC
 
 type Employee = { id: string; name: string; role: string; department: string; avatar: string; status: string }
 
+type Reliability = { onTime: number; late: number; absent: number; avgOffsetMinutes: number | null } | null
+
 type ReportData = {
   employee: Employee
   hoursToday: number
@@ -15,6 +17,7 @@ type ReportData = {
   tasks: { title: string; status: string; priority: string }[]
   recentLeaves: { type: string; status: string; startDate: string; endDate: string }[]
   openTickets: { title: string; status: string; priority: string }[]
+  reliability: Reliability
   report: string
 }
 
@@ -102,6 +105,13 @@ function EmployeeReportCard({ emp }: { emp: Employee }) {
             {data.openTickets.length > 0 && (
               <div className="text-xs text-white/70">
                 <span className="font-semibold text-white">{data.openTickets.length}</span> open tickets
+              </div>
+            )}
+            {data.reliability && (data.reliability.onTime + data.reliability.late + data.reliability.absent > 0) && (
+              <div className="text-xs text-white/70">
+                <span className="font-semibold text-green-400">{data.reliability.onTime}</span> on-time ·{" "}
+                <span className="font-semibold text-orange-400">{data.reliability.late}</span> late ·{" "}
+                <span className="font-semibold text-red-400">{data.reliability.absent}</span> absent (30d)
               </div>
             )}
           </div>

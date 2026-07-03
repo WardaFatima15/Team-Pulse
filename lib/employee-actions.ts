@@ -39,7 +39,7 @@ export async function clockIn(localTime?: string) {
   return { ok: true }
 }
 
-export async function clockOut(localTime?: string) {
+export async function clockOut(localTime?: string, summary?: string) {
   const emp = await getEmp()
   if (!emp) return { ok: false, error: "Not authenticated" }
   // Find the open session by clockOut IS NULL — NOT by today's UTC date. On a
@@ -58,8 +58,10 @@ export async function clockOut(localTime?: string) {
   const tout = localTime || now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
   // Exact elapsed from the real clock-in instant — timezone & midnight proof, capped at the shift length.
   const hours = computeHours(rec.createdAt, now, rec.shiftHours)
-  await execute(`UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2 WHERE id = $3`, [tout, hours, rec.id])
+  const notes = (summary ?? "").trim().slice(0, 500)
+  await execute(`UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2, notes = $3 WHERE id = $4`, [tout, hours, notes, rec.id])
   await logActivity(emp.id, emp.name, "clock_out", `Clocked out at ${tout} · ${hours}h logged`)
+  if (notes) await logActivity(emp.id, emp.name, "checkin", notes)
   revalidatePath("/employee/dashboard")
   revalidatePath("/time-tracking")
   return { ok: true, hours }

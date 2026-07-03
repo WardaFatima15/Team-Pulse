@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { queryOne, queryAll } from "@/lib/db"
+import { computeReliability } from "@/lib/reliability"
 import Anthropic from "@anthropic-ai/sdk"
 
 export async function GET(
@@ -10,13 +11,14 @@ export async function GET(
 
   const emp = await queryOne<{
     id: string; name: string; role: string; department: string; status: string
-  }>(`SELECT id, name, role, department, status FROM "Employee" WHERE id = $1`, [employeeId])
+    shiftStart: string; joinDate: string
+  }>(`SELECT id, name, role, department, status, "shiftStart", "joinDate" FROM "Employee" WHERE id = $1`, [employeeId])
   if (!emp) return NextResponse.json({ error: "Employee not found" }, { status: 404 })
 
   const today = new Date().toISOString().slice(0, 10)
   const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
 
-  const [timeToday, tasks, recentLeaves, openTickets] = await Promise.all([
+  const [timeToday, tasks, recentLeaves, openTickets, reliability] = await Promise.all([
     queryAll<{ clockIn: string; clockOut: string | null; hours: number }>(
       `SELECT "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`,
       [employeeId, today]
@@ -33,6 +35,7 @@ export async function GET(
       `SELECT title, status, priority FROM "Ticket" WHERE "employeeId" = $1 AND status != 'closed' ORDER BY "createdAt" DESC LIMIT 5`,
       [employeeId]
     ),
+    computeReliability(employeeId, emp.shiftStart, emp.joinDate),
   ])
 
   const hoursToday = timeToday.reduce((s, r) => s + r.hours, 0)
@@ -48,7 +51,7 @@ Date: ${today}
 Time Tracking:
 - Hours logged today: ${hoursToday.toFixed(1)}h
 - Currently clocked in: ${clockedIn ? "Yes" : "No"}
-${timeToday.map(r => `  • ${r.clockIn.slice(11, 16)} – ${r.clockOut ? r.clockOut.slice(11, 16) : "ongoing"} (${r.hours.toFixed(1)}h)`).join("\n") || "  • No time records today"}
+${timeToday.map(r => `  • ${r.clockIn} – ${r.clockOut ?? "ongoing"} (${r.hours.toFixed(1)}h)`).join("\n") || "  • No time records today"}
 
 Tasks (assigned):
 - Total: ${tasks.length} | ${Object.entries(tasksByStatus).map(([s, n]) => `${s}: ${n}`).join(", ") || "none"}
@@ -64,7 +67,7 @@ ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} ($
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({
       employee: emp, hoursToday, clockedIn, tasksByStatus,
-      tasks, recentLeaves, openTickets,
+      tasks, recentLeaves, openTickets, reliability,
       report: `AI report unavailable — ANTHROPIC_API_KEY not set.\n\n${dataContext}`,
       raw: dataContext,
     })
@@ -84,6 +87,6 @@ ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} ($
 
   return NextResponse.json({
     employee: emp, hoursToday, clockedIn, tasksByStatus,
-    tasks, recentLeaves, openTickets, report, raw: dataContext,
+    tasks, recentLeaves, openTickets, reliability, report, raw: dataContext,
   })
 }

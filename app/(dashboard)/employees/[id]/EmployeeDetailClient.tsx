@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useEffect } from "react"
+import { useState, useTransition, useEffect, Fragment } from "react"
 import { format } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -18,11 +18,12 @@ type Employee = {
   joinDate: string; jiraAccountId: string; shiftHours: number; shiftStart: string
   currentFocus: string; focusSince: string
 }
-type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
+type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number; notes: string }
 type LeaveRequest = { id: string; type: string; startDate: string; endDate: string; days: number; reason: string; status: string; createdAt: string }
 type Ticket = { id: string; title: string; description: string; priority: string; status: string; createdAt: string }
 type Stats = { hoursToday: number; hoursWeek: number; hoursMonth: number; totalHours: number; activeSecondsWeek: number; totalDays: number; openTickets: number; pendingLeaves: number; approvedLeaveDays: number }
 type DayBar = { label: string; date: string; hours: number }
+type Reliability = { onTime: number; late: number; absent: number; avgOffsetMinutes: number | null } | null
 
 const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string }> = {
   online:  { label: "Online",  dot: "bg-green-500",  badge: "bg-green-500/15 text-green-400 border-green-500/30" },
@@ -51,7 +52,7 @@ const TAB_LABELS = ["Overview", "Time Tracking", "Leave", "Tickets", "Jira", "Ac
 type Tab = typeof TAB_LABELS[number]
 
 export default function EmployeeDetailClient({
-  employee, timeRecords, leaves, tickets, stats, weekBars,
+  employee, timeRecords, leaves, tickets, stats, weekBars, reliability,
 }: {
   employee: Employee
   timeRecords: TimeRecord[]
@@ -59,6 +60,7 @@ export default function EmployeeDetailClient({
   tickets: Ticket[]
   stats: Stats
   weekBars: DayBar[]
+  reliability: Reliability
 }) {
   const [tab, setTab] = useState<Tab>("Overview")
   const [pending, startTransition] = useTransition()
@@ -214,6 +216,38 @@ export default function EmployeeDetailClient({
 
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
+              <CardTitle className="text-sm font-semibold text-white">Reliability — Last 30 Weekdays</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {!reliability || !employee.shiftStart ? (
+                <p className="text-xs text-white/40 py-2">Set a shift start time in the Account tab to track punctuality.</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    { label: "On Time", value: reliability.onTime, color: "text-green-400" },
+                    { label: "Late", value: reliability.late, color: "text-orange-400" },
+                    { label: "Absent", value: reliability.absent, color: "text-red-400" },
+                    {
+                      label: "Avg vs Shift Start",
+                      value: reliability.avgOffsetMinutes === null ? "—"
+                        : reliability.avgOffsetMinutes === 0 ? "On time"
+                        : reliability.avgOffsetMinutes > 0 ? `+${reliability.avgOffsetMinutes}m late`
+                        : `${Math.abs(reliability.avgOffsetMinutes)}m early`,
+                      color: "text-white/80",
+                    },
+                  ].map(({ label, value, color }) => (
+                    <div key={label}>
+                      <p className={`text-xl font-bold ${color}`}>{value}</p>
+                      <p className="text-xs text-white/50 mt-0.5">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-semibold text-white">Recent Time Logs</CardTitle>
                 <button onClick={() => setTab("Time Tracking")} className="text-xs text-[#7c5af5] hover:underline">View all</button>
@@ -273,12 +307,19 @@ export default function EmployeeDetailClient({
                 </thead>
                 <tbody>
                   {timeRecords.map(rec => (
-                    <tr key={rec.id} className="border-b border-white/5 last:border-0 hover:bg-white/[0.03]">
-                      <td className="py-2.5 font-medium text-white/80">{format(new Date(rec.date), "EEE, MMM d yyyy")}</td>
-                      <td className="py-2.5 text-white/60">{rec.clockIn}</td>
-                      <td className="py-2.5 text-white/60">{rec.clockOut ?? <span className="text-green-400 font-medium">Active</span>}</td>
-                      <td className="py-2.5 text-right font-semibold text-white">{Number(rec.hours).toFixed(1)}h</td>
-                    </tr>
+                    <Fragment key={rec.id}>
+                      <tr className={`border-b border-white/5 last:border-0 hover:bg-white/[0.03] ${rec.notes ? "border-b-0" : ""}`}>
+                        <td className="py-2.5 font-medium text-white/80">{format(new Date(rec.date), "EEE, MMM d yyyy")}</td>
+                        <td className="py-2.5 text-white/60">{rec.clockIn}</td>
+                        <td className="py-2.5 text-white/60">{rec.clockOut ?? <span className="text-green-400 font-medium">Active</span>}</td>
+                        <td className="py-2.5 text-right font-semibold text-white">{Number(rec.hours).toFixed(1)}h</td>
+                      </tr>
+                      {rec.notes && (
+                        <tr className="border-b border-white/5 last:border-0">
+                          <td colSpan={4} className="pb-2.5 pt-0 text-white/40 italic">&ldquo;{rec.notes}&rdquo;</td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
                 </tbody>
                 <tfoot>

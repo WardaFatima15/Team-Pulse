@@ -34,6 +34,8 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
   const [now, setNow] = useState(new Date())
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState("")
+  const [showCheckin, setShowCheckin] = useState(false)
+  const [summary, setSummary] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -49,11 +51,13 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
       router.refresh()
     })
   }
-  function handleClockOut() {
+  function finishClockOut() {
     setError("")
     startTransition(async () => {
-      const res = await clockOut(localTime())
+      const res = await clockOut(localTime(), summary)
       if (res && !res.ok) setError(res.error || "Couldn't clock out.")
+      setShowCheckin(false)
+      setSummary("")
       router.refresh()
     })
   }
@@ -123,14 +127,38 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
                       <p className="text-xs text-white/40 mt-1">{formatDuration(todayRecord.activeSeconds)} active</p>
                     )}
                   </div>
-                  <button onClick={handleClockOut} disabled={pending}
+                  <button onClick={() => setShowCheckin(true)} disabled={pending}
                     className="w-full px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold text-sm transition-colors disabled:opacity-50">
-                    {pending ? "Clocking out…" : "Clock Out"}
+                    Clock Out
                   </button>
                 </>
               )}
             </div>
           </div>
+          {showCheckin && (
+            <div className="border-t border-white/10 p-5 space-y-3">
+              <label className="block text-xs font-medium text-white/60">
+                What did you get done today? <span className="text-white/30 font-normal">(optional)</span>
+              </label>
+              <textarea
+                value={summary}
+                onChange={e => setSummary(e.target.value)}
+                maxLength={500}
+                rows={2}
+                autoFocus
+                placeholder="e.g. Finished the checkout flow, reviewed 2 PRs, fixed the login bug"
+                className="w-full resize-none rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#512feb]"
+              />
+              <div className="flex justify-end gap-2">
+                <button onClick={() => { setShowCheckin(false); setSummary("") }} disabled={pending}
+                  className="text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white/60 hover:bg-white/5">Cancel</button>
+                <button onClick={finishClockOut} disabled={pending}
+                  className="text-xs px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium disabled:opacity-50">
+                  {pending ? "Clocking out…" : "Confirm Clock Out"}
+                </button>
+              </div>
+            </div>
+          )}
           {error && (
             <p className="text-xs text-red-400 bg-red-500/15 border-t border-red-500/20 px-6 py-2.5">{error}</p>
           )}

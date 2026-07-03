@@ -214,6 +214,76 @@ export async function sendAdminInviteEmail(admin: {
   })
 }
 
+export type WeeklyDigestRow = {
+  name: string
+  hours: number
+  activeHours: number
+  daysWorked: number
+  ticketsOpened: number
+  lastFocus: string
+}
+
+export async function sendWeeklyDigest(toEmails: string[], orgName: string, weekLabel: string, rows: WeeklyDigestRow[]) {
+  if (!resend) return { error: "RESEND_API_KEY not set" }
+  if (toEmails.length === 0) return { error: "No recipients" }
+
+  const rowsHtml = rows
+    .sort((a, b) => b.hours - a.hours)
+    .map(r => `
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;font-weight:600;">${r.name}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;text-align:right;">${r.hours.toFixed(1)}h</td>
+        <td style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;text-align:right;">${r.activeHours.toFixed(1)}h</td>
+        <td style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;text-align:right;">${r.daysWorked}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;text-align:right;">${r.ticketsOpened}</td>
+      </tr>`)
+    .join("")
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
+    <div style="background:#0d0d0d;padding:28px 32px;">
+      <div style="color:#fff;font-weight:700;font-size:15px;">TeamPulse · Weekly Digest</div>
+      <div style="color:rgba(255,255,255,0.4);font-size:11px;margin-top:2px;">${orgName} · ${weekLabel}</div>
+    </div>
+    <div style="padding:32px;">
+      <h1 style="margin:0 0 20px;font-size:18px;font-weight:700;color:#0f172a;">Last week at a glance</h1>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="padding:6px 0;border-bottom:2px solid #0f172a;text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;">Employee</th>
+            <th style="padding:6px 0;border-bottom:2px solid #0f172a;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;">Hours</th>
+            <th style="padding:6px 0;border-bottom:2px solid #0f172a;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;">Active</th>
+            <th style="padding:6px 0;border-bottom:2px solid #0f172a;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;">Days</th>
+            <th style="padding:6px 0;border-bottom:2px solid #0f172a;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;">Tickets</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+      <a href="${APP_URL}/dashboard" style="display:block;text-align:center;background:#512feb;color:#fff;text-decoration:none;padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;margin-top:24px;">
+        Open TeamPulse →
+      </a>
+    </div>
+    <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
+      <p style="margin:0;color:#cbd5e1;font-size:11px;text-align:center;">
+        Powered by <a href="https://binarynext.io" style="color:#512feb;text-decoration:none;">Binary Next</a> · AI Automation Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>`
+
+  return resend.emails.send({
+    from: FROM,
+    to: toEmails,
+    subject: `TeamPulse weekly digest — ${orgName} (${weekLabel})`,
+    html,
+  })
+}
+
 export async function sendPasswordResetEmail(employee: {
   name: string
   email: string

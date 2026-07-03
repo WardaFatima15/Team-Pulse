@@ -3,6 +3,7 @@ import { queryOne, queryAll } from "@/lib/db"
 import { getAdminSession } from "@/lib/admin-auth"
 import { format } from "date-fns"
 import AutoRefresh from "@/components/AutoRefresh"
+import { computeReliability } from "@/lib/reliability"
 import EmployeeDetailClient from "./EmployeeDetailClient"
 
 type Employee = {
@@ -11,7 +12,7 @@ type Employee = {
   joinDate: string; jiraAccountId: string; shiftHours: number; shiftStart: string
   currentFocus: string; focusSince: string
 }
-type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
+type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number; notes: string }
 type LeaveRequest = {
   id: string; type: string; startDate: string; endDate: string; days: number
   reason: string; status: string; createdAt: string
@@ -34,7 +35,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
 
   const [emp, timeRecords, leaves, tickets, hourStats, countStats, last7Records] = await Promise.all([
     queryOne<Employee>(`SELECT * FROM "Employee" WHERE id = $1 AND "organizationId" = $2`, [id, admin.organizationId]),
-    queryAll<TimeRecord>(`SELECT id, date, "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 ORDER BY date DESC`, [id]),
+    queryAll<TimeRecord>(`SELECT id, date, "clockIn", "clockOut", hours, notes FROM "TimeRecord" WHERE "employeeId" = $1 ORDER BY date DESC`, [id]),
     queryAll<LeaveRequest>(`SELECT id, type, "startDate", "endDate", days, reason, status, "createdAt" FROM "LeaveRequest" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`, [id]),
     queryAll<Ticket>(`SELECT id, title, description, priority, status, "createdAt" FROM "Ticket" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`, [id]),
     queryOne<{ today_h: number | null; week_h: number | null; month_h: number | null; total_h: number | null; week_active_s: number | null }>(
@@ -70,6 +71,8 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
     return { date, label: format(d, "EEE"), hours: Number(rec?.hours ?? 0) }
   })
 
+  const reliability = await computeReliability(emp.id, emp.shiftStart, emp.joinDate)
+
   return (
     <>
       <AutoRefresh ms={30000} />
@@ -90,6 +93,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
           approvedLeaveDays: Number(countStats?.approved_leave_days ?? 0),
         }}
         weekBars={last7}
+        reliability={reliability}
       />
     </>
   )

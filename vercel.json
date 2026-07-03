@@ -6,6 +6,10 @@
     {
       "path": "/api/cron/auto-clockout",
       "schedule": "30 2 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 9 * * 1"
     }
   ]
 }

@@ -12,6 +12,7 @@ export type ActivityItem = {
 const config: Record<string, { icon: typeof Activity; color: string; verb: string }> = {
   clock_in:      { icon: LogIn,          color: "text-green-400",  verb: "clocked in" },
   clock_out:     { icon: LogOut,         color: "text-red-400",    verb: "clocked out" },
+  checkin:       { icon: MessageSquare,  color: "text-blue-400",   verb: "checked in:" },
   focus:         { icon: Target,         color: "text-[#7c5af5]",  verb: "is now working on" },
   leave_request: { icon: CalendarDays,   color: "text-amber-400",  verb: "requested leave" },
   ticket_created:{ icon: Ticket,         color: "text-blue-400",   verb: "opened a ticket" },
@@ -40,7 +41,7 @@ export default function ActivityFeed({ items, showNames = true, empty = "No rece
               <p className="text-xs text-white/80 leading-snug">
                 {showNames && <span className="font-semibold text-white">{it.employeeName}</span>}{showNames && " "}
                 <span className="text-white/50">{c.verb}</span>
-                {it.detail && <span className="text-white/80"> {it.action === "focus" ? `"${it.detail}"` : it.detail}</span>}
+                {it.detail && <span className="text-white/80"> {it.action === "focus" || it.action === "checkin" ? `"${it.detail}"` : it.detail}</span>}
               </p>
               <p className="text-xs text-white/35 mt-0.5">{timeAgo(it.createdAt)}</p>
             </div>
