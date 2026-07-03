@@ -7,8 +7,9 @@ import Link from "next/link"
 import { format } from "date-fns"
 import LiveTimer from "@/components/LiveTimer"
 import { effectiveStatus } from "@/lib/presence"
+import ActivityFeed, { type ActivityItem } from "@/components/ActivityFeed"
 
-type Employee = { id: string; name: string; avatar: string; role: string; department: string; status: string; location: string; lastSeenAt: string }
+type Employee = { id: string; name: string; avatar: string; role: string; department: string; status: string; location: string; lastSeenAt: string; currentFocus: string; focusSince: string }
 type TimeRecord = { employeeId: string; hours: number; date: string; clockIn: string; clockOut: string | null; createdAt: string }
 type LeaveRequest = { id: string; employeeId: string; type: string; days: number; status: string }
 type Ticket = { id: string; employeeId: string; title: string; priority: string; status: string }
@@ -36,11 +37,12 @@ export default async function DashboardPage() {
 
   const yesterday = day(1)
 
-  const [employeesRaw, weekRecords, leaves, openTickets] = await Promise.all([
+  const [employeesRaw, weekRecords, leaves, openTickets, activity] = await Promise.all([
     queryAll<Employee>(`SELECT * FROM "Employee" WHERE "organizationId" = $1 ORDER BY status DESC, name ASC`, [orgId]),
     queryAll<TimeRecord>(`SELECT t.* FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2)`, [orgId, weekDates]),
     queryAll<LeaveRequest>(`SELECT l.* FROM "LeaveRequest" l JOIN "Employee" e ON e.id = l."employeeId" WHERE e."organizationId" = $1 ORDER BY l."createdAt" DESC`, [orgId]),
     queryAll<Ticket>(`SELECT t.* FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.status != 'resolved' ORDER BY t."createdAt" DESC LIMIT 4`, [orgId]),
+    queryAll<ActivityItem>(`SELECT a.id, a."employeeName", a.action, a.detail, a."createdAt" FROM "ActivityLog" a JOIN "Employee" e ON e.id = a."employeeId" WHERE e."organizationId" = $1 ORDER BY a."createdAt" DESC LIMIT 12`, [orgId]),
   ])
 
   // Presence is derived from heartbeats, not self-claimed status
@@ -136,7 +138,9 @@ export default async function DashboardPage() {
                         <span className={`size-2.5 rounded-full ${dot} ${emp.status === "online" ? "animate-pulse" : ""}`} />
                       </div>
                       <p className="text-xs font-semibold text-white truncate group-hover:text-[#7c5af5] transition-colors">{emp.name.split(" ")[0]}</p>
-                      <p className="text-xs text-white/40 truncate">{emp.role.split(" ").slice(-1)}</p>
+                      {emp.currentFocus
+                        ? <p className="text-xs text-[#7c5af5]/90 truncate" title={emp.currentFocus}>🎯 {emp.currentFocus}</p>
+                        : <p className="text-xs text-white/40 truncate">{emp.role.split(" ").slice(-1)}</p>}
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-white/50">{getFlag(emp.location)}</span>
                         <span className="text-xs font-medium text-white/70">
@@ -195,6 +199,18 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-5">
+          <Card>
+            <CardHeader className="border-b border-white/10 pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-semibold text-white">Live Activity</CardTitle>
+                <span className="flex items-center gap-1 text-xs text-green-400"><span className="size-1.5 rounded-full bg-green-500 animate-pulse" /> live</span>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <ActivityFeed items={activity} empty="No activity yet today." />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <CardTitle className="text-sm font-semibold text-white">Team by Department</CardTitle>

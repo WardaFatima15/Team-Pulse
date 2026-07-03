@@ -12,9 +12,12 @@ export default async function EmployeeDashboardPage() {
 
   const today = new Date().toISOString().split("T")[0]
 
-  const [todayRecord, pendingCount, openCount, announcements] = await Promise.all([
+  const [todayRecord, pendingCount, openCount, announcements, focusRow] = await Promise.all([
+    // Prefer any still-open session (overnight-safe), else today's record.
     queryOne<TimeRecord>(
-      `SELECT "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`,
+      `SELECT "clockIn", "clockOut", hours FROM "TimeRecord"
+       WHERE "employeeId" = $1 AND ("clockOut" IS NULL OR date = $2)
+       ORDER BY "createdAt" DESC LIMIT 1`,
       [emp.id, today]
     ),
     queryOne<{ n: number }>(
@@ -29,6 +32,10 @@ export default async function EmployeeDashboardPage() {
       `SELECT id, title, body, pinned, "createdAt" FROM "Announcement" WHERE "organizationId" = $1 ORDER BY pinned DESC, "createdAt" DESC LIMIT 3`,
       [emp.organizationId]
     ),
+    queryOne<{ currentFocus: string; focusSince: string }>(
+      `SELECT "currentFocus", "focusSince" FROM "Employee" WHERE id = $1`,
+      [emp.id]
+    ),
   ])
 
   return (
@@ -39,6 +46,8 @@ export default async function EmployeeDashboardPage() {
       pendingLeaves={Number(pendingCount?.n ?? 0)}
       openTickets={Number(openCount?.n ?? 0)}
       announcements={announcements}
+      focus={focusRow?.currentFocus ?? ""}
+      focusSince={focusRow?.focusSince ?? ""}
     />
   )
 }

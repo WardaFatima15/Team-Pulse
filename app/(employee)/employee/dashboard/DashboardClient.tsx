@@ -7,6 +7,7 @@ import { format } from "date-fns"
 import { Calendar, Clock, CheckSquare, Megaphone, Pin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
+import FocusCard from "@/components/employee/FocusCard"
 
 type TodayRecord = { clockIn: string; clockOut: string | null; hours: number } | null
 type Announcement = { id: string; title: string; body: string; pinned: number; createdAt: string }
@@ -18,6 +19,8 @@ type Props = {
   pendingLeaves: number
   openTickets: number
   announcements: Announcement[]
+  focus: string
+  focusSince: string
 }
 
 // Capture the time on the employee's own device so hours/times are in
@@ -26,9 +29,10 @@ function localTime() {
   return new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
 }
 
-export default function DashboardClient({ name, todayRecord, pendingLeaves, openTickets, announcements }: Props) {
+export default function DashboardClient({ name, todayRecord, pendingLeaves, openTickets, announcements, focus, focusSince }: Props) {
   const [now, setNow] = useState(new Date())
   const [pending, startTransition] = useTransition()
+  const [error, setError] = useState("")
   const router = useRouter()
 
   useEffect(() => {
@@ -37,10 +41,20 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
   }, [])
 
   function handleClockIn() {
-    startTransition(async () => { await clockIn(localTime()); router.refresh() })
+    setError("")
+    startTransition(async () => {
+      const res = await clockIn(localTime())
+      if (res && !res.ok) setError(res.error || "Couldn't clock in.")
+      router.refresh()
+    })
   }
   function handleClockOut() {
-    startTransition(async () => { await clockOut(localTime()); router.refresh() })
+    setError("")
+    startTransition(async () => {
+      const res = await clockOut(localTime())
+      if (res && !res.ok) setError(res.error || "Couldn't clock out.")
+      router.refresh()
+    })
   }
 
   const greeting = now.getHours() < 12 ? "Good morning" : now.getHours() < 17 ? "Good afternoon" : "Good evening"
@@ -110,8 +124,14 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
               )}
             </div>
           </div>
+          {error && (
+            <p className="text-xs text-red-400 bg-red-500/15 border-t border-red-500/20 px-6 py-2.5">{error}</p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Current focus — self-reported, shown live to the manager */}
+      <FocusCard focus={focus} since={focusSince} />
 
       {/* Status — automatic, activity-based */}
       <div className="bg-[#131318] rounded-2xl border border-white/10 p-5">

@@ -216,6 +216,9 @@ async function setupSchema(): Promise<void> {
     await client.query(`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "name" TEXT NOT NULL DEFAULT 'Admin'`)
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "lastSeenAt" TEXT NOT NULL DEFAULT ''`)
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "shiftHours" REAL NOT NULL DEFAULT 0`)
+    // "What I'm working on right now" — self-reported live focus shown to admins.
+    await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "currentFocus" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "focusSince" TEXT NOT NULL DEFAULT ''`)
 
     // Employee email is not unique — same person can exist across multiple orgs
     await client.query(`ALTER TABLE "Employee" DROP CONSTRAINT IF EXISTS "Employee_email_key"`)

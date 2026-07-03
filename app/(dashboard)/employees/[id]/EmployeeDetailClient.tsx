@@ -9,11 +9,13 @@ import { Input } from "@/components/ui/input"
 import { ArrowLeft, Mail, Phone, MapPin, Calendar, Clock, TicketCheck, KeyRound, Save, TrendingUp, CheckCircle2, AlertCircle, XCircle, Pencil, Activity, Download } from "lucide-react"
 import Link from "next/link"
 import { updateEmployee, resetEmployeePassword, updateLeaveStatus } from "@/lib/actions"
+import { timeAgo } from "@/lib/utils"
 
 type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
   joinDate: string; jiraAccountId: string; shiftHours: number
+  currentFocus: string; focusSince: string
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
 type LeaveRequest = { id: string; type: string; startDate: string; endDate: string; days: number; reason: string; status: string; createdAt: string }
@@ -100,6 +102,17 @@ export default function EmployeeDetailClient({
                 {employee.location && <span className="flex items-center gap-1.5 text-xs text-white/60"><MapPin className="size-3.5 text-white/40" />{employee.location}</span>}
                 <span className="flex items-center gap-1.5 text-xs text-white/60"><Calendar className="size-3.5 text-white/40" />Joined {format(new Date(employee.joinDate), "MMM yyyy")}</span>
               </div>
+
+              {employee.currentFocus && (
+                <div className="mt-4 flex items-start gap-2 rounded-xl border border-[#512feb]/25 bg-[#512feb]/10 px-3.5 py-2.5">
+                  <span className="text-base leading-none mt-0.5">🎯</span>
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-widest text-[#7c5af5]/80 font-medium">Working on now</p>
+                    <p className="text-sm text-white mt-0.5 break-words">{employee.currentFocus}</p>
+                    {employee.focusSince && <p className="text-xs text-white/40 mt-0.5">since {timeAgo(employee.focusSince)}</p>}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>

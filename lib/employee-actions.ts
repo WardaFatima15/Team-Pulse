@@ -65,6 +65,21 @@ export async function clockOut(localTime?: string) {
   return { ok: true, hours }
 }
 
+export async function setFocus(focus: string) {
+  const emp = await getEmp()
+  if (!emp) return { ok: false, error: "Not authenticated" }
+  const text = focus.trim().slice(0, 200)
+  await execute(
+    `UPDATE "Employee" SET "currentFocus" = $1, "focusSince" = $2 WHERE id = $3`,
+    [text, new Date().toISOString(), emp.id]
+  )
+  if (text) await logActivity(emp.id, emp.name, "focus", text)
+  revalidatePath("/employee/dashboard")
+  revalidatePath("/dashboard")
+  revalidatePath("/employees")
+  return { ok: true }
+}
+
 export async function setMyStatus(status: "online" | "away" | "offline") {
   const emp = await getEmp()
   if (!emp) return
