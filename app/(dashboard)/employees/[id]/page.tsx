@@ -8,7 +8,7 @@ import EmployeeDetailClient from "./EmployeeDetailClient"
 type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
-  joinDate: string; jiraAccountId: string; shiftHours: number
+  joinDate: string; jiraAccountId: string; shiftHours: number; shiftStart: string
   currentFocus: string; focusSince: string
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
@@ -37,12 +37,13 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
     queryAll<TimeRecord>(`SELECT id, date, "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 ORDER BY date DESC`, [id]),
     queryAll<LeaveRequest>(`SELECT id, type, "startDate", "endDate", days, reason, status, "createdAt" FROM "LeaveRequest" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`, [id]),
     queryAll<Ticket>(`SELECT id, title, description, priority, status, "createdAt" FROM "Ticket" WHERE "employeeId" = $1 ORDER BY "createdAt" DESC`, [id]),
-    queryOne<{ today_h: number | null; week_h: number | null; month_h: number | null; total_h: number | null }>(
+    queryOne<{ today_h: number | null; week_h: number | null; month_h: number | null; total_h: number | null; week_active_s: number | null }>(
       `SELECT
         SUM(CASE WHEN date = $2 THEN hours ELSE 0 END) as today_h,
         SUM(CASE WHEN date >= $3 THEN hours ELSE 0 END) as week_h,
         SUM(CASE WHEN date >= $4 THEN hours ELSE 0 END) as month_h,
-        SUM(hours) as total_h
+        SUM(hours) as total_h,
+        SUM(CASE WHEN date >= $3 THEN "activeSeconds" ELSE 0 END) as week_active_s
        FROM "TimeRecord" WHERE "employeeId" = $1`,
       [id, today, weekAgo, monthAgo]
     ),
@@ -82,6 +83,7 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
           hoursWeek: Number(hourStats?.week_h ?? 0),
           hoursMonth: Number(hourStats?.month_h ?? 0),
           totalHours: Number(hourStats?.total_h ?? 0),
+          activeSecondsWeek: Number(hourStats?.week_active_s ?? 0),
           totalDays: Number(countStats?.total_days ?? 0),
           openTickets: Number(countStats?.open_tickets ?? 0),
           pendingLeaves: Number(countStats?.pending_leaves ?? 0),

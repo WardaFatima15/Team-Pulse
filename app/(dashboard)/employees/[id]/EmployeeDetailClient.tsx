@@ -9,18 +9,19 @@ import { Input } from "@/components/ui/input"
 import { ArrowLeft, Mail, Phone, MapPin, Calendar, Clock, TicketCheck, KeyRound, Save, TrendingUp, CheckCircle2, AlertCircle, XCircle, Pencil, Activity, Download } from "lucide-react"
 import Link from "next/link"
 import { updateEmployee, resetEmployeePassword, updateLeaveStatus } from "@/lib/actions"
-import { timeAgo } from "@/lib/utils"
+import { timeAgo, formatDuration } from "@/lib/utils"
+import EmployeeJiraIssues from "@/components/jira/EmployeeJiraIssues"
 
 type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
-  joinDate: string; jiraAccountId: string; shiftHours: number
+  joinDate: string; jiraAccountId: string; shiftHours: number; shiftStart: string
   currentFocus: string; focusSince: string
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number }
 type LeaveRequest = { id: string; type: string; startDate: string; endDate: string; days: number; reason: string; status: string; createdAt: string }
 type Ticket = { id: string; title: string; description: string; priority: string; status: string; createdAt: string }
-type Stats = { hoursToday: number; hoursWeek: number; hoursMonth: number; totalHours: number; totalDays: number; openTickets: number; pendingLeaves: number; approvedLeaveDays: number }
+type Stats = { hoursToday: number; hoursWeek: number; hoursMonth: number; totalHours: number; activeSecondsWeek: number; totalDays: number; openTickets: number; pendingLeaves: number; approvedLeaveDays: number }
 type DayBar = { label: string; date: string; hours: number }
 
 const STATUS_CONFIG: Record<string, { label: string; dot: string; badge: string }> = {
@@ -46,7 +47,7 @@ const LEAVE_STATUS_COLOR: Record<string, string> = {
   approved: "bg-green-500/15 text-green-400",
   rejected: "bg-red-500/15 text-red-400",
 }
-const TAB_LABELS = ["Overview", "Time Tracking", "Leave", "Tickets", "Activity", "Account"] as const
+const TAB_LABELS = ["Overview", "Time Tracking", "Leave", "Tickets", "Jira", "Activity", "Account"] as const
 type Tab = typeof TAB_LABELS[number]
 
 export default function EmployeeDetailClient({
@@ -137,11 +138,15 @@ export default function EmployeeDetailClient({
         <div className="space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { icon: Clock, label: "Today", value: `${stats.hoursToday}h`, color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
-              { icon: TrendingUp, label: "This Week", value: `${Number(stats.hoursWeek).toFixed(1)}h`, color: "text-blue-400", bg: "bg-blue-500/10" },
-              { icon: Calendar, label: "This Month", value: `${Number(stats.hoursMonth).toFixed(0)}h`, color: "text-violet-400", bg: "bg-violet-500/10" },
-              { icon: TicketCheck, label: "Total Hours", value: `${Number(stats.totalHours).toFixed(0)}h`, color: "text-emerald-400", bg: "bg-emerald-500/10" },
-            ].map(({ icon: Icon, label, value, color, bg }) => (
+              { icon: Clock, label: "Today", value: `${stats.hoursToday}h`, sub: "", color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
+              {
+                icon: TrendingUp, label: "This Week", value: `${Number(stats.hoursWeek).toFixed(1)}h`,
+                sub: stats.hoursWeek > 0 ? `${formatDuration(stats.activeSecondsWeek)} active (${Math.min(100, Math.round((stats.activeSecondsWeek / 3600 / stats.hoursWeek) * 100))}%)` : "",
+                color: "text-blue-400", bg: "bg-blue-500/10",
+              },
+              { icon: Calendar, label: "This Month", value: `${Number(stats.hoursMonth).toFixed(0)}h`, sub: "", color: "text-violet-400", bg: "bg-violet-500/10" },
+              { icon: TicketCheck, label: "Total Hours", value: `${Number(stats.totalHours).toFixed(0)}h`, sub: "", color: "text-emerald-400", bg: "bg-emerald-500/10" },
+            ].map(({ icon: Icon, label, value, sub, color, bg }) => (
               <Card key={label}>
                 <CardContent className="pt-4">
                   <div className={`size-8 rounded-lg ${bg} flex items-center justify-center mb-2`}>
@@ -149,6 +154,7 @@ export default function EmployeeDetailClient({
                   </div>
                   <p className="text-xl font-bold text-white">{value}</p>
                   <p className="text-xs text-white/60 mt-0.5">{label}</p>
+                  {sub && <p className="text-xs text-white/35 mt-0.5">{sub}</p>}
                 </CardContent>
               </Card>
             ))}
@@ -351,6 +357,11 @@ export default function EmployeeDetailClient({
         </Card>
       )}
 
+      {/* ── JIRA ── */}
+      {tab === "Jira" && (
+        <EmployeeJiraIssues employeeId={employee.id} />
+      )}
+
       {/* ── ACTIVITY ── */}
       {tab === "Activity" && (
         <ActivityTab employeeId={employee.id} employeeName={employee.name} />
@@ -420,6 +431,7 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
     location: employee.location ?? "",
     jiraAccountId: employee.jiraAccountId ?? "",
     shiftHours: String(employee.shiftHours ?? 0),
+    shiftStart: employee.shiftStart ?? "",
   })
   const [pending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
@@ -454,14 +466,25 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
             { key: "phone", label: "Phone Number" },
             { key: "location", label: "Location" },
             { key: "jiraAccountId", label: "Jira Account ID" },
+            { key: "shiftStart", label: "Shift Start" },
             { key: "shiftHours", label: "Shift Length (hours)" },
           ] as { key: keyof typeof form; label: string }[]).map(({ key, label }) => (
-            <div key={key} className={key === "jiraAccountId" || key === "shiftHours" ? "sm:col-span-2" : ""}>
+            <div key={key} className={key === "jiraAccountId" ? "sm:col-span-2" : ""}>
               <label className="block text-xs font-medium text-white/70 mb-1.5">
                 {label}
+                {key === "shiftStart" && <span className="text-white/30 font-normal ml-1">(for late detection)</span>}
                 {key === "shiftHours" && <span className="text-white/30 font-normal ml-1">(e.g. 9 for a 5pm–2am shift · 0 = no auto-clockout)</span>}
               </label>
-              <Input type={key === "shiftHours" ? "number" : "text"} min={key === "shiftHours" ? "0" : undefined} max={key === "shiftHours" ? "24" : undefined} step={key === "shiftHours" ? "0.5" : undefined} value={form[key]} onChange={e => set(key, e.target.value)} className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30" placeholder={label} />
+              <Input
+                type={key === "shiftHours" ? "number" : key === "shiftStart" ? "time" : "text"}
+                min={key === "shiftHours" ? "0" : undefined}
+                max={key === "shiftHours" ? "24" : undefined}
+                step={key === "shiftHours" ? "0.5" : undefined}
+                value={form[key]}
+                onChange={e => set(key, e.target.value)}
+                className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                placeholder={label}
+              />
             </div>
           ))}
         </div>

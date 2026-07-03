@@ -219,6 +219,10 @@ async function setupSchema(): Promise<void> {
     // "What I'm working on right now" — self-reported live focus shown to admins.
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "currentFocus" TEXT NOT NULL DEFAULT ''`)
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "focusSince" TEXT NOT NULL DEFAULT ''`)
+    // Expected shift start (HH:MM, employee's local time) — enables "late" detection.
+    await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "shiftStart" TEXT NOT NULL DEFAULT ''`)
+    // Active-vs-idle tracking per session (Tier 2).
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "activeSeconds" INTEGER NOT NULL DEFAULT 0`)
 
     // Employee email is not unique — same person can exist across multiple orgs
     await client.query(`ALTER TABLE "Employee" DROP CONSTRAINT IF EXISTS "Employee_email_key"`)

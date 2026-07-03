@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Seconds -> "Xh YYm" (or "YYm" under an hour). Used for active-time display.
+export function formatDuration(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds))
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`
+}
+
 // Short relative time, e.g. "just now", "5m ago", "3h ago", "2d ago".
 export function timeAgo(iso: string | null | undefined): string {
   if (!iso) return ""

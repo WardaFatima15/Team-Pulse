@@ -125,7 +125,7 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
   onOpenChange: (v: boolean) => void
   onSuccess: () => void
 }) {
-  const [form, setForm] = useState({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "" })
+  const [form, setForm] = useState({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "", shiftStart: "" })
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState("")
   const [pending, startTransition] = useTransition()
@@ -143,7 +143,7 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
     startTransition(async () => {
       try {
         await createEmployee({ ...form, password: form.password || "employee123", shiftHours: form.shiftHours ? parseFloat(form.shiftHours) : 0 })
-        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "" })
+        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "", shiftStart: "" })
         onSuccess()
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err)
@@ -197,20 +197,33 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
             ))}
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-white/60 mb-1">
-              Shift Length (hours) <span className="text-white/30 font-normal">(e.g. 9 for 5pm–2am · 0 = no auto-clockout)</span>
-            </label>
-            <Input
-              type="number"
-              min="0"
-              max="24"
-              step="0.5"
-              value={form.shiftHours}
-              onChange={e => set("shiftHours", e.target.value)}
-              placeholder="0"
-              className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-white/60 mb-1">
+                Shift Start <span className="text-white/30 font-normal">(for late detection)</span>
+              </label>
+              <Input
+                type="time"
+                value={form.shiftStart}
+                onChange={e => set("shiftStart", e.target.value)}
+                className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-white/60 mb-1">
+                Shift Length (hours) <span className="text-white/30 font-normal">(0 = no cap)</span>
+              </label>
+              <Input
+                type="number"
+                min="0"
+                max="24"
+                step="0.5"
+                value={form.shiftHours}
+                onChange={e => set("shiftHours", e.target.value)}
+                placeholder="0"
+                className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
+              />
+            </div>
           </div>
 
           <div>

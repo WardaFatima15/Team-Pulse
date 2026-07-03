@@ -8,8 +8,9 @@ import { Calendar, Clock, CheckSquare, Megaphone, Pin } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import FocusCard from "@/components/employee/FocusCard"
+import { formatDuration } from "@/lib/utils"
 
-type TodayRecord = { clockIn: string; clockOut: string | null; hours: number } | null
+type TodayRecord = { clockIn: string; clockOut: string | null; hours: number; activeSeconds: number } | null
 type Announcement = { id: string; title: string; body: string; pinned: number; createdAt: string }
 
 type Props = {
@@ -103,6 +104,9 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
                     <p className="text-2xl font-bold text-white">{todayRecord.hours}h</p>
                     <p className="text-xs text-white/50 mt-0.5">worked today</p>
                     <p className="text-xs text-white/60 mt-1">{todayRecord.clockIn} — {todayRecord.clockOut}</p>
+                    {todayRecord.activeSeconds > 0 && (
+                      <p className="text-xs text-white/40 mt-1">{formatDuration(todayRecord.activeSeconds)} active</p>
+                    )}
                   </div>
                   <div className="text-xs bg-blue-500/15 text-blue-400 px-3 py-1.5 rounded-full font-medium">Done for today</div>
                 </>
@@ -115,6 +119,9 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
                     </div>
                     <p className="text-2xl font-bold text-white tabular-nums">{elapsed}</p>
                     <p className="text-xs text-white/50 mt-0.5">since {todayRecord.clockIn}</p>
+                    {todayRecord.activeSeconds > 0 && (
+                      <p className="text-xs text-white/40 mt-1">{formatDuration(todayRecord.activeSeconds)} active</p>
+                    )}
                   </div>
                   <button onClick={handleClockOut} disabled={pending}
                     className="w-full px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold text-sm transition-colors disabled:opacity-50">

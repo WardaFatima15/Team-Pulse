@@ -3,7 +3,7 @@ import { getEmployeeSession } from "@/lib/employee-auth"
 import { queryOne, queryAll } from "@/lib/db"
 import DashboardClient from "./DashboardClient"
 
-type TimeRecord = { clockIn: string; clockOut: string | null; hours: number }
+type TimeRecord = { clockIn: string; clockOut: string | null; hours: number; activeSeconds: number }
 type Announcement = { id: string; title: string; body: string; pinned: number; createdAt: string }
 
 export default async function EmployeeDashboardPage() {
@@ -15,7 +15,7 @@ export default async function EmployeeDashboardPage() {
   const [todayRecord, pendingCount, openCount, announcements, focusRow] = await Promise.all([
     // Prefer any still-open session (overnight-safe), else today's record.
     queryOne<TimeRecord>(
-      `SELECT "clockIn", "clockOut", hours FROM "TimeRecord"
+      `SELECT "clockIn", "clockOut", hours, "activeSeconds" FROM "TimeRecord"
        WHERE "employeeId" = $1 AND ("clockOut" IS NULL OR date = $2)
        ORDER BY "createdAt" DESC LIMIT 1`,
       [emp.id, today]
