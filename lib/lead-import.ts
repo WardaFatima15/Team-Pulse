@@ -34,11 +34,48 @@ function normalizeHeader(h: string): string {
 function buildColumnMap(headerRow: string[]): Partial<Record<keyof ParsedLeadRow, number>> {
   const normalized = headerRow.map(normalizeHeader)
   const map: Partial<Record<keyof ParsedLeadRow, number>> = {}
-  for (const field of Object.keys(HEADER_SYNONYMS) as (keyof ParsedLeadRow)[]) {
+  const fields = Object.keys(HEADER_SYNONYMS) as (keyof ParsedLeadRow)[]
+
+  // Pass 1: exact match — safest, e.g. a column literally titled "Name".
+  for (const field of fields) {
     const idx = normalized.findIndex(h => HEADER_SYNONYMS[field].includes(h))
     if (idx !== -1) map[field] = idx
   }
+  // Pass 2: substring match for anything still unmapped — handles compound
+  // real-world headers like "Company / Org" or "Source URL" that don't
+  // exactly equal a synonym but clearly contain one. Run as a second pass
+  // (not merged into pass 1) so a short/ambiguous token like "lead" can't
+  // steal a column away from an exact match found elsewhere in the row.
+  for (const field of fields) {
+    if (map[field] !== undefined) continue
+    const idx = normalized.findIndex(h => h && HEADER_SYNONYMS[field].some(syn => h.includes(syn)))
+    if (idx !== -1) map[field] = idx
+  }
   return map
+}
+
+// Real spreadsheets often have a title banner, a "Prepared for..." line, and
+// blank spacer rows before the actual header row (exactly what tripped this
+// up originally) — so the header can't be assumed to be row 1. Scan the
+// first few rows and pick whichever one most looks like a header: several
+// short, distinct cells that match known field synonyms. A title/banner row
+// is typically one long merged cell (fails the min-cell-count gate below);
+// data rows are long free text that rarely score well against short synonym
+// tokens.
+const MAX_HEADER_SCAN_ROWS = 15
+const MIN_HEADER_CELLS = 3
+
+function findHeaderRowIndex(rows: string[][]): number {
+  let bestIdx = 0
+  let bestScore = 0
+  for (let i = 0; i < Math.min(rows.length, MAX_HEADER_SCAN_ROWS); i++) {
+    const row = rows[i]
+    const nonEmptyCells = row.filter(c => c && c.trim()).length
+    if (nonEmptyCells < MIN_HEADER_CELLS) continue
+    const score = Object.keys(buildColumnMap(row)).length
+    if (score > bestScore) { bestScore = score; bestIdx = i }
+  }
+  return bestIdx
 }
 
 function cellText(v: ExcelJS.CellValue): string {
@@ -208,7 +245,9 @@ export async function parseLeadsFile(buffer: Buffer, filename: string): Promise<
   }
 
   if (rawRows.length === 0) throw new Error("File is empty")
-  const [headerRow, ...dataRows] = rawRows
+  const headerIdx = findHeaderRowIndex(rawRows)
+  const headerRow = rawRows[headerIdx]
+  const dataRows = rawRows.slice(headerIdx + 1)
   const colMap = buildColumnMap(headerRow)
   // No recognizable "Name" header (e.g. it's called "Lead", "Client", or the
   // sheet has no header row at all) — fall back to the first column. Every
