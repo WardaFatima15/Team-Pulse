@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Clock, TrendingUp, Users, Timer } from "lucide-react"
 import { format } from "date-fns"
+import LiveTimer from "@/components/LiveTimer"
+import AutoRefresh from "@/components/AutoRefresh"
 
 type Employee = { id: string; name: string; avatar: string; role: string; department: string }
-type TimeRecord = { id: string; employeeId: string; date: string; clockIn: string; clockOut: string | null; hours: number }
+type TimeRecord = { id: string; employeeId: string; date: string; clockIn: string; clockOut: string | null; hours: number; createdAt: string }
 
 export default async function TimeTrackingPage() {
   const admin = await getAdminSession()
@@ -15,13 +17,20 @@ export default async function TimeTrackingPage() {
   const orgId = admin.organizationId
 
   const today = new Date().toISOString().split("T")[0]
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]
   const days = [0, 1, 2, 3, 4].map(n => new Date(Date.now() - n * 86400000).toISOString().split("T")[0])
 
-  const [employees, todayRecords, weekRecords] = await Promise.all([
+  const [employees, todayAndYesterdayRecords, weekRecords] = await Promise.all([
     queryAll<Employee>(`SELECT id, name, avatar, role, department FROM "Employee" WHERE "organizationId" = $1 ORDER BY name`, [orgId]),
-    queryAll<TimeRecord>(`SELECT t.id, t."employeeId", t.date, t."clockIn", t."clockOut", t.hours FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = $2`, [orgId, today]),
-    queryAll<TimeRecord>(`SELECT t.id, t."employeeId", t.date, t."clockIn", t."clockOut", t.hours FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2) ORDER BY t.date DESC`, [orgId, days]),
+    queryAll<TimeRecord>(`SELECT t.id, t."employeeId", t.date, t."clockIn", t."clockOut", t.hours, t."createdAt" FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2)`, [orgId, [today, yesterday]]),
+    queryAll<TimeRecord>(`SELECT t.id, t."employeeId", t.date, t."clockIn", t."clockOut", t.hours, t."createdAt" FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId" WHERE e."organizationId" = $1 AND t.date = ANY($2) ORDER BY t.date DESC`, [orgId, days]),
   ])
+
+  // Overnight-safe "today" record: prefer a still-open session (may have started
+  // yesterday, e.g. a 5pm–2am shift), else today's own record.
+  const todayRecords = todayAndYesterdayRecords.filter(r =>
+    r.date === today || (r.date === yesterday && r.clockOut === null)
+  )
 
   const totalHoursToday = todayRecords.reduce((s, r) => s + r.hours, 0)
   const activeNow = todayRecords.filter(r => !r.clockOut).length
@@ -29,6 +38,7 @@ export default async function TimeTrackingPage() {
 
   return (
     <div className="space-y-6 max-w-7xl">
+      <AutoRefresh ms={30000} />
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[
           { label: "Total Hours Today", value: totalHoursToday.toFixed(1) + "h", icon: Clock, color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
@@ -79,9 +89,15 @@ export default async function TimeTrackingPage() {
                         </div>
                       </td>
                       <td className="py-3 px-3 text-sm text-white/60">{emp.department}</td>
-                      <td className="py-3 px-3 text-sm font-mono text-white/70">{rec?.clockIn ? rec.clockIn.slice(11, 16) : "—"}</td>
-                      <td className="py-3 px-3 text-sm font-mono text-white/70">{rec ? (rec.clockOut ? rec.clockOut.slice(11, 16) : "Active") : "—"}</td>
-                      <td className="py-3 px-3 text-sm font-semibold text-white">{rec ? rec.hours + "h" : "0h"}</td>
+                      <td className="py-3 px-3 text-sm font-mono text-white/70">{rec?.clockIn ?? "—"}</td>
+                      <td className="py-3 px-3 text-sm font-mono text-white/70">{rec ? (rec.clockOut ?? "Active") : "—"}</td>
+                      <td className="py-3 px-3 text-sm font-semibold text-white">
+                        {rec
+                          ? rec.clockOut === null
+                            ? <span className="text-green-400"><LiveTimer since={rec.createdAt} /></span>
+                            : `${rec.hours}h`
+                          : "0h"}
+                      </td>
                       <td className="py-3 px-3">
                         {!rec
                           ? <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-white/40">Not logged</span>
