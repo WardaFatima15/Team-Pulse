@@ -5,13 +5,14 @@ import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Users, Clock, CheckSquare, Calendar,
-  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon, Sparkles,
+  Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon, Sparkles, TrendingUp,
 } from "lucide-react"
 
 const navItems = [
   { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
   { href: "/approvals",     icon: InboxIcon,       label: "Approvals" },
   { href: "/employees",     icon: Users,           label: "Employees" },
+  { href: "/pipeline",      icon: TrendingUp,      label: "Sales Pipeline" },
   { href: "/time-tracking", icon: Clock,           label: "Time Tracking" },
   { href: "/attendance",    icon: CalendarDays,    label: "Attendance" },
   { href: "/tasks",         icon: CheckSquare,     label: "Tasks" },

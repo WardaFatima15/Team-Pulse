@@ -3,11 +3,12 @@
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { useState } from "react"
-import { LayoutDashboard, Calendar, CheckSquare, Megaphone, LogOut, Users, MessageSquare, Building2, ChevronDown, Check } from "lucide-react"
+import { LayoutDashboard, Calendar, CheckSquare, Megaphone, LogOut, Users, MessageSquare, Building2, ChevronDown, Check, TrendingUp } from "lucide-react"
 import type { EmployeeSession } from "@/lib/employee-auth"
 
 const nav = [
   { href: "/employee/dashboard",      label: "Dashboard",     icon: LayoutDashboard },
+  { href: "/employee/pipeline",       label: "Sales Pipeline",icon: TrendingUp },
   { href: "/employee/tasks",          label: "My Tasks",      icon: CheckSquare },
   { href: "/employee/leaves",         label: "My Leaves",     icon: Calendar },
   { href: "/employee/announcements",  label: "Announcements", icon: Megaphone },

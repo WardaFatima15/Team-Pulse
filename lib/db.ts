@@ -201,6 +201,26 @@ async function setupSchema(): Promise<void> {
     await client.query(`CREATE INDEX IF NOT EXISTS cand_call_idx ON "CallCandidate"("callId", side, "createdAt")`)
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS "Lead" (
+        id TEXT PRIMARY KEY,
+        "organizationId" TEXT NOT NULL,
+        name TEXT NOT NULL,
+        company TEXT NOT NULL DEFAULT '',
+        email TEXT NOT NULL DEFAULT '',
+        phone TEXT NOT NULL DEFAULT '',
+        value REAL NOT NULL DEFAULT 0,
+        stage TEXT NOT NULL DEFAULT 'new',
+        source TEXT NOT NULL DEFAULT '',
+        notes TEXT NOT NULL DEFAULT '',
+        "ownerId" TEXT NOT NULL,
+        "ownerName" TEXT NOT NULL,
+        "createdAt" TEXT NOT NULL,
+        "updatedAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS lead_org_idx ON "Lead"("organizationId")`)
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS "ActivityLog" (
         id TEXT PRIMARY KEY,
         "employeeId" TEXT NOT NULL,
