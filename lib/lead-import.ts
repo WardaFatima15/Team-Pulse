@@ -11,12 +11,18 @@ export type ParsedLeadRow = {
   stage: string
   source: string
   notes: string
+  customFields: Record<string, string>
 }
+
+// The fixed set of fields we recognize by header name. Any column that
+// doesn't match one of these is preserved as a custom field instead of
+// being dropped — different lead lists never share the same columns.
+type MappableField = "name" | "company" | "email" | "phone" | "value" | "stage" | "source" | "notes"
 
 const VALID_STAGES = new Set(["new", "contacted", "qualified", "proposal", "won", "lost"])
 
 // Recognized header spellings per field, matched case/space/punctuation-insensitively.
-const HEADER_SYNONYMS: Record<keyof ParsedLeadRow, string[]> = {
+const HEADER_SYNONYMS: Record<MappableField, string[]> = {
   name: ["name", "contact", "contactname", "fullname", "lead", "leadname"],
   company: ["company", "account", "organization", "organisation", "business"],
   email: ["email", "emailaddress"],
@@ -31,10 +37,10 @@ function normalizeHeader(h: string): string {
   return h.toLowerCase().replace(/[^a-z0-9]/g, "")
 }
 
-function buildColumnMap(headerRow: string[]): Partial<Record<keyof ParsedLeadRow, number>> {
+function buildColumnMap(headerRow: string[]): Partial<Record<MappableField, number>> {
   const normalized = headerRow.map(normalizeHeader)
-  const map: Partial<Record<keyof ParsedLeadRow, number>> = {}
-  const fields = Object.keys(HEADER_SYNONYMS) as (keyof ParsedLeadRow)[]
+  const map: Partial<Record<MappableField, number>> = {}
+  const fields = Object.keys(HEADER_SYNONYMS) as MappableField[]
 
   // Pass 1: exact match — safest, e.g. a column literally titled "Name".
   for (const field of fields) {
@@ -257,13 +263,28 @@ export async function parseLeadsFile(buffer: Buffer, filename: string): Promise<
 
   const totalDataRows = dataRows.filter(r => r.some(c => c && c.trim())).length
 
+  // Any header column not claimed by a recognized field becomes a custom
+  // field, keyed by its original (non-normalized) header text — so nothing
+  // from the source spreadsheet is ever silently dropped.
+  const claimedIndexes = new Set(Object.values(colMap))
+  const extraColumns = headerRow
+    .map((label, idx) => ({ label: label.trim(), idx }))
+    .filter(c => c.label && !claimedIndexes.has(c.idx))
+
   const rows: ParsedLeadRow[] = []
   for (const r of dataRows) {
     if (rows.length >= MAX_ROWS) break
-    const get = (field: keyof ParsedLeadRow): string => (colMap[field] !== undefined ? (r[colMap[field]!] ?? "").trim() : "")
+    const get = (field: MappableField): string => (colMap[field] !== undefined ? (r[colMap[field]!] ?? "").trim() : "")
     const name = get("name")
     if (!name) continue
     const stageRaw = get("stage").toLowerCase()
+
+    const customFields: Record<string, string> = {}
+    for (const col of extraColumns) {
+      const v = (r[col.idx] ?? "").trim()
+      if (v) customFields[col.label] = v
+    }
+
     rows.push({
       name,
       company: get("company"),
@@ -273,6 +294,7 @@ export async function parseLeadsFile(buffer: Buffer, filename: string): Promise<
       stage: VALID_STAGES.has(stageRaw) ? stageRaw : "new",
       source: get("source"),
       notes: get("notes"),
+      customFields,
     })
   }
 

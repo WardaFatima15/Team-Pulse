@@ -219,6 +219,10 @@ async function setupSchema(): Promise<void> {
       )
     `)
     await client.query(`CREATE INDEX IF NOT EXISTS lead_org_idx ON "Lead"("organizationId")`)
+    // Arbitrary extra fields (JSON object of label -> value) — different lead
+    // lists never have the same columns, so anything that doesn't map to a
+    // known field is preserved here instead of being dropped on import.
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "customFields" TEXT NOT NULL DEFAULT '{}'`)
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS "ActivityLog" (

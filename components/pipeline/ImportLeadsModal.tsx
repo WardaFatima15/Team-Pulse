@@ -9,6 +9,7 @@ import { bulkCreateLeads } from "@/lib/lead-actions"
 type ParsedRow = {
   name: string; company: string; email: string; phone: string
   value: number; stage: string; source: string; notes: string
+  customFields: Record<string, string>
 }
 
 export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
@@ -97,8 +98,8 @@ export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
                 <p className="text-xs text-white/35">.xlsx or .csv — any column layout works</p>
               </button>
               <p className="text-xs text-white/35">
-                Recognizes Name, Company, Email, Phone, Value, Stage, Source, Notes columns in any order or spelling —
-                anything it can't match (or a file with no header row) just uses the first column as the lead name.
+                Recognizes Name, Company, Email, Phone, Value, Stage, Source, Notes columns in any order or spelling.
+                Any other column is kept too — saved as extra details on each lead so nothing gets lost.
               </p>
             </>
           )}
@@ -124,17 +125,24 @@ export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
                       <th className="text-left font-medium text-white/50 px-3 py-2">Company</th>
                       <th className="text-right font-medium text-white/50 px-3 py-2">Value</th>
                       <th className="text-left font-medium text-white/50 px-3 py-2">Stage</th>
+                      <th className="text-left font-medium text-white/50 px-3 py-2">Other fields</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
-                    {rows.slice(0, 8).map((r, i) => (
-                      <tr key={i}>
-                        <td className="px-3 py-1.5 text-white/80 truncate max-w-[140px]">{r.name}</td>
-                        <td className="px-3 py-1.5 text-white/50 truncate max-w-[120px]">{r.company || "—"}</td>
-                        <td className="px-3 py-1.5 text-white/70 text-right">{r.value ? `$${r.value}` : "—"}</td>
-                        <td className="px-3 py-1.5 text-white/50 capitalize">{r.stage}</td>
-                      </tr>
-                    ))}
+                    {rows.slice(0, 8).map((r, i) => {
+                      const extraKeys = Object.keys(r.customFields)
+                      return (
+                        <tr key={i}>
+                          <td className="px-3 py-1.5 text-white/80 truncate max-w-[140px]">{r.name}</td>
+                          <td className="px-3 py-1.5 text-white/50 truncate max-w-[120px]">{r.company || "—"}</td>
+                          <td className="px-3 py-1.5 text-white/70 text-right">{r.value ? `$${r.value}` : "—"}</td>
+                          <td className="px-3 py-1.5 text-white/50 capitalize">{r.stage}</td>
+                          <td className="px-3 py-1.5 text-white/40">
+                            {extraKeys.length > 0 ? `${extraKeys.length} field${extraKeys.length !== 1 ? "s" : ""}` : "—"}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
                 {rows.length > 8 && (

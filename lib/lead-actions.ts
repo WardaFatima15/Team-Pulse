@@ -17,20 +17,33 @@ export type Lead = {
   stage: LeadStage
   source: string
   notes: string
+  customFields: Record<string, string>
   ownerId: string
   ownerName: string
   createdAt: string
   updatedAt: string
 }
 
+type LeadDbRow = Omit<Lead, "customFields"> & { customFields: string }
+
+function parseCustomFields(raw: string): Record<string, string> {
+  try {
+    const parsed = JSON.parse(raw || "{}")
+    return parsed && typeof parsed === "object" ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
 export async function getLeads(): Promise<Lead[]> {
   const actor = await getActor()
   if (!actor) return []
-  return queryAll<Lead>(
-    `SELECT id, name, company, email, phone, value, stage, source, notes, "ownerId", "ownerName", "createdAt", "updatedAt"
+  const rows = await queryAll<LeadDbRow>(
+    `SELECT id, name, company, email, phone, value, stage, source, notes, "customFields", "ownerId", "ownerName", "createdAt", "updatedAt"
      FROM "Lead" WHERE "organizationId" = $1 ORDER BY "createdAt" DESC`,
     [actor.organizationId]
   )
+  return rows.map(r => ({ ...r, customFields: parseCustomFields(r.customFields) }))
 }
 
 function revalidateBoard() {
@@ -41,17 +54,19 @@ function revalidateBoard() {
 export async function createLead(data: {
   name: string; company: string; email: string; phone: string
   value: number; stage: string; source: string; notes: string
+  customFields?: Record<string, string>
 }) {
   const actor = await getActor()
   if (!actor) throw new Error("Unauthorized")
   if (!data.name.trim()) throw new Error("Name is required")
   const now = new Date().toISOString()
   await execute(
-    `INSERT INTO "Lead" (id, "organizationId", name, company, email, phone, value, stage, source, notes, "ownerId", "ownerName", "createdAt", "updatedAt")
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+    `INSERT INTO "Lead" (id, "organizationId", name, company, email, phone, value, stage, source, notes, "customFields", "ownerId", "ownerName", "createdAt", "updatedAt")
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
     [
       randomUUID(), actor.organizationId, data.name.trim(), data.company.trim(), data.email.trim(), data.phone.trim(),
-      data.value || 0, data.stage || "new", data.source.trim(), data.notes.trim(), actor.id, actor.name, now, now,
+      data.value || 0, data.stage || "new", data.source.trim(), data.notes.trim(),
+      JSON.stringify(data.customFields ?? {}), actor.id, actor.name, now, now,
     ]
   )
   revalidateBoard()
@@ -60,6 +75,7 @@ export async function createLead(data: {
 export async function updateLead(id: string, data: {
   name?: string; company?: string; email?: string; phone?: string
   value?: number; stage?: string; source?: string; notes?: string
+  customFields?: Record<string, string>
 }) {
   const actor = await getActor()
   if (!actor) throw new Error("Unauthorized")
@@ -74,6 +90,7 @@ export async function updateLead(id: string, data: {
   if (data.stage !== undefined) { fields.push(`stage = $${values.length + 1}`); values.push(data.stage) }
   if (data.source !== undefined) { fields.push(`source = $${values.length + 1}`); values.push(data.source.trim()) }
   if (data.notes !== undefined) { fields.push(`notes = $${values.length + 1}`); values.push(data.notes.trim()) }
+  if (data.customFields !== undefined) { fields.push(`"customFields" = $${values.length + 1}`); values.push(JSON.stringify(data.customFields)) }
   if (!fields.length) return
 
   fields.push(`"updatedAt" = $${values.length + 1}`)
@@ -90,6 +107,7 @@ const MAX_BULK_IMPORT = 500
 export async function bulkCreateLeads(rows: {
   name: string; company: string; email: string; phone: string
   value: number; stage: string; source: string; notes: string
+  customFields?: Record<string, string>
 }[]): Promise<{ imported: number }> {
   const actor = await getActor()
   if (!actor) throw new Error("Unauthorized")
@@ -97,11 +115,12 @@ export async function bulkCreateLeads(rows: {
   const now = new Date().toISOString()
   for (const r of capped) {
     await execute(
-      `INSERT INTO "Lead" (id, "organizationId", name, company, email, phone, value, stage, source, notes, "ownerId", "ownerName", "createdAt", "updatedAt")
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+      `INSERT INTO "Lead" (id, "organizationId", name, company, email, phone, value, stage, source, notes, "customFields", "ownerId", "ownerName", "createdAt", "updatedAt")
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
       [
         randomUUID(), actor.organizationId, r.name.trim(), r.company.trim(), r.email.trim(), r.phone.trim(),
-        r.value || 0, r.stage || "new", r.source.trim(), r.notes.trim(), actor.id, actor.name, now, now,
+        r.value || 0, r.stage || "new", r.source.trim(), r.notes.trim(),
+        JSON.stringify(r.customFields ?? {}), actor.id, actor.name, now, now,
       ]
     )
   }

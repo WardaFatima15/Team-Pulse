@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, X, Loader2, Trash2, Building2, Mail, Phone, DollarSign, Filter, Upload } from "lucide-react"
+import { Plus, X, Loader2, Trash2, Building2, Mail, Phone, DollarSign, Filter, Upload, ListPlus, Info } from "lucide-react"
 import { createLead, updateLead, deleteLead, type Lead, type LeadStage } from "@/lib/lead-actions"
 import ImportLeadsModal from "./ImportLeadsModal"
 
@@ -47,14 +47,30 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
     source: lead?.source ?? "",
     notes: lead?.notes ?? "",
   })
+  // Arbitrary extra fields — imported columns that don't fit the core schema
+  // (e.g. "Title", "Location") land here instead of being dropped, and
+  // anyone can add more of their own on any lead.
+  const [customRows, setCustomRows] = useState<{ key: string; value: string }[]>(
+    lead ? Object.entries(lead.customFields).map(([key, value]) => ({ key, value })) : []
+  )
 
   function set(k: keyof typeof form, v: string) { setForm(f => ({ ...f, [k]: v })); setError("") }
+  function setCustomRow(i: number, field: "key" | "value", v: string) {
+    setCustomRows(rows => rows.map((r, idx) => idx === i ? { ...r, [field]: v } : r))
+  }
+  function removeCustomRow(i: number) {
+    setCustomRows(rows => rows.filter((_, idx) => idx !== i))
+  }
 
   function handleSubmit() {
     if (!form.name.trim()) { setError("Name is required."); return }
     startTransition(async () => {
       try {
-        const payload = { ...form, value: parseFloat(form.value) || 0 }
+        const customFields: Record<string, string> = {}
+        for (const row of customRows) {
+          if (row.key.trim()) customFields[row.key.trim()] = row.value.trim()
+        }
+        const payload = { ...form, value: parseFloat(form.value) || 0, customFields }
         if (lead) await updateLead(lead.id, payload)
         else await createLead(payload)
         router.refresh()
@@ -119,6 +135,35 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
               placeholder="Context, next steps…" rows={3}
               className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 bg-white/5 text-white placeholder:text-white/30" />
           </div>
+
+          <div className="pt-1 border-t border-white/10">
+            <div className="flex items-center justify-between mt-3 mb-2">
+              <label className="text-xs font-medium text-white/60">Additional Details</label>
+              <button
+                onClick={() => setCustomRows(rows => [...rows, { key: "", value: "" }])}
+                className="text-xs text-[#7c5af5] hover:underline flex items-center gap-1"
+              >
+                <ListPlus className="size-3.5" /> Add field
+              </button>
+            </div>
+            {customRows.length === 0 && (
+              <p className="text-xs text-white/30">No extra fields — imported columns like Title or Location show up here.</p>
+            )}
+            <div className="space-y-2">
+              {customRows.map((row, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input value={row.key} onChange={e => setCustomRow(i, "key", e.target.value)}
+                    placeholder="Field name" className={`${inputCls} w-2/5`} />
+                  <Input value={row.value} onChange={e => setCustomRow(i, "value", e.target.value)}
+                    placeholder="Value" className={`${inputCls} flex-1`} />
+                  <button onClick={() => removeCustomRow(i)} className="text-white/30 hover:text-red-400 shrink-0 px-1">
+                    <X className="size-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {error && <p className="text-xs text-red-400">{error}</p>}
         </div>
         <div className="flex items-center gap-3 px-5 py-4 border-t border-white/10">
@@ -236,7 +281,14 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
                         <span className="text-xs font-semibold text-[#7c5af5] flex items-center gap-0.5">
                           <DollarSign className="size-3" />{lead.value > 0 ? money(lead.value).replace("$", "") : "—"}
                         </span>
-                        <OwnerAvatar name={lead.ownerName} />
+                        <div className="flex items-center gap-1.5">
+                          {Object.keys(lead.customFields).length > 0 && (
+                            <span title={`${Object.keys(lead.customFields).length} additional field(s)`} className="text-white/25">
+                              <Info className="size-3" />
+                            </span>
+                          )}
+                          <OwnerAvatar name={lead.ownerName} />
+                        </div>
                       </div>
                       <div className="mt-2.5 pt-2.5 border-t border-white/10 flex gap-1 flex-wrap" onClick={e => e.stopPropagation()}>
                         {col.key !== "won" && (
@@ -282,6 +334,11 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
                   </div>
                 </div>
                 <span className="text-sm font-semibold text-white shrink-0">{lead.value > 0 ? money(lead.value) : "—"}</span>
+                {Object.keys(lead.customFields).length > 0 && (
+                  <span title={`${Object.keys(lead.customFields).length} additional field(s)`} className="text-white/25 shrink-0">
+                    <Info className="size-3.5" />
+                  </span>
+                )}
                 <OwnerAvatar name={lead.ownerName} />
                 {canDelete(lead) && (
                   <button onClick={e => { e.stopPropagation(); handleDelete(lead) }} className="text-white/30 hover:text-red-400 shrink-0">
