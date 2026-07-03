@@ -48,3 +48,4 @@ dev.db-shm
 dev.db-wal
 
 .vercel
+.env*

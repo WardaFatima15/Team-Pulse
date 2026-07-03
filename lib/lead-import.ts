@@ -86,12 +86,21 @@ export async function parseLeadsFile(buffer: Buffer, filename: string): Promise<
     rawRows = parseCsv(buffer.toString("utf-8"))
   } else {
     const workbook = new ExcelJS.Workbook()
-    // exceljs depends on fast-csv, which bundles its own older @types/node —
-    // that nested Buffer declaration conflicts with this project's, even
-    // though both are the same real Node Buffer at runtime. `any` sidesteps
-    // the version-skewed ambient type collision.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await workbook.xlsx.load(buffer as any)
+    try {
+      // exceljs depends on fast-csv, which bundles its own older @types/node —
+      // that nested Buffer declaration conflicts with this project's, even
+      // though both are the same real Node Buffer at runtime. `any` sidesteps
+      // the version-skewed ambient type collision.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await workbook.xlsx.load(buffer as any)
+    } catch {
+      // exceljs's XML parser silently produces an unusable model (surfacing
+      // as an unrelated-looking crash) for some real-world .xlsx exports —
+      // e.g. certain Google Sheets/LibreOffice/macro-enabled files. There's
+      // no reliable way to detect or work around this ahead of time, so give
+      // the user an actionable path instead of a raw stack trace.
+      throw new Error("Couldn't read this .xlsx file — it may be in a format our reader doesn't support. Try re-saving it as a plain .xlsx from Excel, or exporting/saving as .csv instead (CSV always works).")
+    }
     const sheet = workbook.worksheets[0]
     if (!sheet) throw new Error("No worksheet found in file")
     rawRows = []
@@ -105,9 +114,11 @@ export async function parseLeadsFile(buffer: Buffer, filename: string): Promise<
   if (rawRows.length === 0) throw new Error("File is empty")
   const [headerRow, ...dataRows] = rawRows
   const colMap = buildColumnMap(headerRow)
-  if (colMap.name === undefined) {
-    throw new Error(`Couldn't find a "Name" column. Found headers: ${headerRow.filter(Boolean).join(", ") || "(none)"}`)
-  }
+  // No recognizable "Name" header (e.g. it's called "Lead", "Client", or the
+  // sheet has no header row at all) — fall back to the first column. Every
+  // lead list has SOME primary identifying column, and it's virtually always
+  // the leftmost one, so this lets any layout import instead of failing.
+  if (colMap.name === undefined) colMap.name = 0
 
   const totalDataRows = dataRows.filter(r => r.some(c => c && c.trim())).length
 

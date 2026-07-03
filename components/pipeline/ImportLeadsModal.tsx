@@ -94,10 +94,11 @@ export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
                   <Upload className="size-7 text-white/30" />
                 )}
                 <div className="text-sm text-white/70 font-medium">{parsing ? `Reading ${fileName}…` : "Click to choose a file"}</div>
-                <p className="text-xs text-white/35">.xlsx or .csv — needs at least a Name column</p>
+                <p className="text-xs text-white/35">.xlsx or .csv — any column layout works</p>
               </button>
               <p className="text-xs text-white/35">
-                Recognized columns: Name, Company, Email, Phone, Value, Stage, Source, Notes (any order, flexible spelling).
+                Recognizes Name, Company, Email, Phone, Value, Stage, Source, Notes columns in any order or spelling —
+                anything it can't match (or a file with no header row) just uses the first column as the lead name.
               </p>
             </>
           )}
