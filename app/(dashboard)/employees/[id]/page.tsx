@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import { queryOne, queryAll } from "@/lib/db"
 import { getAdminSession } from "@/lib/admin-auth"
 import { format } from "date-fns"
+import AutoRefresh from "@/components/AutoRefresh"
 import EmployeeDetailClient from "./EmployeeDetailClient"
 
 type Employee = {
@@ -69,22 +70,25 @@ export default async function EmployeeProfilePage({ params }: { params: Promise<
   })
 
   return (
-    <EmployeeDetailClient
-      employee={emp}
-      timeRecords={timeRecords}
-      leaves={leaves}
-      tickets={tickets}
-      stats={{
-        hoursToday: Number(hourStats?.today_h ?? 0),
-        hoursWeek: Number(hourStats?.week_h ?? 0),
-        hoursMonth: Number(hourStats?.month_h ?? 0),
-        totalHours: Number(hourStats?.total_h ?? 0),
-        totalDays: Number(countStats?.total_days ?? 0),
-        openTickets: Number(countStats?.open_tickets ?? 0),
-        pendingLeaves: Number(countStats?.pending_leaves ?? 0),
-        approvedLeaveDays: Number(countStats?.approved_leave_days ?? 0),
-      }}
-      weekBars={last7}
-    />
+    <>
+      <AutoRefresh ms={30000} />
+      <EmployeeDetailClient
+        employee={emp}
+        timeRecords={timeRecords}
+        leaves={leaves}
+        tickets={tickets}
+        stats={{
+          hoursToday: Number(hourStats?.today_h ?? 0),
+          hoursWeek: Number(hourStats?.week_h ?? 0),
+          hoursMonth: Number(hourStats?.month_h ?? 0),
+          totalHours: Number(hourStats?.total_h ?? 0),
+          totalDays: Number(countStats?.total_days ?? 0),
+          openTickets: Number(countStats?.open_tickets ?? 0),
+          pendingLeaves: Number(countStats?.pending_leaves ?? 0),
+          approvedLeaveDays: Number(countStats?.approved_leave_days ?? 0),
+        }}
+        weekBars={last7}
+      />
+    </>
   )
 }

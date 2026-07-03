@@ -2,26 +2,20 @@ import { queryAll } from "@/lib/db"
 import { getAdminSession } from "@/lib/admin-auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Users, Clock, TrendingUp, CalendarCheck, ArrowUp, ArrowRight, AlertTriangle } from "lucide-react"
+import { Clock, TrendingUp, CalendarCheck, ArrowUp, ArrowRight, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
-import LiveTimer from "@/components/LiveTimer"
 import { effectiveStatus } from "@/lib/presence"
-import ActivityFeed, { type ActivityItem } from "@/components/ActivityFeed"
+import type { ActivityItem } from "@/components/ActivityFeed"
+import {
+  LiveTeamStatusProvider, LiveTeamStatusGrid, LiveActivityCard,
+  LiveHeaderBadge, LiveOnlineStatTile, type LiveEmployee,
+} from "@/components/LiveTeamStatus"
 
 type Employee = { id: string; name: string; avatar: string; role: string; department: string; status: string; location: string; lastSeenAt: string; currentFocus: string; focusSince: string }
 type TimeRecord = { employeeId: string; hours: number; date: string; clockIn: string; clockOut: string | null; createdAt: string }
 type LeaveRequest = { id: string; employeeId: string; type: string; days: number; status: string }
 type Ticket = { id: string; employeeId: string; title: string; priority: string; status: string }
-
-const locationFlag: Record<string, string> = {
-  Philippines: "🇵🇭", India: "🇮🇳", Pakistan: "🇵🇰", Ghana: "🇬🇭",
-  Colombia: "🇨🇴", USA: "🇺🇸", UK: "🇬🇧", Bangladesh: "🇧🇩",
-}
-function getFlag(location: string) {
-  const country = Object.keys(locationFlag).find(c => location.includes(c))
-  return country ? locationFlag[country] : "🌍"
-}
 
 function day(n: number) { return new Date(Date.now() - n * 86400000).toISOString().split("T")[0] }
 
@@ -53,7 +47,6 @@ export default async function DashboardPage() {
     (r.date === today) || (r.date === yesterday && r.clockOut === null)
   )
   const online = employees.filter(e => e.status === "online").length
-  const away = employees.filter(e => e.status === "away").length
   const totalWeekHours = weekRecords.reduce((s, r) => s + r.hours, 0)
   const daysWithData = new Set(weekRecords.filter(r => r.date !== today).map(r => r.date)).size
   const attendedDays = daysWithData > 0
@@ -70,29 +63,34 @@ export default async function DashboardPage() {
   const priorityColor: Record<string, string> = {
     urgent: "bg-red-500", high: "bg-orange-400", medium: "bg-yellow-400", low: "bg-white/30",
   }
-  const statusRing: Record<string, string> = {
-    online: "ring-green-400/40 border-green-400/30 bg-green-500/5", away: "ring-yellow-400/40 border-yellow-400/30 bg-yellow-500/5", offline: "ring-white/10 border-white/10 bg-white/[0.03]",
-  }
-  const statusDot: Record<string, string> = {
-    online: "bg-green-500", away: "bg-yellow-400", offline: "bg-white/30",
-  }
+
+  // Initial payload for the live-polling provider — matches /api/team-status shape,
+  // computed here so first paint is instant (no client-side loading flash).
+  const liveEmployees: LiveEmployee[] = employees.map(e => {
+    const rec = todayRecords.find(r => r.employeeId === e.id)
+    return {
+      id: e.id, name: e.name, avatar: e.avatar, role: e.role, department: e.department,
+      location: e.location, status: e.status as LiveEmployee["status"],
+      currentFocus: e.currentFocus, focusSince: e.focusSince,
+      openSince: rec && rec.clockOut === null ? rec.createdAt : null,
+      hoursToday: rec && rec.clockOut !== null ? rec.hours : 0,
+    }
+  })
 
   return (
+    <LiveTeamStatusProvider initial={{ employees: liveEmployees, activity, online }}>
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">Team Overview</h1>
           <p className="text-white/50 text-sm mt-0.5">{format(new Date(), "EEEE, MMMM d yyyy")} · {employees.length} team members</p>
         </div>
-        <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 text-sm font-medium px-3 py-1.5 rounded-full">
-          <span className="size-2 rounded-full bg-green-500 animate-pulse" />
-          {online} active now
-        </div>
+        <LiveHeaderBadge />
       </div>
 
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <LiveOnlineStatTile total={employees.length} />
         {[
-          { label: "Online Now", value: `${online}/${employees.length}`, sub: `${away} away`, icon: Users, color: "text-green-400", bg: "bg-green-500/10", trend: "+2 vs yesterday" },
           { label: "Hours This Week", value: `${totalWeekHours}h`, sub: `${(totalWeekHours / Math.max(employees.length, 1)).toFixed(0)}h avg per person`, icon: Clock, color: "text-[#7c5af5]", bg: "bg-[#512feb]/15", trend: "5-day tracked" },
           { label: "Attendance Rate", value: `${attendedDays}%`, sub: "Past 7 days", icon: TrendingUp, color: "text-blue-400", bg: "bg-blue-500/10", trend: "On track" },
           { label: "Pending Actions", value: pendingLeaves + openTickets.length, sub: `${pendingLeaves} leaves · ${openTickets.length} tickets`, icon: CalendarCheck, color: "text-amber-400", bg: "bg-amber-500/10", trend: "Need review" },
@@ -115,53 +113,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-5">
-          <Card>
-            <CardHeader className="border-b border-white/10 pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-white">Live Team Status</CardTitle>
-                <Link href="/employees" className="text-xs text-[#7c5af5] hover:underline flex items-center gap-1">Manage <ArrowRight className="size-3" /></Link>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {employees.map(emp => {
-                  const rec = todayRecords.find(r => r.employeeId === emp.id)
-                  const ring = statusRing[emp.status] ?? statusRing.offline
-                  const dot = statusDot[emp.status] ?? statusDot.offline
-                  return (
-                    <Link key={emp.id} href={`/employees/${emp.id}`}
-                      className={`rounded-xl border-2 p-3 ring-1 ${ring} hover:ring-white/25 transition-all group`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <Avatar className="size-8">
-                          <AvatarFallback className="text-xs bg-white/10 font-bold text-white">{emp.avatar}</AvatarFallback>
-                        </Avatar>
-                        <span className={`size-2.5 rounded-full ${dot} ${emp.status === "online" ? "animate-pulse" : ""}`} />
-                      </div>
-                      <p className="text-xs font-semibold text-white truncate group-hover:text-[#7c5af5] transition-colors">{emp.name.split(" ")[0]}</p>
-                      {emp.currentFocus
-                        ? <p className="text-xs text-[#7c5af5]/90 truncate" title={emp.currentFocus}>🎯 {emp.currentFocus}</p>
-                        : <p className="text-xs text-white/40 truncate">{emp.role.split(" ").slice(-1)}</p>}
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-white/50">{getFlag(emp.location)}</span>
-                        <span className="text-xs font-medium text-white/70">
-                          {rec
-                            ? rec.clockOut === null
-                              ? <span className="text-green-400 flex items-center gap-1"><span className="size-1.5 rounded-full bg-green-400 animate-pulse inline-block" /><LiveTimer since={rec.createdAt} /></span>
-                              : `${rec.hours.toFixed(1)}h`
-                            : "—"}
-                        </span>
-                      </div>
-                    </Link>
-                  )
-                })}
-                {employees.length === 0 && (
-                  <div className="col-span-4 text-center py-8 text-white/40 text-sm">
-                    No employees yet. <Link href="/employees" className="text-[#7c5af5] hover:underline">Add your first employee</Link>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <LiveTeamStatusGrid />
 
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
@@ -199,17 +151,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="space-y-5">
-          <Card>
-            <CardHeader className="border-b border-white/10 pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-white">Live Activity</CardTitle>
-                <span className="flex items-center gap-1 text-xs text-green-400"><span className="size-1.5 rounded-full bg-green-500 animate-pulse" /> live</span>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <ActivityFeed items={activity} empty="No activity yet today." />
-            </CardContent>
-          </Card>
+          <LiveActivityCard />
 
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
@@ -291,5 +233,6 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
+    </LiveTeamStatusProvider>
   )
 }
