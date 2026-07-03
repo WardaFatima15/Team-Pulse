@@ -17,7 +17,13 @@ export default function PresenceTracker() {
     events.forEach(e => window.addEventListener(e, markActive, { passive: true }))
 
     function currentState(): "online" | "away" {
-      if (document.visibilityState === "hidden") return "away"
+      // A backgrounded CRM tab does NOT mean the person is away — they're almost
+      // always working in another app (VS Code, email, another browser). The
+      // machine is still awake and the browser is still firing this heartbeat.
+      // When the machine truly sleeps or the tab closes, the heartbeat simply
+      // stops, and silence (>90s) marks them offline — that's the honest signal.
+      if (document.visibilityState === "hidden") return "online"
+      // Only mark away when they're sitting ON the CRM tab but genuinely idle.
       if (Date.now() - lastActivity.current > IDLE_MS) return "away"
       return "online"
     }
@@ -32,7 +38,9 @@ export default function PresenceTracker() {
     }
 
     function onVisibility() {
-      // React instantly when they switch tabs / come back
+      // Returning to the tab IS activity — clear any stale idle so they flip
+      // back to online immediately instead of lingering on "away".
+      if (document.visibilityState === "visible") markActive()
       beat()
     }
 
