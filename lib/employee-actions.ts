@@ -1,6 +1,7 @@
 "use server"
 
 import { queryOne, execute, logActivity } from "@/lib/db"
+import { computeHours, settleStaleOpenSessions } from "@/lib/time"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "node:crypto"
 import { cookies } from "next/headers"
@@ -18,9 +19,13 @@ async function getEmp() {
 export async function clockIn(localTime?: string) {
   const emp = await getEmp()
   if (!emp) return { ok: false, error: "Not authenticated" }
+  // Close out any long-abandoned open session first (crediting hours worked),
+  // so a forgotten shift can never block a fresh clock-in or steal its timer.
+  await settleStaleOpenSessions(emp.id)
+  // Block only if there is a genuine, still-running open session (not a stale one).
+  const open = await queryOne(`SELECT id FROM "TimeRecord" WHERE "employeeId" = $1 AND "clockOut" IS NULL`, [emp.id])
+  if (open) return { ok: false, error: "You're already clocked in." }
   const today = new Date().toISOString().split("T")[0]
-  const exists = await queryOne(`SELECT id FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`, [emp.id, today])
-  if (exists) return { ok: false, error: "Already clocked in today" }
   // Display time comes from the employee's own device (their timezone).
   const t = localTime || new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
   // createdAt is the real UTC instant — used to compute exact hours later.
@@ -37,22 +42,27 @@ export async function clockIn(localTime?: string) {
 export async function clockOut(localTime?: string) {
   const emp = await getEmp()
   if (!emp) return { ok: false, error: "Not authenticated" }
-  const today = new Date().toISOString().split("T")[0]
-  const rec = await queryOne<{ id: string; clockIn: string; createdAt: string }>(
-    `SELECT id, "clockIn", "createdAt" FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2 AND "clockOut" IS NULL`,
-    [emp.id, today]
+  // Find the open session by clockOut IS NULL — NOT by today's UTC date. On a
+  // late-night / overnight shift the clock-in UTC date can differ from the
+  // clock-out UTC date, which used to make this silently fail and leave the
+  // session open at 0 hours. Take the most recent open one.
+  const rec = await queryOne<{ id: string; clockIn: string; createdAt: string; shiftHours: number }>(
+    `SELECT t.id, t."clockIn", t."createdAt", e."shiftHours"
+     FROM "TimeRecord" t JOIN "Employee" e ON e.id = t."employeeId"
+     WHERE t."employeeId" = $1 AND t."clockOut" IS NULL
+     ORDER BY t."createdAt" DESC LIMIT 1`,
+    [emp.id]
   )
-  if (!rec) return { ok: false, error: "Not clocked in" }
+  if (!rec) return { ok: false, error: "You're not clocked in." }
   const now = new Date()
   const tout = localTime || now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
-  // Exact elapsed from the real clock-in instant — timezone & midnight proof.
-  const elapsedMs = now.getTime() - new Date(rec.createdAt).getTime()
-  const hours = Math.max(0, Math.round((elapsedMs / 3_600_000) * 10) / 10)
+  // Exact elapsed from the real clock-in instant — timezone & midnight proof, capped at the shift length.
+  const hours = computeHours(rec.createdAt, now, rec.shiftHours)
   await execute(`UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2 WHERE id = $3`, [tout, hours, rec.id])
   await logActivity(emp.id, emp.name, "clock_out", `Clocked out at ${tout} · ${hours}h logged`)
   revalidatePath("/employee/dashboard")
   revalidatePath("/time-tracking")
-  return { ok: true }
+  return { ok: true, hours }
 }
 
 export async function setMyStatus(status: "online" | "away" | "offline") {

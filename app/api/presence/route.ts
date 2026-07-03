@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { queryOne, execute } from "@/lib/db"
+import { execute } from "@/lib/db"
+import { settleStaleOpenSessions } from "@/lib/time"
 
 export async function POST(req: NextRequest) {
   const empId = (await cookies()).get("employee_token")?.value
@@ -19,27 +20,9 @@ export async function POST(req: NextRequest) {
     [state, now.toISOString(), empId]
   )
 
-  // Check if this employee has an open session that's exceeded their shift length
-  const openRec = await queryOne<{ recId: string; createdAt: string; shiftHours: number }>(
-    `SELECT t.id as "recId", t."createdAt", e."shiftHours"
-     FROM "TimeRecord" t
-     JOIN "Employee" e ON e.id = t."employeeId"
-     WHERE t."employeeId" = $1 AND t."clockOut" IS NULL AND e."shiftHours" > 0`,
-    [empId]
-  )
+  // Real-time auto clock-out: closes any open session that has hit its shift
+  // length (or the 12h safety cap). Runs every heartbeat so it's near-instant.
+  const closed = await settleStaleOpenSessions(empId)
 
-  if (openRec) {
-    const elapsedHours = (now.getTime() - new Date(openRec.createdAt).getTime()) / 3_600_000
-    if (elapsedHours >= openRec.shiftHours) {
-      const tout = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
-      const hours = Math.round(Math.min(elapsedHours, openRec.shiftHours) * 10) / 10
-      await execute(
-        `UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2 WHERE id = $3`,
-        [tout, hours, openRec.recId]
-      )
-      return NextResponse.json({ ok: true, autoClockOut: true })
-    }
-  }
-
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, autoClockOut: closed > 0 })
 }

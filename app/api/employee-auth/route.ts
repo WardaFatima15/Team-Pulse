@@ -1,23 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { queryAll, execute } from "@/lib/db"
+import { queryAll } from "@/lib/db"
+import { settleStaleOpenSessions } from "@/lib/time"
 import bcrypt from "bcryptjs"
-
-async function closeStaleSessions(empId: string) {
-  // Only close sessions older than 2 days — yesterday's session may still be open (overnight shift)
-  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0]
-  await execute(
-    `UPDATE "TimeRecord" SET "clockOut" = "clockIn", hours = 0
-     WHERE "employeeId" = $1 AND "clockOut" IS NULL AND date < $2`,
-    [empId, twoDaysAgo]
-  )
-}
 
 export async function POST(req: NextRequest) {
   const { email, password, empId } = await req.json()
 
   // Direct workspace selection (after workspace picker)
   if (empId) {
-    await closeStaleSessions(empId)
+    await settleStaleOpenSessions(empId)
     const res = NextResponse.json({ ok: true })
     res.cookies.set("employee_token", empId, { httpOnly: true, path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 7 })
     res.cookies.delete("auth_token")
@@ -41,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   // Single workspace — log in directly
   if (matched.length === 1) {
-    await closeStaleSessions(matched[0].id)
+    await settleStaleOpenSessions(matched[0].id)
     const res = NextResponse.json({ ok: true, multiple: false })
     res.cookies.set("employee_token", matched[0].id, { httpOnly: true, path: "/", sameSite: "lax", maxAge: 60 * 60 * 24 * 7 })
     res.cookies.delete("auth_token")
