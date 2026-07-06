@@ -264,6 +264,10 @@ async function setupSchema(): Promise<void> {
     await client.query(`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
     await client.query(`ALTER TABLE "Announcement" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
+    // Project/Task predate multi-tenancy and were never scoped — every admin
+    // could see every org's tasks. Backfill existing rows to the original org.
+    await client.query(`ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "organizationId" TEXT NOT NULL DEFAULT 'default-org'`)
+    await client.query(`CREATE INDEX IF NOT EXISTS project_org_idx ON "Project"("organizationId")`)
     // Seed default org
     await client.query(`
       INSERT INTO "Organization" (id, name, slug, "createdAt")

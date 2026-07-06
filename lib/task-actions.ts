@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { queryOne, queryAll, execute } from "@/lib/db"
 import { randomUUID } from "crypto"
+import { getActor } from "@/lib/actor"
+import { getAdminSession } from "@/lib/admin-auth"
 
 export type Project = {
   id: string
@@ -33,21 +35,26 @@ export type Task = {
 }
 
 export async function getProjects(): Promise<Project[]> {
+  const actor = await getActor()
+  if (!actor) return []
   return queryAll<Project>(`
-    SELECT p.*, COUNT(t.id)::int AS "taskCount"
+    SELECT p.id, p.name, p.key, p.color, p."createdAt", COUNT(t.id)::int AS "taskCount"
     FROM "Project" p
     LEFT JOIN "Task" t ON t."projectId" = p.id
+    WHERE p."organizationId" = $1
     GROUP BY p.id
     ORDER BY p."createdAt" ASC
-  `)
+  `, [actor.organizationId])
 }
 
 export async function getTasks(projectId?: string, assigneeId?: string): Promise<Task[]> {
-  const conditions: string[] = []
-  const values: unknown[] = []
+  const actor = await getActor()
+  if (!actor) return []
+  const conditions: string[] = [`p."organizationId" = $1`]
+  const values: unknown[] = [actor.organizationId]
   if (projectId) { conditions.push(`t."projectId" = $${values.length + 1}`); values.push(projectId) }
   if (assigneeId) { conditions.push(`t."assigneeId" = $${values.length + 1}`); values.push(assigneeId) }
-  const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""
+  const where = `WHERE ${conditions.join(" AND ")}`
   return queryAll<Task>(`
     SELECT
       t.id, t."projectId", p.key AS "projectKey", p.name AS "projectName", p.color AS "projectColor",
@@ -63,16 +70,22 @@ export async function getTasks(projectId?: string, assigneeId?: string): Promise
 }
 
 export async function createProject(name: string, key: string, color: string) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
   const existing = await queryOne(`SELECT id FROM "Project" WHERE key = $1`, [key.toUpperCase()])
   if (existing) throw new Error(`Project key "${key.toUpperCase()}" already exists`)
   await execute(
-    `INSERT INTO "Project" (id, name, key, color, "createdAt") VALUES ($1, $2, $3, $4, $5)`,
-    [randomUUID(), name.trim(), key.toUpperCase().trim(), color, new Date().toISOString()]
+    `INSERT INTO "Project" (id, name, key, color, "organizationId", "createdAt") VALUES ($1, $2, $3, $4, $5, $6)`,
+    [randomUUID(), name.trim(), key.toUpperCase().trim(), color, admin.organizationId, new Date().toISOString()]
   )
   revalidatePath("/tasks")
 }
 
 export async function deleteProject(id: string) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
+  const project = await queryOne<{ organizationId: string }>(`SELECT "organizationId" FROM "Project" WHERE id = $1`, [id])
+  if (!project || project.organizationId !== admin.organizationId) return
   await execute(`DELETE FROM "Project" WHERE id = $1`, [id])
   revalidatePath("/tasks")
 }
@@ -86,6 +99,11 @@ export async function createTask(data: {
   assigneeId: string
   dueDate: string
 }) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
+  const project = await queryOne<{ organizationId: string }>(`SELECT "organizationId" FROM "Project" WHERE id = $1`, [data.projectId])
+  if (!project || project.organizationId !== admin.organizationId) throw new Error("Project not found")
+
   const row = await queryOne<{ max: number }>(`SELECT COALESCE(MAX(number), 0) AS max FROM "Task" WHERE "projectId" = $1`, [data.projectId])
   const number = (row?.max ?? 0) + 1
   const now = new Date().toISOString()
@@ -113,6 +131,14 @@ export async function updateTask(id: string, data: {
   assigneeId?: string | null
   dueDate?: string | null
 }) {
+  const actor = await getActor()
+  if (!actor) throw new Error("Unauthorized")
+  const task = await queryOne<{ organizationId: string }>(
+    `SELECT p."organizationId" FROM "Task" t JOIN "Project" p ON p.id = t."projectId" WHERE t.id = $1`,
+    [id]
+  )
+  if (!task || task.organizationId !== actor.organizationId) throw new Error("Task not found")
+
   const fields: string[] = []
   const values: unknown[] = []
   if (data.title !== undefined) { fields.push(`title = $${values.length + 1}`); values.push(data.title) }
@@ -131,6 +157,13 @@ export async function updateTask(id: string, data: {
 }
 
 export async function deleteTask(id: string) {
+  const admin = await getAdminSession()
+  if (!admin) throw new Error("Unauthorized")
+  const task = await queryOne<{ organizationId: string }>(
+    `SELECT p."organizationId" FROM "Task" t JOIN "Project" p ON p.id = t."projectId" WHERE t.id = $1`,
+    [id]
+  )
+  if (!task || task.organizationId !== admin.organizationId) return
   await execute(`DELETE FROM "Task" WHERE id = $1`, [id])
   revalidatePath("/tasks")
 }
