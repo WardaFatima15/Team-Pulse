@@ -151,12 +151,37 @@ function todayIso() {
   return new Date().toISOString().split("T")[0]
 }
 
+// Live elapsed hours for a still-open session (DB hours stay 0 until clock-out).
+function rowHours(r: TeamDailyRow): number {
+  if (r.clockIn && r.clockOut === null && r.createdAt) {
+    const h = (Date.now() - new Date(r.createdAt).getTime()) / 3_600_000
+    if (h > 0 && h < 20) return h
+  }
+  return Number(r.hours)
+}
+
+function prettyDate(iso: string): string {
+  const d = new Date(iso + "T00:00:00")
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
+}
+
+function StatTile({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color: string }) {
+  return (
+    <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5">
+      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      <p className="text-xs text-white/60 mt-0.5">{label}</p>
+      {sub && <p className="text-[10px] text-white/35 mt-0.5">{sub}</p>}
+    </div>
+  )
+}
+
 function TeamDailyReport() {
   const [date, setDate] = useState(todayIso())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [rows, setRows] = useState<TeamDailyRow[] | null>(null)
   const [summary, setSummary] = useState("")
+  const [showAi, setShowAi] = useState(false)
 
   const load = useCallback((d: string) => {
     setLoading(true)
@@ -175,6 +200,22 @@ function TeamDailyReport() {
 
   const isToday = date === todayIso()
 
+  // Deterministic team totals — the factual report header, no AI involved.
+  const totals = rows && {
+    people: rows.length,
+    loggedIn: rows.filter(r => r.clockIn).length,
+    hours: rows.reduce((s, r) => s + rowHours(r), 0),
+    leads: rows.reduce((s, r) => s + r.leadsAdded, 0),
+    tasks: rows.reduce((s, r) => s + r.tasksCompleted, 0),
+    tickets: rows.reduce((s, r) => s + r.ticketsResolved, 0),
+  }
+
+  // Present / active people first, dead-quiet ones last — reads like a report.
+  const sortedRows = rows && [...rows].sort((a, b) => {
+    const score = (r: TeamDailyRow) => (r.clockIn ? 2 : 0) + (r.leadsAdded + r.tasksCompleted + r.ticketsResolved > 0 ? 1 : 0)
+    return score(b) - score(a) || a.name.localeCompare(b.name)
+  })
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -190,87 +231,109 @@ function TeamDailyReport() {
 
       {error && <p className="text-xs text-red-400">{error}</p>}
 
-      {!loading && summary && (
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-[#7c5af5]">
-            <Sparkles className="size-3.5" /> AI Summary
+      {totals && sortedRows && (
+        <>
+          <div>
+            <h2 className="text-lg font-bold text-white">Daily Team Report</h2>
+            <p className="text-xs text-white/50">{prettyDate(date)}{isToday ? " · today" : ""}</p>
           </div>
-          <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap bg-white/5 rounded-xl px-4 py-3">
-            {summary}
-          </p>
-        </div>
-      )}
 
-      {rows && (
-        <div className="space-y-2">
-          {rows.map(r => {
-            const noRecord = !r.clockIn
-            const hasActivity = r.leadsAdded > 0 || r.tasksCompleted > 0 || r.ticketsResolved > 0
-            return (
-              <Card key={r.employeeId} className={noRecord && !hasActivity ? "opacity-50" : ""}>
-                <CardContent className="px-4 py-3">
-                  <div className="flex items-start gap-3">
-                    <EmpAvatar name={r.name} avatar={r.avatar} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-white text-sm">{r.name}</p>
-                          <p className="text-xs text-white/60">{r.role} · {r.department}</p>
+          {/* Factual totals header */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <StatTile label="Logged in" value={`${totals.loggedIn}/${totals.people}`} sub="team members" color="text-white" />
+            <StatTile label="Total hours" value={totals.hours.toFixed(1)} color="text-[#7c5af5]" />
+            <StatTile label="Leads added" value={totals.leads} color="text-[#7c5af5]" />
+            <StatTile label="Tasks completed" value={totals.tasks} color="text-green-400" />
+            <StatTile label="Tickets resolved" value={totals.tickets} color="text-blue-400" />
+          </div>
+
+          {/* Per-person breakdown */}
+          <div className="space-y-2">
+            {sortedRows.map(r => {
+              const noRecord = !r.clockIn
+              const hasActivity = r.leadsAdded > 0 || r.tasksCompleted > 0 || r.ticketsResolved > 0
+              return (
+                <Card key={r.employeeId} className={noRecord && !hasActivity ? "opacity-50" : ""}>
+                  <CardContent className="px-4 py-3">
+                    <div className="flex items-start gap-3">
+                      <EmpAvatar name={r.name} avatar={r.avatar} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <div>
+                            <p className="font-semibold text-white text-sm">{r.name}</p>
+                            <p className="text-xs text-white/60">{r.role} · {r.department}</p>
+                          </div>
+                          {noRecord ? (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-white/40 shrink-0">
+                              {isToday ? "Not clocked in" : "Did not log in"}
+                            </span>
+                          ) : (
+                            <div className="flex items-center gap-1.5 text-xs text-white/70 shrink-0">
+                              <Clock className="size-3.5 text-white/40" />
+                              {r.clockOut === null && r.createdAt ? (
+                                <span className="font-semibold text-green-400"><LiveTimer since={r.createdAt} /></span>
+                              ) : (
+                                <span className="font-semibold text-white">{Number(r.hours).toFixed(1)}h</span>
+                              )}
+                              <span className="text-white/40">
+                                logged in {r.clockIn}{r.clockOut ? ` — out ${r.clockOut}` : " — still in"}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        {noRecord ? (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-white/40 shrink-0">
-                            {isToday ? "Not clocked in" : "No record"}
-                          </span>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-xs text-white/70 shrink-0">
-                            <Clock className="size-3.5 text-white/40" />
-                            {r.clockOut === null && r.createdAt ? (
-                              <span className="font-semibold text-green-400"><LiveTimer since={r.createdAt} /></span>
-                            ) : (
-                              <span className="font-semibold text-white">{Number(r.hours).toFixed(1)}h</span>
-                            )}
-                            <span className="text-white/40">
-                              {r.clockIn} — {r.clockOut ?? "active"}
+
+                        {/* Activity line — always shown for anyone who logged in or did anything */}
+                        {(!noRecord || hasActivity) && (
+                          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                            <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${r.leadsAdded > 0 ? "bg-[#512feb]/15 text-[#7c5af5]" : "bg-white/5 text-white/35"}`}>
+                              <TrendingUp className="size-3" /> {r.leadsAdded} lead{r.leadsAdded !== 1 ? "s" : ""}
+                            </span>
+                            <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${r.tasksCompleted > 0 ? "bg-green-500/15 text-green-400" : "bg-white/5 text-white/35"}`}>
+                              <CheckSquare className="size-3" /> {r.tasksCompleted} task{r.tasksCompleted !== 1 ? "s" : ""} done
+                            </span>
+                            <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${r.ticketsResolved > 0 ? "bg-blue-500/15 text-blue-400" : "bg-white/5 text-white/35"}`}>
+                              <TicketCheck className="size-3" /> {r.ticketsResolved} ticket{r.ticketsResolved !== 1 ? "s" : ""} resolved
                             </span>
                           </div>
                         )}
+
+                        {!noRecord && (
+                          <div className="mt-2 flex items-start gap-1.5">
+                            <MessageSquareText className="size-3.5 text-white/30 mt-0.5 shrink-0" />
+                            {r.notes ? (
+                              <p className="text-sm text-white/80 leading-snug">{r.notes}</p>
+                            ) : (
+                              <p className="text-xs text-white/35 italic">No check-in note submitted</p>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {hasActivity && (
-                        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                          {r.leadsAdded > 0 && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#512feb]/15 text-[#7c5af5]">
-                              <TrendingUp className="size-3" /> {r.leadsAdded} lead{r.leadsAdded !== 1 ? "s" : ""} added
-                            </span>
-                          )}
-                          {r.tasksCompleted > 0 && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-500/15 text-green-400">
-                              <CheckSquare className="size-3" /> {r.tasksCompleted} task{r.tasksCompleted !== 1 ? "s" : ""} done
-                            </span>
-                          )}
-                          {r.ticketsResolved > 0 && (
-                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400">
-                              <TicketCheck className="size-3" /> {r.ticketsResolved} ticket{r.ticketsResolved !== 1 ? "s" : ""} resolved
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {!noRecord && (
-                        <div className="mt-2 flex items-start gap-1.5">
-                          <MessageSquareText className="size-3.5 text-white/30 mt-0.5 shrink-0" />
-                          {r.notes ? (
-                            <p className="text-sm text-white/80 leading-snug">{r.notes}</p>
-                          ) : (
-                            <p className="text-xs text-white/35 italic">No check-in note submitted</p>
-                          )}
-                        </div>
-                      )}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+
+          {/* AI narrative — optional, collapsed by default */}
+          {summary && (
+            <div className="pt-1">
+              <button
+                onClick={() => setShowAi(v => !v)}
+                className="flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white/80 transition-colors"
+              >
+                <Sparkles className="size-3.5 text-[#7c5af5]" />
+                {showAi ? "Hide" : "Show"} AI narrative
+                {showAi ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+              </button>
+              {showAi && (
+                <p className="mt-2 text-sm text-white/80 leading-relaxed whitespace-pre-wrap bg-white/5 rounded-xl px-4 py-3">
+                  {summary}
+                </p>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
