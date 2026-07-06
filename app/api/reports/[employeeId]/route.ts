@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { queryOne, queryAll } from "@/lib/db"
 import { computeReliability } from "@/lib/reliability"
-import Anthropic from "@anthropic-ai/sdk"
+import OpenAI from "openai"
 
 export async function GET(
   req: NextRequest,
@@ -64,18 +64,18 @@ Open Support Tickets:
 ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} (${t.status})`).join("\n") : "  • None"}
 `.trim()
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({
       employee: emp, hoursToday, clockedIn, tasksByStatus,
       tasks, recentLeaves, openTickets, reliability,
-      report: `AI report unavailable — ANTHROPIC_API_KEY not set.\n\n${dataContext}`,
+      report: `AI report unavailable — OPENAI_API_KEY not set.\n\n${dataContext}`,
       raw: dataContext,
     })
   }
 
-  const client = new Anthropic()
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+  const client = new OpenAI()
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 500,
     messages: [{
       role: "user",
@@ -83,7 +83,7 @@ ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} ($
     }],
   })
 
-  const report = message.content[0].type === "text" ? message.content[0].text : ""
+  const report = completion.choices[0]?.message?.content ?? ""
 
   return NextResponse.json({
     employee: emp, hoursToday, clockedIn, tasksByStatus,

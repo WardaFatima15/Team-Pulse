@@ -12,7 +12,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.104.2",
     "@base-ui/react": "^1.5.0",
     "@prisma/client": "^7.8.0",
     "@types/bcryptjs": "^2.4.6",
@@ -28,6 +27,7 @@
     "jszip": "^3.10.1",
     "lucide-react": "^1.20.0",
     "next": "16.2.9",
+    "openai": "^6.45.0",
     "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",

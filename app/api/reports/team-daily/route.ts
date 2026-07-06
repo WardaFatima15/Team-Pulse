@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminSession } from "@/lib/admin-auth"
 import { queryAll } from "@/lib/db"
+import OpenAI from "openai"
 
 export async function GET(req: NextRequest) {
   const admin = await getAdminSession()
@@ -38,5 +39,29 @@ export async function GET(req: NextRequest) {
     }
   })
 
-  return NextResponse.json({ date, rows })
+  const present = rows.filter(r => r.clockIn)
+  const absent = rows.filter(r => !r.clockIn)
+  let summary = ""
+  if (present.length === 0) {
+    summary = "No one clocked in on this day."
+  } else if (!process.env.OPENAI_API_KEY) {
+    summary = "AI summary unavailable — OPENAI_API_KEY not set."
+  } else {
+    const dataContext = present.map(r =>
+      `- ${r.name}: ${Number(r.hours).toFixed(1)}h (${r.clockIn}–${r.clockOut ?? "ongoing"})${r.notes ? ` — "${r.notes}"` : " — no check-in note"}`
+    ).join("\n") + (absent.length ? `\n\nDid not clock in: ${absent.map(r => r.name).join(", ")}` : "")
+
+    const client = new OpenAI()
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_tokens: 400,
+      messages: [{
+        role: "user",
+        content: `Summarize what this team did today in one short paragraph for a manager, based only on the data below. Mention who was active and what they worked on where notes are available. Note anyone who logged hours but left no check-in note, and anyone absent, without inventing details.\n\n${dataContext}`,
+      }],
+    })
+    summary = completion.choices[0]?.message?.content ?? ""
+  }
+
+  return NextResponse.json({ date, rows, summary })
 }

@@ -90,7 +90,7 @@ export default function AIAssistantPage() {
           </div>
           <div>
             <h1 className="text-base font-bold text-white">HR AI Assistant</h1>
-            <p className="text-xs text-white/50">Powered by Claude · Ask anything about your team</p>
+            <p className="text-xs text-white/50">Powered by GPT-4o mini · Ask anything about your team</p>
           </div>
         </div>
         {messages.length > 0 && (

@@ -155,6 +155,7 @@ function TeamDailyReport() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [rows, setRows] = useState<TeamDailyRow[] | null>(null)
+  const [summary, setSummary] = useState("")
 
   const load = useCallback((d: string) => {
     setLoading(true)
@@ -164,7 +165,7 @@ function TeamDailyReport() {
         if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't load report")
         return res.json()
       })
-      .then(data => setRows(data.rows))
+      .then(data => { setRows(data.rows); setSummary(data.summary ?? "") })
       .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
       .finally(() => setLoading(false))
   }, [])
@@ -187,6 +188,17 @@ function TeamDailyReport() {
       </div>
 
       {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {!loading && summary && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-[#7c5af5]">
+            <Sparkles className="size-3.5" /> AI Summary
+          </div>
+          <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap bg-white/5 rounded-xl px-4 py-3">
+            {summary}
+          </p>
+        </div>
+      )}
 
       {rows && (
         <div className="space-y-2">

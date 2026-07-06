@@ -1,10 +1,13 @@
-import { NextRequest } from "next/server"
-import Anthropic from "@anthropic-ai/sdk"
+import { NextRequest, NextResponse } from "next/server"
+import OpenAI from "openai"
 import { queryAll, queryOne } from "@/lib/db"
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
 export async function POST(req: NextRequest) {
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: "OPENAI_API_KEY not set" }, { status: 503 })
+  }
+  const client = new OpenAI()
+
   const { messages } = await req.json()
 
   const [empCount, leaveCount, ticketCount] = await Promise.all([
@@ -22,20 +25,19 @@ Current team stats:
 
 You help managers with HR queries, policy guidance, employee management advice, leave management, and team productivity insights. Keep responses concise and actionable. You can suggest what to check in the dashboard when relevant.`
 
-  const stream = await client.messages.stream({
-    model: "claude-haiku-4-5-20251001",
+  const stream = await client.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 1024,
-    system: systemPrompt,
-    messages,
+    stream: true,
+    messages: [{ role: "system", content: systemPrompt }, ...messages],
   })
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
       for await (const chunk of stream) {
-        if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
-          controller.enqueue(encoder.encode(chunk.delta.text))
-        }
+        const delta = chunk.choices[0]?.delta?.content
+        if (delta) controller.enqueue(encoder.encode(delta))
       }
       controller.close()
     },
