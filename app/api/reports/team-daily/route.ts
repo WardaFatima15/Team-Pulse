@@ -22,6 +22,24 @@ export async function GET(req: NextRequest) {
      WHERE e."organizationId" = $1 AND t.date = $2`,
     [admin.organizationId, date]
   )
+  // Same-day activity across the other modules — the raw ingredients for
+  // "what did everyone actually get done", not just clock times.
+  const leadsAdded = await queryAll<{ ownerId: string; n: string }>(
+    `SELECT "ownerId", COUNT(*) as n FROM "Lead" WHERE "organizationId" = $1 AND "createdAt"::date = $2::date GROUP BY "ownerId"`,
+    [admin.organizationId, date]
+  )
+  const tasksCompleted = await queryAll<{ assigneeId: string; n: string }>(
+    `SELECT t."assigneeId", COUNT(*) as n FROM "Task" t JOIN "Employee" e ON e.id = t."assigneeId"
+     WHERE e."organizationId" = $1 AND t.status = 'done' AND t."updatedAt"::date = $2::date
+     GROUP BY t."assigneeId"`,
+    [admin.organizationId, date]
+  )
+  const ticketsResolved = await queryAll<{ employeeId: string; n: string }>(
+    `SELECT t."employeeId", COUNT(*) as n FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId"
+     WHERE e."organizationId" = $1 AND t.status = 'resolved' AND t."updatedAt"::date = $2::date
+     GROUP BY t."employeeId"`,
+    [admin.organizationId, date]
+  )
 
   const rows = employees.map(e => {
     const rec = records.find(r => r.employeeId === e.id)
@@ -36,20 +54,33 @@ export async function GET(req: NextRequest) {
       hours: rec?.hours ?? 0,
       notes: rec?.notes ?? "",
       createdAt: rec?.createdAt ?? null,
+      leadsAdded: Number(leadsAdded.find(l => l.ownerId === e.id)?.n ?? 0),
+      tasksCompleted: Number(tasksCompleted.find(t => t.assigneeId === e.id)?.n ?? 0),
+      ticketsResolved: Number(ticketsResolved.find(t => t.employeeId === e.id)?.n ?? 0),
     }
   })
 
-  const present = rows.filter(r => r.clockIn)
-  const absent = rows.filter(r => !r.clockIn)
+  const hasActivity = (r: (typeof rows)[number]) => r.clockIn || r.leadsAdded || r.tasksCompleted || r.ticketsResolved
+  const present = rows.filter(hasActivity)
+  const absent = rows.filter(r => !hasActivity(r))
   let summary = ""
   if (present.length === 0) {
-    summary = "No one clocked in on this day."
+    summary = "No one clocked in or logged any activity on this day."
   } else if (!process.env.OPENAI_API_KEY) {
     summary = "AI summary unavailable — OPENAI_API_KEY not set."
   } else {
-    const dataContext = present.map(r =>
-      `- ${r.name}: ${Number(r.hours).toFixed(1)}h (${r.clockIn}–${r.clockOut ?? "ongoing"})${r.notes ? ` — "${r.notes}"` : " — no check-in note"}`
-    ).join("\n") + (absent.length ? `\n\nDid not clock in: ${absent.map(r => r.name).join(", ")}` : "")
+    const dataContext = present.map(r => {
+      const activity: string[] = []
+      if (r.leadsAdded) activity.push(`added ${r.leadsAdded} lead${r.leadsAdded !== 1 ? "s" : ""}`)
+      if (r.tasksCompleted) activity.push(`completed ${r.tasksCompleted} task${r.tasksCompleted !== 1 ? "s" : ""}`)
+      if (r.ticketsResolved) activity.push(`resolved ${r.ticketsResolved} ticket${r.ticketsResolved !== 1 ? "s" : ""}`)
+      const clockPart = r.clockIn
+        ? `${Number(r.hours).toFixed(1)}h (${r.clockIn}–${r.clockOut ?? "ongoing"})`
+        : "did not clock in"
+      const notePart = r.notes ? ` — "${r.notes}"` : r.clockIn ? " — no check-in note" : ""
+      const activityPart = activity.length ? ` — ${activity.join(", ")}` : ""
+      return `- ${r.name}: ${clockPart}${activityPart}${notePart}`
+    }).join("\n") + (absent.length ? `\n\nNo activity at all: ${absent.map(r => r.name).join(", ")}` : "")
 
     const client = new OpenAI()
     const completion = await client.chat.completions.create({
@@ -57,7 +88,7 @@ export async function GET(req: NextRequest) {
       max_tokens: 400,
       messages: [{
         role: "user",
-        content: `Summarize what this team did today in one short paragraph for a manager, based only on the data below. Mention who was active and what they worked on where notes are available. Note anyone who logged hours but left no check-in note, and anyone absent, without inventing details.\n\n${dataContext}`,
+        content: `Summarize what this team did today in one short paragraph for a manager, based only on the data below. Mention who was active, hours worked, leads added, tasks completed, tickets resolved, and what their check-in note said where available. Note anyone with no activity at all, without inventing details.\n\n${dataContext}`,
       }],
     })
     summary = completion.choices[0]?.message?.content ?? ""

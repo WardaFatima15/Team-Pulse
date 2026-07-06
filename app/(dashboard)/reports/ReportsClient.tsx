@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, Sparkles, Clock, CheckSquare, ChevronDown, ChevronUp, RefreshCw, Users, MessageSquareText } from "lucide-react"
+import { Loader2, Sparkles, Clock, CheckSquare, ChevronDown, ChevronUp, RefreshCw, Users, MessageSquareText, TrendingUp, TicketCheck } from "lucide-react"
 import LiveTimer from "@/components/LiveTimer"
 
 type Employee = { id: string; name: string; role: string; department: string; avatar: string; status: string }
@@ -11,6 +11,7 @@ type Employee = { id: string; name: string; role: string; department: string; av
 type TeamDailyRow = {
   employeeId: string; name: string; avatar: string; role: string; department: string
   clockIn: string | null; clockOut: string | null; hours: number; notes: string; createdAt: string | null
+  leadsAdded: number; tasksCompleted: number; ticketsResolved: number
 }
 
 type Reliability = { onTime: number; late: number; absent: number; avgOffsetMinutes: number | null } | null
@@ -204,8 +205,9 @@ function TeamDailyReport() {
         <div className="space-y-2">
           {rows.map(r => {
             const noRecord = !r.clockIn
+            const hasActivity = r.leadsAdded > 0 || r.tasksCompleted > 0 || r.ticketsResolved > 0
             return (
-              <Card key={r.employeeId} className={noRecord ? "opacity-50" : ""}>
+              <Card key={r.employeeId} className={noRecord && !hasActivity ? "opacity-50" : ""}>
                 <CardContent className="px-4 py-3">
                   <div className="flex items-start gap-3">
                     <EmpAvatar name={r.name} avatar={r.avatar} />
@@ -233,6 +235,25 @@ function TeamDailyReport() {
                           </div>
                         )}
                       </div>
+                      {hasActivity && (
+                        <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                          {r.leadsAdded > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#512feb]/15 text-[#7c5af5]">
+                              <TrendingUp className="size-3" /> {r.leadsAdded} lead{r.leadsAdded !== 1 ? "s" : ""} added
+                            </span>
+                          )}
+                          {r.tasksCompleted > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-500/15 text-green-400">
+                              <CheckSquare className="size-3" /> {r.tasksCompleted} task{r.tasksCompleted !== 1 ? "s" : ""} done
+                            </span>
+                          )}
+                          {r.ticketsResolved > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400">
+                              <TicketCheck className="size-3" /> {r.ticketsResolved} ticket{r.ticketsResolved !== 1 ? "s" : ""} resolved
+                            </span>
+                          )}
+                        </div>
+                      )}
                       {!noRecord && (
                         <div className="mt-2 flex items-start gap-1.5">
                           <MessageSquareText className="size-3.5 text-white/30 mt-0.5 shrink-0" />

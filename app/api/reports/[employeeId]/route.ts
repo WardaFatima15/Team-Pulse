@@ -18,7 +18,7 @@ export async function GET(
   const today = new Date().toISOString().slice(0, 10)
   const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
 
-  const [timeToday, tasks, recentLeaves, openTickets, reliability] = await Promise.all([
+  const [timeToday, tasks, recentLeaves, openTickets, reliability, leadsToday, tasksDoneToday, ticketsResolvedToday] = await Promise.all([
     queryAll<{ clockIn: string; clockOut: string | null; hours: number }>(
       `SELECT "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`,
       [employeeId, today]
@@ -36,6 +36,18 @@ export async function GET(
       [employeeId]
     ),
     computeReliability(employeeId, emp.shiftStart, emp.joinDate),
+    queryAll<{ name: string; company: string; stage: string }>(
+      `SELECT name, company, stage FROM "Lead" WHERE "ownerId" = $1 AND "createdAt"::date = $2::date ORDER BY "createdAt" DESC`,
+      [employeeId, today]
+    ),
+    queryAll<{ title: string }>(
+      `SELECT title FROM "Task" WHERE "assigneeId" = $1 AND status = 'done' AND "updatedAt"::date = $2::date`,
+      [employeeId, today]
+    ),
+    queryAll<{ title: string }>(
+      `SELECT title FROM "Ticket" WHERE "employeeId" = $1 AND status = 'resolved' AND "updatedAt"::date = $2::date`,
+      [employeeId, today]
+    ),
   ])
 
   const hoursToday = timeToday.reduce((s, r) => s + r.hours, 0)
@@ -62,12 +74,22 @@ ${recentLeaves.length ? recentLeaves.map(l => `  • ${l.type} ${l.startDate}→
 
 Open Support Tickets:
 ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} (${t.status})`).join("\n") : "  • None"}
+
+Leads Added Today (Sales Pipeline):
+${leadsToday.length ? leadsToday.map(l => `  • ${l.name}${l.company ? ` (${l.company})` : ""} — ${l.stage}`).join("\n") : "  • None"}
+
+Tasks Completed Today:
+${tasksDoneToday.length ? tasksDoneToday.map(t => `  • ${t.title}`).join("\n") : "  • None"}
+
+Tickets Resolved Today:
+${ticketsResolvedToday.length ? ticketsResolvedToday.map(t => `  • ${t.title}`).join("\n") : "  • None"}
 `.trim()
 
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({
       employee: emp, hoursToday, clockedIn, tasksByStatus,
       tasks, recentLeaves, openTickets, reliability,
+      leadsToday, tasksDoneToday, ticketsResolvedToday,
       report: `AI report unavailable — OPENAI_API_KEY not set.\n\n${dataContext}`,
       raw: dataContext,
     })
@@ -79,7 +101,7 @@ ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} ($
     max_tokens: 500,
     messages: [{
       role: "user",
-      content: `Generate a concise daily performance report (2-3 short paragraphs) for this employee based on their data. Be professional, factual, and highlight key productivity metrics. If there are no tasks or minimal activity, note that. Do not make up data.\n\n${dataContext}`,
+      content: `Generate a concise daily performance report (2-3 short paragraphs) for this employee based on their data. Be professional, factual, and highlight key productivity metrics — including leads added, tasks completed, and tickets resolved today, not just hours. If there are no tasks or minimal activity, note that. Do not make up data.\n\n${dataContext}`,
     }],
   })
 
@@ -87,6 +109,8 @@ ${openTickets.length ? openTickets.map(t => `  • [${t.priority}] ${t.title} ($
 
   return NextResponse.json({
     employee: emp, hoursToday, clockedIn, tasksByStatus,
-    tasks, recentLeaves, openTickets, reliability, report, raw: dataContext,
+    tasks, recentLeaves, openTickets, reliability,
+    leadsToday, tasksDoneToday, ticketsResolvedToday,
+    report, raw: dataContext,
   })
 }
