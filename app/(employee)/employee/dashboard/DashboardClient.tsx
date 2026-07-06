@@ -186,7 +186,7 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { icon: Clock, label: "Hours today", value: todayRecord ? `${todayRecord.hours || "0"}h` : "0h", color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
+          { icon: Clock, label: "Hours today", value: !todayRecord ? "0h" : todayRecord.clockOut ? `${todayRecord.hours || "0"}h` : (elapsed || "0h"), color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
           { icon: Calendar, label: "Pending leaves", value: pendingLeaves, href: "/employee/leaves", color: "text-amber-400", bg: "bg-amber-500/10" },
           { icon: CheckSquare, label: "My Tasks", value: "→", href: "/employee/tasks", color: "text-blue-400", bg: "bg-blue-500/10" },
         ].map(({ icon: Icon, label, value, href, color, bg }) => (
