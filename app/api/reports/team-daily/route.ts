@@ -23,27 +23,30 @@ export async function GET(req: NextRequest) {
      WHERE e."organizationId" = $1 AND t.date = $2`,
     [admin.organizationId, date]
   )
-  // Same-day activity across the other modules — the raw ingredients for
-  // "what did everyone actually get done", not just clock times.
-  const leadsAdded = await queryAll<{ ownerId: string; n: string }>(
-    `SELECT "ownerId", COUNT(*) as n FROM "Lead" WHERE "organizationId" = $1 AND "createdAt"::date = $2::date GROUP BY "ownerId"`,
+  // Same-day activity across the other modules — the actual items each person
+  // moved, not just counts, so the report can list what they did by name.
+  const leadRows = await queryAll<{ ownerId: string; name: string; company: string }>(
+    `SELECT "ownerId", name, company FROM "Lead" WHERE "organizationId" = $1 AND "createdAt"::date = $2::date ORDER BY "createdAt" DESC`,
     [admin.organizationId, date]
   )
-  const tasksCompleted = await queryAll<{ assigneeId: string; n: string }>(
-    `SELECT t."assigneeId", COUNT(*) as n FROM "Task" t JOIN "Employee" e ON e.id = t."assigneeId"
+  const taskRows = await queryAll<{ assigneeId: string; title: string }>(
+    `SELECT t."assigneeId", t.title FROM "Task" t JOIN "Employee" e ON e.id = t."assigneeId"
      WHERE e."organizationId" = $1 AND t.status = 'done' AND t."updatedAt"::date = $2::date
-     GROUP BY t."assigneeId"`,
+     ORDER BY t."updatedAt" DESC`,
     [admin.organizationId, date]
   )
-  const ticketsResolved = await queryAll<{ employeeId: string; n: string }>(
-    `SELECT t."employeeId", COUNT(*) as n FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId"
+  const ticketRows = await queryAll<{ employeeId: string; title: string }>(
+    `SELECT t."employeeId", t.title FROM "Ticket" t JOIN "Employee" e ON e.id = t."employeeId"
      WHERE e."organizationId" = $1 AND t.status = 'resolved' AND t."updatedAt"::date = $2::date
-     GROUP BY t."employeeId"`,
+     ORDER BY t."updatedAt" DESC`,
     [admin.organizationId, date]
   )
 
   const rows = employees.map(e => {
     const rec = records.find(r => r.employeeId === e.id)
+    const leads = leadRows.filter(l => l.ownerId === e.id).map(l => l.company ? `${l.name} (${l.company})` : l.name)
+    const tasks = taskRows.filter(t => t.assigneeId === e.id).map(t => t.title)
+    const tickets = ticketRows.filter(t => t.employeeId === e.id).map(t => t.title)
     return {
       employeeId: e.id,
       name: e.name,
@@ -55,9 +58,12 @@ export async function GET(req: NextRequest) {
       hours: rec?.hours ?? 0,
       notes: rec?.notes ?? "",
       createdAt: rec?.createdAt ?? null,
-      leadsAdded: Number(leadsAdded.find(l => l.ownerId === e.id)?.n ?? 0),
-      tasksCompleted: Number(tasksCompleted.find(t => t.assigneeId === e.id)?.n ?? 0),
-      ticketsResolved: Number(ticketsResolved.find(t => t.employeeId === e.id)?.n ?? 0),
+      leadsAdded: leads.length,
+      tasksCompleted: tasks.length,
+      ticketsResolved: tickets.length,
+      leadList: leads,
+      taskList: tasks,
+      ticketList: tickets,
     }
   })
 
@@ -72,9 +78,12 @@ export async function GET(req: NextRequest) {
   } else {
     const dataContext = present.map(r => {
       const activity: string[] = []
-      if (r.leadsAdded) activity.push(`added ${r.leadsAdded} lead${r.leadsAdded !== 1 ? "s" : ""}`)
-      if (r.tasksCompleted) activity.push(`completed ${r.tasksCompleted} task${r.tasksCompleted !== 1 ? "s" : ""}`)
-      if (r.ticketsResolved) activity.push(`resolved ${r.ticketsResolved} ticket${r.ticketsResolved !== 1 ? "s" : ""}`)
+      // Cap the item lists fed to the model so a big bulk-import day doesn't
+      // balloon the prompt — the counts still convey the full total.
+      const cap = (xs: string[], n = 15) => xs.length <= n ? xs.join("; ") : `${xs.slice(0, n).join("; ")}; +${xs.length - n} more`
+      if (r.leadsAdded) activity.push(`added ${r.leadsAdded} lead${r.leadsAdded !== 1 ? "s" : ""} (${cap(r.leadList)})`)
+      if (r.tasksCompleted) activity.push(`completed ${r.tasksCompleted} task${r.tasksCompleted !== 1 ? "s" : ""}: ${cap(r.taskList)}`)
+      if (r.ticketsResolved) activity.push(`resolved ${r.ticketsResolved} ticket${r.ticketsResolved !== 1 ? "s" : ""}: ${cap(r.ticketList)}`)
       // For a still-open session the stored hours are still 0 (not finalized
       // until clock-out), so compute the live elapsed time — otherwise the AI
       // summary says "0.0 hours" for someone actively clocked in.
@@ -95,7 +104,7 @@ export async function GET(req: NextRequest) {
       max_tokens: 400,
       messages: [{
         role: "user",
-        content: `Summarize what this team did today in one short paragraph for a manager, based only on the data below. Mention who was active, hours worked, leads added, tasks completed, tickets resolved, and what their check-in note said where available. Note anyone with no activity at all, without inventing details.\n\n${dataContext}`,
+        content: `Write a clear daily team report for a manager, based only on the data below. Give each active person their own short line naming what they actually did — the specific tasks they completed, tickets they resolved, and leads they added (use the item names given), plus hours worked and their check-in note where available. List anyone with no activity at all at the end. Do not invent details.\n\n${dataContext}`,
       }],
     })
     summary = completion.choices[0]?.message?.content ?? ""

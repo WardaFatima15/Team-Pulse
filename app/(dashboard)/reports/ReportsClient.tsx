@@ -12,6 +12,7 @@ type TeamDailyRow = {
   employeeId: string; name: string; avatar: string; role: string; department: string
   clockIn: string | null; clockOut: string | null; hours: number; notes: string; createdAt: string | null
   leadsAdded: number; tasksCompleted: number; ticketsResolved: number
+  leadList: string[]; taskList: string[]; ticketList: string[]
 }
 
 type Reliability = { onTime: number; late: number; absent: number; avgOffsetMinutes: number | null } | null
@@ -165,6 +166,12 @@ function prettyDate(iso: string): string {
   return d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })
 }
 
+// Keep a detail line readable even if someone moved dozens of items in a day.
+function joinCapped(items: string[], max = 12): string {
+  if (items.length <= max) return items.join(", ")
+  return `${items.slice(0, max).join(", ")} +${items.length - max} more`
+}
+
 function StatTile({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color: string }) {
   return (
     <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5">
@@ -181,7 +188,7 @@ function TeamDailyReport() {
   const [error, setError] = useState("")
   const [rows, setRows] = useState<TeamDailyRow[] | null>(null)
   const [summary, setSummary] = useState("")
-  const [showAi, setShowAi] = useState(false)
+  const [showAi, setShowAi] = useState(true)
 
   const load = useCallback((d: string) => {
     setLoading(true)
@@ -237,6 +244,24 @@ function TeamDailyReport() {
             <h2 className="text-lg font-bold text-white">Daily Team Report</h2>
             <p className="text-xs text-white/50">{prettyDate(date)}{isToday ? " · today" : ""}</p>
           </div>
+
+          {/* AI narrative — top of the report, expanded by default */}
+          {summary && (
+            <div className="bg-[#512feb]/8 border border-[#512feb]/20 rounded-xl overflow-hidden">
+              <button
+                onClick={() => setShowAi(v => !v)}
+                className="w-full flex items-center gap-1.5 px-4 py-2.5 text-xs font-medium text-[#7c5af5] hover:bg-white/5 transition-colors"
+              >
+                <Sparkles className="size-3.5" /> AI Summary
+                <span className="ml-auto">{showAi ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}</span>
+              </button>
+              {showAi && (
+                <p className="px-4 pb-3 text-sm text-white/85 leading-relaxed whitespace-pre-wrap">
+                  {summary}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Factual totals header */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -297,6 +322,30 @@ function TeamDailyReport() {
                           </div>
                         )}
 
+                        {/* Detailed breakdown — the actual items they moved */}
+                        {hasActivity && (
+                          <div className="mt-2 space-y-1.5">
+                            {r.taskList.length > 0 && (
+                              <div className="flex items-start gap-1.5 text-xs">
+                                <CheckSquare className="size-3.5 text-green-400/70 mt-0.5 shrink-0" />
+                                <p className="text-white/70"><span className="text-white/45">Tasks completed:</span> {joinCapped(r.taskList)}</p>
+                              </div>
+                            )}
+                            {r.ticketList.length > 0 && (
+                              <div className="flex items-start gap-1.5 text-xs">
+                                <TicketCheck className="size-3.5 text-blue-400/70 mt-0.5 shrink-0" />
+                                <p className="text-white/70"><span className="text-white/45">Tickets resolved:</span> {joinCapped(r.ticketList)}</p>
+                              </div>
+                            )}
+                            {r.leadList.length > 0 && (
+                              <div className="flex items-start gap-1.5 text-xs">
+                                <TrendingUp className="size-3.5 text-[#7c5af5]/70 mt-0.5 shrink-0" />
+                                <p className="text-white/70"><span className="text-white/45">Leads added:</span> {joinCapped(r.leadList)}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {!noRecord && (
                           <div className="mt-2 flex items-start gap-1.5">
                             <MessageSquareText className="size-3.5 text-white/30 mt-0.5 shrink-0" />
@@ -314,25 +363,6 @@ function TeamDailyReport() {
               )
             })}
           </div>
-
-          {/* AI narrative — optional, collapsed by default */}
-          {summary && (
-            <div className="pt-1">
-              <button
-                onClick={() => setShowAi(v => !v)}
-                className="flex items-center gap-1.5 text-xs font-medium text-white/50 hover:text-white/80 transition-colors"
-              >
-                <Sparkles className="size-3.5 text-[#7c5af5]" />
-                {showAi ? "Hide" : "Show"} AI narrative
-                {showAi ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
-              </button>
-              {showAi && (
-                <p className="mt-2 text-sm text-white/80 leading-relaxed whitespace-pre-wrap bg-white/5 rounded-xl px-4 py-3">
-                  {summary}
-                </p>
-              )}
-            </div>
-          )}
         </>
       )}
     </div>
