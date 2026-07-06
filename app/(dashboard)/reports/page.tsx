@@ -14,7 +14,7 @@ export default async function ReportsPage() {
     <div className="max-w-5xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Daily Reports</h1>
-        <p className="text-white/50 text-sm mt-1">AI-generated daily summaries based on each employee's activity</p>
+        <p className="text-white/50 text-sm mt-1">AI summaries per employee, or one team-wide view of what everyone did on a given day</p>
       </div>
       <ReportsClient employees={employees} />
     </div>
