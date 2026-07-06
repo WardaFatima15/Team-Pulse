@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getAdminSession } from "@/lib/admin-auth"
 import { queryAll } from "@/lib/db"
+import { computeHours } from "@/lib/time"
 import OpenAI from "openai"
 
 export async function GET(req: NextRequest) {
@@ -74,8 +75,14 @@ export async function GET(req: NextRequest) {
       if (r.leadsAdded) activity.push(`added ${r.leadsAdded} lead${r.leadsAdded !== 1 ? "s" : ""}`)
       if (r.tasksCompleted) activity.push(`completed ${r.tasksCompleted} task${r.tasksCompleted !== 1 ? "s" : ""}`)
       if (r.ticketsResolved) activity.push(`resolved ${r.ticketsResolved} ticket${r.ticketsResolved !== 1 ? "s" : ""}`)
+      // For a still-open session the stored hours are still 0 (not finalized
+      // until clock-out), so compute the live elapsed time — otherwise the AI
+      // summary says "0.0 hours" for someone actively clocked in.
+      const liveHours = r.clockIn && r.clockOut === null && r.createdAt
+        ? computeHours(r.createdAt, new Date())
+        : Number(r.hours)
       const clockPart = r.clockIn
-        ? `${Number(r.hours).toFixed(1)}h (${r.clockIn}–${r.clockOut ?? "ongoing"})`
+        ? `${liveHours.toFixed(1)}h so far (${r.clockIn}–${r.clockOut ?? "still clocked in"})`
         : "did not clock in"
       const notePart = r.notes ? ` — "${r.notes}"` : r.clockIn ? " — no check-in note" : ""
       const activityPart = activity.length ? ` — ${activity.join(", ")}` : ""

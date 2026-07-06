@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { queryOne, queryAll } from "@/lib/db"
 import { computeReliability } from "@/lib/reliability"
+import { computeHours } from "@/lib/time"
 import OpenAI from "openai"
 
 export async function GET(
@@ -19,8 +20,8 @@ export async function GET(
   const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)
 
   const [timeToday, tasks, recentLeaves, openTickets, reliability, leadsToday, tasksDoneToday, ticketsResolvedToday] = await Promise.all([
-    queryAll<{ clockIn: string; clockOut: string | null; hours: number }>(
-      `SELECT "clockIn", "clockOut", hours FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`,
+    queryAll<{ clockIn: string; clockOut: string | null; hours: number; createdAt: string }>(
+      `SELECT "clockIn", "clockOut", hours, "createdAt" FROM "TimeRecord" WHERE "employeeId" = $1 AND date = $2`,
       [employeeId, today]
     ),
     queryAll<{ title: string; status: string; priority: string; updatedAt: string }>(
@@ -50,7 +51,12 @@ export async function GET(
     ),
   ])
 
-  const hoursToday = timeToday.reduce((s, r) => s + r.hours, 0)
+  // A still-open session has hours = 0 in the DB until clock-out, so compute
+  // its live elapsed time — otherwise "hours today" reads 0 while clocked in.
+  const hoursToday = timeToday.reduce(
+    (s, r) => s + (r.clockOut === null && r.createdAt ? computeHours(r.createdAt, new Date()) : r.hours),
+    0
+  )
   const clockedIn = timeToday.some(r => r.clockIn && !r.clockOut)
   const tasksByStatus = tasks.reduce<Record<string, number>>((acc, t) => {
     acc[t.status] = (acc[t.status] ?? 0) + 1; return acc
@@ -63,7 +69,10 @@ Date: ${today}
 Time Tracking:
 - Hours logged today: ${hoursToday.toFixed(1)}h
 - Currently clocked in: ${clockedIn ? "Yes" : "No"}
-${timeToday.map(r => `  • ${r.clockIn} – ${r.clockOut ?? "ongoing"} (${r.hours.toFixed(1)}h)`).join("\n") || "  • No time records today"}
+${timeToday.map(r => {
+  const h = r.clockOut === null && r.createdAt ? computeHours(r.createdAt, new Date()) : r.hours
+  return `  • ${r.clockIn} – ${r.clockOut ?? "ongoing"} (${h.toFixed(1)}h${r.clockOut === null ? " so far" : ""})`
+}).join("\n") || "  • No time records today"}
 
 Tasks (assigned):
 - Total: ${tasks.length} | ${Object.entries(tasksByStatus).map(([s, n]) => `${s}: ${n}`).join(", ") || "none"}
