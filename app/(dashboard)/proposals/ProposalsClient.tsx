@@ -1,0 +1,302 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink } from "lucide-react"
+import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL } from "@/lib/proposal-roles"
+
+type LeadOption = {
+  id: string; name: string; company: string
+  painPoint: string; offerPitched: string; resourceTypePitched: string
+}
+
+type RoleRow = { roleId: string; count: number }
+
+type ProposalResult = {
+  strategicFrame: { clientNeed: string; binaryNextProvides: string; goal: string }
+  executiveSummary: string
+  coreChallenge: string
+  hiringProblem: string
+  howBinaryNextFits: string
+  clientNeeds: { title: string; description: string }[]
+  positioning: string
+  competitiveLandscape: string
+  whyHardToRefuse: string[]
+  teamRationale: string
+  successMetrics: string
+  closingStatement: string
+}
+
+function newRow(): RoleRow {
+  return { roleId: ALL_ROLES[0].id, count: 1 }
+}
+
+export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
+  const [leadId, setLeadId] = useState("")
+  const [clientName, setClientName] = useState("")
+  const [projectType, setProjectType] = useState(PROJECT_TYPES[0])
+  const [timeline, setTimeline] = useState("3-5 business days to deploy")
+  const [budget, setBudget] = useState("")
+  const [overview, setOverview] = useState("")
+  const [roles, setRoles] = useState<RoleRow[]>([newRow()])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [result, setResult] = useState<ProposalResult | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  function applyLead(id: string) {
+    setLeadId(id)
+    const lead = leads.find(l => l.id === id)
+    if (!lead) return
+    setClientName(lead.company || lead.name)
+    const bits = [lead.painPoint, lead.offerPitched && `Offer pitched: ${lead.offerPitched}`, lead.resourceTypePitched && `Resource type: ${lead.resourceTypePitched}`]
+      .filter(Boolean)
+    if (bits.length) setOverview(bits.join(". "))
+  }
+
+  function updateRole(i: number, patch: Partial<RoleRow>) {
+    setRoles(rows => rows.map((r, idx) => idx === i ? { ...r, ...patch } : r))
+  }
+
+  const totalHeadcount = roles.reduce((s, r) => s + r.count, 0)
+  const totalMonthly = roles.reduce((s, r) => {
+    const role = ALL_ROLES.find(x => x.id === r.roleId)
+    return s + (role ? role.monthlyRate * r.count : 0)
+  }, 0)
+
+  async function generate() {
+    setLoading(true)
+    setError("")
+    setResult(null)
+    try {
+      const pods = [{
+        type: "pod",
+        name: "Proposed Team",
+        roles: roles.map(r => {
+          const role = ALL_ROLES.find(x => x.id === r.roleId)!
+          return { roleLabel: role.label, count: r.count, hourlyRate: role.hourlyRate, monthlyRate: role.monthlyRate }
+        }),
+      }]
+      const res = await fetch(PROPOSAL_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientName, projectType, timeline, budget, pods, overview }),
+      })
+      if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't generate proposal")
+      setResult(await res.json())
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function asPlainText(r: ProposalResult): string {
+    return [
+      `Proposal — ${clientName}`,
+      `${projectType} · ${totalHeadcount} people · $${totalMonthly.toLocaleString()}/mo`,
+      "",
+      "EXECUTIVE SUMMARY", r.executiveSummary, "",
+      "CORE CHALLENGE", r.coreChallenge, "",
+      "THE HIRING PROBLEM", r.hiringProblem, "",
+      "HOW BINARYNEXT FITS", r.howBinaryNextFits, "",
+      "WHAT YOU NEED RIGHT NOW",
+      ...r.clientNeeds.flatMap(n => [`- ${n.title}: ${n.description}`]), "",
+      "POSITIONING", r.positioning, "",
+      "COMPETITIVE LANDSCAPE", r.competitiveLandscape, "",
+      "WHY THIS IS HARD TO REFUSE",
+      ...r.whyHardToRefuse.map(b => `- ${b}`), "",
+      "TEAM RATIONALE", r.teamRationale, "",
+      "SUCCESS METRICS", r.successMetrics, "",
+      "CLOSING", r.closingStatement,
+    ].join("\n")
+  }
+
+  function copyText() {
+    if (!result) return
+    navigator.clipboard.writeText(asPlainText(result)).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 flex items-center gap-2 print:hidden">
+        <FileSignature className="size-3.5 text-[#7c5af5] shrink-0" />
+        <p className="text-xs text-white/60">
+          This calls Binary Next&apos;s existing internal proposal generator (propsalgen) — same engine, connected here so you don&apos;t have to leave the CRM.
+        </p>
+        <a href="https://propsalgen.vercel.app" target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-[#7c5af5] hover:text-[#9b83ff] flex items-center gap-1 shrink-0">
+          Open standalone <ExternalLink className="size-3" />
+        </a>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 print:hidden">
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">Prefill from lead (optional)</label>
+          <select value={leadId} onChange={e => applyLead(e.target.value)}
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+            <option value="">— Manual entry —</option>
+            {leads.map(l => <option key={l.id} value={l.id}>{l.company || l.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">Client name</label>
+          <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Acme Inc."
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">Project type</label>
+          <select value={projectType} onChange={e => setProjectType(e.target.value)}
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+            {PROJECT_TYPES.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">Timeline</label>
+          <input value={timeline} onChange={e => setTimeline(e.target.value)}
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+        </div>
+        <div className="col-span-2">
+          <label className="text-xs font-medium text-white/60 mb-1 block">Client context / overview</label>
+          <textarea value={overview} onChange={e => setOverview(e.target.value)} rows={3}
+            placeholder="Their situation, pain points, what they need"
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">Monthly budget (optional, $)</label>
+          <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+        </div>
+      </div>
+
+      <div className="print:hidden">
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-xs font-medium text-white/60">Proposed team</label>
+          <span className="text-xs text-white/40">{totalHeadcount} people · ${totalMonthly.toLocaleString()}/mo</span>
+        </div>
+        <div className="space-y-2">
+          {roles.map((r, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <select value={r.roleId} onChange={e => updateRole(i, { roleId: e.target.value })}
+                className="flex-1 text-sm border border-white/10 rounded-lg px-3 py-1.5 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+                {ALL_ROLES.map(role => <option key={role.id} value={role.id}>{role.label} — ${role.monthlyRate}/mo</option>)}
+              </select>
+              <input type="number" min={1} value={r.count} onChange={e => updateRole(i, { count: Math.max(1, Number(e.target.value)) })}
+                className="w-16 text-sm border border-white/10 rounded-lg px-2 py-1.5 bg-white/5 text-white text-center focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+              <button onClick={() => setRoles(rows => rows.filter((_, idx) => idx !== i))} disabled={roles.length === 1}
+                className="p-1.5 text-white/30 hover:text-red-400 disabled:opacity-20 disabled:hover:text-white/30">
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <button onClick={() => setRoles(rows => [...rows, newRow()])} className="mt-2 text-xs text-[#7c5af5] hover:text-[#9b83ff] flex items-center gap-1">
+          <Plus className="size-3.5" /> Add role
+        </button>
+      </div>
+
+      <div className="flex items-center gap-3 print:hidden">
+        <Button size="sm" onClick={generate} disabled={loading || !clientName} className="bg-[#512feb] hover:bg-[#3f1fd4] text-white">
+          {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <FileSignature className="size-3.5 mr-1.5" />}
+          {loading ? "Generating…" : "Generate Proposal"}
+        </Button>
+        {result && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.print()} className="border-white/10 text-white/70 hover:bg-white/8">
+              <Printer className="size-3.5 mr-1.5" /> Export PDF
+            </Button>
+            <Button size="sm" variant="outline" onClick={copyText} className="border-white/10 text-white/70 hover:bg-white/8">
+              {copied ? <Check className="size-3.5 mr-1.5 text-green-400" /> : <Copy className="size-3.5 mr-1.5" />}
+              {copied ? "Copied" : "Copy as Text"}
+            </Button>
+          </>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {result && (
+        <div className="bg-[#131318] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
+          <div className="border-b border-white/10 print:border-black/20 pb-4">
+            <h2 className="text-lg font-bold text-white print:text-black">Proposal — {clientName}</h2>
+            <p className="text-xs text-white/50 print:text-black/60 mt-0.5">
+              {projectType} · {totalHeadcount} people · ${totalMonthly.toLocaleString()}/mo
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 text-xs">
+            {[
+              ["What they need", result.strategicFrame.clientNeed],
+              ["What Binary Next provides", result.strategicFrame.binaryNextProvides],
+              ["The goal", result.strategicFrame.goal],
+            ].map(([label, val]) => (
+              <div key={label} className="bg-white/5 print:bg-black/5 rounded-lg p-3">
+                <p className="font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-1">{label}</p>
+                <p className="text-white/80 print:text-black">{val}</p>
+              </div>
+            ))}
+          </div>
+
+          {[
+            ["Executive Summary", result.executiveSummary],
+            ["Core Challenge", result.coreChallenge],
+            ["The Hiring Problem", result.hiringProblem],
+            ["How Binary Next Fits", result.howBinaryNextFits],
+          ].map(([label, val]) => (
+            <div key={label}>
+              <p className="text-xs font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-1">{label}</p>
+              <p className="text-sm text-white/85 print:text-black leading-relaxed whitespace-pre-wrap">{val}</p>
+            </div>
+          ))}
+
+          <div>
+            <p className="text-xs font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-2">What You Need Right Now</p>
+            <div className="space-y-2">
+              {result.clientNeeds.map((n, i) => (
+                <div key={i} className="text-sm">
+                  <span className="font-medium text-white print:text-black">{n.title}: </span>
+                  <span className="text-white/75 print:text-black/80">{n.description}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {[
+            ["Positioning", result.positioning],
+            ["Competitive Landscape", result.competitiveLandscape],
+          ].map(([label, val]) => (
+            <div key={label}>
+              <p className="text-xs font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-1">{label}</p>
+              <p className="text-sm text-white/85 print:text-black leading-relaxed whitespace-pre-wrap">{val}</p>
+            </div>
+          ))}
+
+          <div>
+            <p className="text-xs font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-2">Why This Is Hard To Refuse</p>
+            <ul className="space-y-1 list-disc list-inside">
+              {result.whyHardToRefuse.map((b, i) => (
+                <li key={i} className="text-sm text-white/85 print:text-black">{b}</li>
+              ))}
+            </ul>
+          </div>
+
+          {[
+            ["Team Rationale", result.teamRationale],
+            ["Success Metrics", result.successMetrics],
+          ].map(([label, val]) => (
+            <div key={label}>
+              <p className="text-xs font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-1">{label}</p>
+              <p className="text-sm text-white/85 print:text-black leading-relaxed whitespace-pre-wrap">{val}</p>
+            </div>
+          ))}
+
+          <div className="border-t border-white/10 print:border-black/20 pt-4">
+            <p className="text-sm font-medium text-white print:text-black">{result.closingStatement}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

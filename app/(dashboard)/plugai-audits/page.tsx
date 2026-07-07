@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation"
 import { getAdminSession } from "@/lib/admin-auth"
-import { ScanSearch } from "lucide-react"
+import { ScanSearch, ExternalLink } from "lucide-react"
+
+const PLUGAI_URL = "https://www.plugai.tech/"
 
 export default async function PlugAIAuditsPage() {
   const admin = await getAdminSession()
@@ -17,13 +19,21 @@ export default async function PlugAIAuditsPage() {
           <ScanSearch className="size-6 text-[#7c5af5]" />
         </div>
         <div className="max-w-sm">
-          <p className="font-semibold text-white text-lg">PlugAI integration — not built yet</p>
+          <p className="font-semibold text-white text-lg">PlugAI is a separate deployed tool</p>
           <p className="text-white/60 text-sm mt-1">
-            PlugAI isn&apos;t referenced anywhere in the codebase. Before this can be scoped: is it an
-            existing product with an API key we already have, or something to build from scratch?
-            Those are very different timelines.
+            It runs on its own domain, so audits happen there for now rather than embedded in the CRM.
+            Pulling results back into a lead&apos;s timeline would need PlugAI to expose an API for that —
+            worth asking about if this becomes a daily workflow.
           </p>
         </div>
+        <a
+          href={PLUGAI_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-[#512feb] hover:bg-[#3f1fd4] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+        >
+          Open PlugAI <ExternalLink className="size-3.5" />
+        </a>
       </div>
     </div>
   )
