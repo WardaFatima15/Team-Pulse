@@ -6,22 +6,27 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Users, Clock, CheckSquare, Calendar,
   Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon, Sparkles, TrendingUp,
+  UserCog, Building2, FileSignature, ScanSearch,
 } from "lucide-react"
 
 const navItems = [
-  { href: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/approvals",     icon: InboxIcon,       label: "Approvals" },
-  { href: "/employees",     icon: Users,           label: "Employees" },
-  { href: "/pipeline",      icon: TrendingUp,      label: "Sales Pipeline" },
-  { href: "/time-tracking", icon: Clock,           label: "Time Tracking" },
-  { href: "/attendance",    icon: CalendarDays,    label: "Attendance" },
-  { href: "/tasks",         icon: CheckSquare,     label: "Tasks" },
-  { href: "/leaves",        icon: Calendar,        label: "Leave Management" },
-  { href: "/announcements", icon: Megaphone,       label: "Announcements" },
-  { href: "/tickets",       icon: TicketCheck,     label: "Support Tickets" },
-  { href: "/chat",          icon: MessageSquare,   label: "Chat" },
-  { href: "/reports",       icon: BarChart2,       label: "Daily Reports" },
-  { href: "/ai",            icon: Sparkles,        label: "AI Assistant" },
+  { href: "/dashboard",       icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/approvals",       icon: InboxIcon,       label: "Approvals" },
+  { href: "/employees",       icon: Users,           label: "Employees" },
+  { href: "/resources",       icon: UserCog,         label: "Resources" },
+  { href: "/pipeline",        icon: TrendingUp,      label: "Sales Pipeline" },
+  { href: "/clients",         icon: Building2,       label: "Clients" },
+  { href: "/proposals",       icon: FileSignature,   label: "Proposals" },
+  { href: "/plugai-audits",   icon: ScanSearch,      label: "PlugAI Audits" },
+  { href: "/time-tracking",   icon: Clock,           label: "Time Tracking" },
+  { href: "/attendance",      icon: CalendarDays,    label: "Attendance" },
+  { href: "/tasks",           icon: CheckSquare,     label: "Tasks" },
+  { href: "/leaves",          icon: Calendar,        label: "Leave Management" },
+  { href: "/announcements",   icon: Megaphone,       label: "Announcements" },
+  { href: "/tickets",         icon: TicketCheck,     label: "Support Tickets" },
+  { href: "/chat",            icon: MessageSquare,   label: "Chat" },
+  { href: "/reports",         icon: BarChart2,       label: "Daily Reports" },
+  { href: "/ai",              icon: Sparkles,        label: "AI Assistant" },
 ]
 
 export default function Sidebar({ orgName }: { orgName?: string }) {

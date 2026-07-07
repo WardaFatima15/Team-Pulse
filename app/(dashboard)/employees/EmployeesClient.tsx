@@ -125,7 +125,7 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
   onOpenChange: (v: boolean) => void
   onSuccess: () => void
 }) {
-  const [form, setForm] = useState({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "", shiftStart: "" })
+  const [form, setForm] = useState({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "", shiftStart: "", accessRole: "" })
   const [showPw, setShowPw] = useState(false)
   const [error, setError] = useState("")
   const [pending, startTransition] = useTransition()
@@ -143,7 +143,7 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
     startTransition(async () => {
       try {
         await createEmployee({ ...form, password: form.password || "employee123", shiftHours: form.shiftHours ? parseFloat(form.shiftHours) : 0 })
-        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "", shiftStart: "" })
+        setForm({ name: "", email: "", role: "", department: "", phone: "", location: "", password: "", shiftHours: "", shiftStart: "", accessRole: "" })
         onSuccess()
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err)
@@ -224,6 +224,22 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
                 className="h-9 text-sm bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-white/60 mb-1">
+              Team Role <span className="text-white/30 font-normal">(for internal views, not yet permission-enforced)</span>
+            </label>
+            <select
+              value={form.accessRole}
+              onChange={e => set("accessRole", e.target.value)}
+              className="w-full h-9 text-sm border border-white/10 rounded-lg px-3 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50"
+            >
+              <option value="">General Employee</option>
+              <option value="salesperson">Salesperson</option>
+              <option value="account_manager">Account Manager</option>
+              <option value="resource">Resource / Offshore Team Member</option>
+            </select>
           </div>
 
           <div>

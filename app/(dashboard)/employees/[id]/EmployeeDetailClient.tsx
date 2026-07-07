@@ -16,7 +16,7 @@ type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
   joinDate: string; jiraAccountId: string; shiftHours: number; shiftStart: string
-  currentFocus: string; focusSince: string
+  currentFocus: string; focusSince: string; accessRole: string; availabilityStatus: string
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number; notes: string }
 type LeaveRequest = { id: string; type: string; startDate: string; endDate: string; days: number; reason: string; status: string; createdAt: string }
@@ -473,6 +473,7 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
     jiraAccountId: employee.jiraAccountId ?? "",
     shiftHours: String(employee.shiftHours ?? 0),
     shiftStart: employee.shiftStart ?? "",
+    accessRole: employee.accessRole ?? "",
   })
   const [pending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
@@ -528,6 +529,21 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
               />
             </div>
           ))}
+          <div>
+            <label className="block text-xs font-medium text-white/70 mb-1.5">
+              Team Role <span className="text-white/30 font-normal">(for internal views, not yet permission-enforced)</span>
+            </label>
+            <select
+              value={form.accessRole}
+              onChange={e => set("accessRole", e.target.value)}
+              className="w-full h-9 text-sm border border-white/10 rounded-lg px-3 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50"
+            >
+              <option value="">General Employee</option>
+              <option value="salesperson">Salesperson</option>
+              <option value="account_manager">Account Manager</option>
+              <option value="resource">Resource / Offshore Team Member</option>
+            </select>
+          </div>
         </div>
         {error && <p className="text-xs text-red-400 mt-3">{error}</p>}
         <div className="flex items-center gap-3 mt-5">

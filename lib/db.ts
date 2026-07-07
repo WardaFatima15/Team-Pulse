@@ -257,6 +257,14 @@ async function setupSchema(): Promise<void> {
     await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "neededSupport" TEXT NOT NULL DEFAULT ''`)
     await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "tomorrowFocus" TEXT NOT NULL DEFAULT ''`)
 
+    // Team-role tagging (Salesperson / Account Manager / Resource) on top of
+    // the existing Admin/Employee split — foundation for role-based views,
+    // not yet permission-enforced. Empty string = general employee, unset.
+    await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "accessRole" TEXT NOT NULL DEFAULT ''`)
+    // Staffing/bench status, shown on the Resources view — separate from
+    // online/away/offline presence, which tracks activity not availability.
+    await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "availabilityStatus" TEXT NOT NULL DEFAULT 'available'`)
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS "ActivityLog" (
         id TEXT PRIMARY KEY,

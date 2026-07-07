@@ -10,7 +10,7 @@ type Employee = {
   id: string; name: string; email: string; role: string; department: string
   avatar: string; status: string; phone: string; location: string
   joinDate: string; jiraAccountId: string; shiftHours: number; shiftStart: string
-  currentFocus: string; focusSince: string
+  currentFocus: string; focusSince: string; accessRole: string; availabilityStatus: string
 }
 type TimeRecord = { id: string; date: string; clockIn: string; clockOut: string | null; hours: number; notes: string }
 type LeaveRequest = {
