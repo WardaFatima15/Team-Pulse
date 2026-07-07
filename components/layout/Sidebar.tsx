@@ -35,7 +35,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
   }
 
   return (
-    <aside className="w-60 shrink-0 flex flex-col bg-[#0d0d0d] min-h-screen">
+    <aside className="w-60 shrink-0 flex flex-col bg-[#0d0d0d] min-h-screen print:hidden">
       {/* Brand */}
       <div className="px-5 py-4 border-b border-white/10">
         <div className="flex items-center gap-2.5 mb-3">

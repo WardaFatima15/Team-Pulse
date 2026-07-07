@@ -11,15 +11,29 @@ export type ParsedLeadRow = {
   stage: string
   source: string
   notes: string
+  title: string
+  linkedinUrl: string
+  location: string
+  industry: string
+  companySize: string
+  painPoint: string
+  offerPitched: string
+  resourceTypePitched: string
   customFields: Record<string, string>
 }
 
 // The fixed set of fields we recognize by header name. Any column that
 // doesn't match one of these is preserved as a custom field instead of
 // being dropped — different lead lists never share the same columns.
-type MappableField = "name" | "company" | "email" | "phone" | "value" | "stage" | "source" | "notes"
+type MappableField =
+  | "name" | "company" | "email" | "phone" | "value" | "stage" | "source" | "notes"
+  | "title" | "linkedinUrl" | "location" | "industry" | "companySize" | "painPoint"
+  | "offerPitched" | "resourceTypePitched"
 
-const VALID_STAGES = new Set(["new", "contacted", "qualified", "proposal", "won", "lost"])
+const VALID_STAGES = new Set([
+  "new", "connected", "pitched", "interested", "call_booked",
+  "proposal_needed", "proposal_sent", "negotiation", "follow_up_later", "won", "lost",
+])
 
 // Recognized header spellings per field, matched case/space/punctuation-insensitively.
 const HEADER_SYNONYMS: Record<MappableField, string[]> = {
@@ -31,6 +45,14 @@ const HEADER_SYNONYMS: Record<MappableField, string[]> = {
   stage: ["stage", "status", "pipelinestage"],
   source: ["source", "leadsource", "channel"],
   notes: ["notes", "note", "description", "comments", "remarks"],
+  title: ["title", "jobtitle", "position", "role"],
+  linkedinUrl: ["linkedin", "linkedinurl", "linkedinprofile"],
+  location: ["location", "city", "region"],
+  industry: ["industry", "sector"],
+  companySize: ["companysize", "employees", "teamsize", "headcount"],
+  painPoint: ["painpoint", "pain", "challenge"],
+  offerPitched: ["offerpitched", "offer"],
+  resourceTypePitched: ["resourcetype", "resourcetypepitched", "roletype"],
 }
 
 function normalizeHeader(h: string): string {
@@ -294,6 +316,14 @@ export async function parseLeadsFile(buffer: Buffer, filename: string): Promise<
       stage: VALID_STAGES.has(stageRaw) ? stageRaw : "new",
       source: get("source"),
       notes: get("notes"),
+      title: get("title"),
+      linkedinUrl: get("linkedinUrl"),
+      location: get("location"),
+      industry: get("industry"),
+      companySize: get("companySize"),
+      painPoint: get("painPoint"),
+      offerPitched: get("offerPitched"),
+      resourceTypePitched: get("resourceTypePitched"),
       customFields,
     })
   }

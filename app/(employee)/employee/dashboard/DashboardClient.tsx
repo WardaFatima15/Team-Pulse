@@ -35,8 +35,10 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState("")
   const [showCheckin, setShowCheckin] = useState(false)
-  const [summary, setSummary] = useState("")
+  const [update, setUpdate] = useState({ workedOn: "", completed: "", pending: "", blocked: "", needed: "", tomorrow: "" })
   const router = useRouter()
+
+  function setField(k: keyof typeof update, v: string) { setUpdate(u => ({ ...u, [k]: v })) }
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000)
@@ -54,10 +56,10 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
   function finishClockOut() {
     setError("")
     startTransition(async () => {
-      const res = await clockOut(localTime(), summary)
+      const res = await clockOut(localTime(), update)
       if (res && !res.ok) setError(res.error || "Couldn't clock out.")
       setShowCheckin(false)
-      setSummary("")
+      setUpdate({ workedOn: "", completed: "", pending: "", blocked: "", needed: "", tomorrow: "" })
       router.refresh()
     })
   }
@@ -136,21 +138,31 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
             </div>
           </div>
           {showCheckin && (
-            <div className="border-t border-white/10 p-5 space-y-3">
-              <label className="block text-xs font-medium text-white/60">
-                What did you get done today? <span className="text-white/30 font-normal">(optional)</span>
-              </label>
-              <textarea
-                value={summary}
-                onChange={e => setSummary(e.target.value)}
-                maxLength={500}
-                rows={2}
-                autoFocus
-                placeholder="e.g. Finished the checkout flow, reviewed 2 PRs, fixed the login bug"
-                className="w-full resize-none rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#512feb]"
-              />
-              <div className="flex justify-end gap-2">
-                <button onClick={() => { setShowCheckin(false); setSummary("") }} disabled={pending}
+            <div className="border-t border-white/10 p-5 space-y-3 max-h-[60vh] overflow-y-auto">
+              <p className="text-xs text-white/40">Daily update <span className="font-normal">(all optional)</span></p>
+              {([
+                { key: "workedOn", label: "What did you work on today?", placeholder: "e.g. Checkout flow, code review" },
+                { key: "completed", label: "What did you complete?", placeholder: "e.g. Fixed the login bug" },
+                { key: "pending", label: "What is pending?", placeholder: "e.g. Waiting on design assets" },
+                { key: "blocked", label: "What is blocked?", placeholder: "e.g. API access still pending" },
+                { key: "needed", label: "What do you need from the team/client?", placeholder: "e.g. Feedback on the PR" },
+                { key: "tomorrow", label: "Tomorrow's focus", placeholder: "e.g. Start on the reports page" },
+              ] as const).map((f, i) => (
+                <div key={f.key}>
+                  <label className="block text-xs font-medium text-white/60 mb-1">{f.label}</label>
+                  <textarea
+                    value={update[f.key]}
+                    onChange={e => setField(f.key, e.target.value)}
+                    maxLength={500}
+                    rows={1}
+                    autoFocus={i === 0}
+                    placeholder={f.placeholder}
+                    className="w-full resize-none rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#512feb]"
+                  />
+                </div>
+              ))}
+              <div className="flex justify-end gap-2 pt-1">
+                <button onClick={() => { setShowCheckin(false); setUpdate({ workedOn: "", completed: "", pending: "", blocked: "", needed: "", tomorrow: "" }) }} disabled={pending}
                   className="text-xs px-3 py-1.5 rounded-lg border border-white/10 text-white/60 hover:bg-white/5">Cancel</button>
                 <button onClick={finishClockOut} disabled={pending}
                   className="text-xs px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium disabled:opacity-50">

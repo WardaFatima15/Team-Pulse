@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Loader2, Sparkles, Clock, CheckSquare, ChevronDown, ChevronUp, RefreshCw, Users, MessageSquareText, TrendingUp, TicketCheck } from "lucide-react"
+import { Loader2, Sparkles, Clock, CheckSquare, ChevronDown, ChevronUp, RefreshCw, Users, MessageSquareText, TrendingUp, TicketCheck, FileText, Printer, Copy, Check } from "lucide-react"
 import LiveTimer from "@/components/LiveTimer"
 
 type Employee = { id: string; name: string; role: string; department: string; avatar: string; status: string }
@@ -369,8 +369,156 @@ function TeamDailyReport() {
   )
 }
 
+type WeeklyReportData = {
+  employee: { name: string; role: string; department: string }
+  from: string; to: string; totalHours: number; daysWorked: number
+  tasksCompleted: { title: string; projectKey: string; number: number }[]
+  pendingTasks: { title: string; projectKey: string; number: number; status: string }[]
+  blockedTasks: { title: string; projectKey: string; number: number }[]
+  ticketsResolved: { title: string }[]
+  openTickets: { title: string; priority: string; status: string }[]
+  leadsAdded: { name: string; company: string; stage: string }[]
+  reliability: Reliability
+  sections: {
+    executiveSummary: string; workCompleted: string; keyWins: string; pendingItems: string
+    blockers: string; resourcePerformance: string; nextWeekPlan: string; recommendations: string; additionalSupport: string
+  }
+}
+
+const REPORT_SECTIONS: { key: keyof WeeklyReportData["sections"]; label: string }[] = [
+  { key: "executiveSummary", label: "Executive Summary" },
+  { key: "workCompleted", label: "Work Completed This Week" },
+  { key: "keyWins", label: "Key Wins" },
+  { key: "pendingItems", label: "Pending Items" },
+  { key: "blockers", label: "Blockers" },
+  { key: "resourcePerformance", label: "Resource Performance" },
+  { key: "nextWeekPlan", label: "Next Week's Plan" },
+  { key: "recommendations", label: "Recommendations" },
+  { key: "additionalSupport", label: "Additional Support Needed" },
+]
+
+function isoDaysAgo(n: number) {
+  return new Date(Date.now() - n * 86400000).toISOString().split("T")[0]
+}
+
+function WeeklyReport({ employees }: { employees: Employee[] }) {
+  const [employeeId, setEmployeeId] = useState(employees[0]?.id ?? "")
+  const [from, setFrom] = useState(isoDaysAgo(6))
+  const [to, setTo] = useState(isoDaysAgo(0))
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [data, setData] = useState<WeeklyReportData | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  function generate() {
+    setLoading(true)
+    setError("")
+    setData(null)
+    fetch(`/api/reports/weekly?employeeId=${employeeId}&from=${from}&to=${to}`)
+      .then(async res => {
+        if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't generate report")
+        return res.json()
+      })
+      .then(setData)
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)))
+      .finally(() => setLoading(false))
+  }
+
+  function asPlainText(d: WeeklyReportData): string {
+    const lines = [
+      `Weekly Report — ${d.employee.name} (${d.employee.role}, ${d.employee.department})`,
+      `${d.from} to ${d.to}`,
+      "",
+      `${d.totalHours.toFixed(1)}h logged over ${d.daysWorked} day(s) worked`,
+      "",
+    ]
+    for (const s of REPORT_SECTIONS) {
+      lines.push(s.label.toUpperCase(), d.sections[s.key] || "Nothing to report.", "")
+    }
+    return lines.join("\n")
+  }
+
+  function copyText() {
+    if (!data) return
+    navigator.clipboard.writeText(asPlainText(data)).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-end gap-3 print:hidden">
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">Employee</label>
+          <select value={employeeId} onChange={e => setEmployeeId(e.target.value)}
+            className="text-sm border border-white/10 rounded-lg px-3 py-1.5 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+            {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">From</label>
+          <input type="date" value={from} max={to} onChange={e => setFrom(e.target.value)}
+            className="text-sm border border-white/10 rounded-lg px-3 py-1.5 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-white/60 mb-1 block">To</label>
+          <input type="date" value={to} max={isoDaysAgo(0)} onChange={e => setTo(e.target.value)}
+            className="text-sm border border-white/10 rounded-lg px-3 py-1.5 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+        </div>
+        <Button size="sm" onClick={generate} disabled={loading || !employeeId} className="bg-[#512feb] hover:bg-[#3f1fd4] text-white">
+          {loading ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <FileText className="size-3.5 mr-1.5" />}
+          {loading ? "Generating…" : "Generate Report"}
+        </Button>
+        {data && (
+          <>
+            <Button size="sm" variant="outline" onClick={() => window.print()} className="border-white/10 text-white/70 hover:bg-white/8">
+              <Printer className="size-3.5 mr-1.5" /> Export PDF
+            </Button>
+            <Button size="sm" variant="outline" onClick={copyText} className="border-white/10 text-white/70 hover:bg-white/8">
+              {copied ? <Check className="size-3.5 mr-1.5 text-green-400" /> : <Copy className="size-3.5 mr-1.5" />}
+              {copied ? "Copied" : "Copy as Text"}
+            </Button>
+          </>
+        )}
+      </div>
+
+      {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {data && (
+        <div className="bg-[#131318] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
+          <div className="border-b border-white/10 print:border-black/20 pb-4">
+            <h2 className="text-lg font-bold text-white print:text-black">Weekly Report — {data.employee.name}</h2>
+            <p className="text-xs text-white/50 print:text-black/60 mt-0.5">
+              {data.employee.role} · {data.employee.department} · {data.from} to {data.to}
+            </p>
+            <div className="flex gap-4 mt-3 text-xs text-white/70 print:text-black/70">
+              <span><b className="text-white print:text-black">{data.totalHours.toFixed(1)}h</b> logged</span>
+              <span><b className="text-white print:text-black">{data.daysWorked}</b> day(s) worked</span>
+              <span><b className="text-white print:text-black">{data.tasksCompleted.length}</b> tasks completed</span>
+              <span><b className="text-white print:text-black">{data.ticketsResolved.length}</b> tickets resolved</span>
+              <span><b className="text-white print:text-black">{data.leadsAdded.length}</b> leads added</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {REPORT_SECTIONS.map(s => (
+              <div key={s.key}>
+                <p className="text-xs font-semibold text-[#7c5af5] print:text-black uppercase tracking-wide mb-1">{s.label}</p>
+                <p className="text-sm text-white/85 print:text-black leading-relaxed whitespace-pre-wrap">
+                  {data.sections[s.key] || "Nothing to report."}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function ReportsClient({ employees }: { employees: Employee[] }) {
-  const [tab, setTab] = useState<"employee" | "team">("employee")
+  const [tab, setTab] = useState<"employee" | "team" | "weekly">("employee")
 
   if (employees.length === 0) {
     return (
@@ -382,7 +530,7 @@ export default function ReportsClient({ employees }: { employees: Employee[] }) 
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1.5 bg-white/5 rounded-lg p-1 w-fit">
+      <div className="flex gap-1.5 bg-white/5 rounded-lg p-1 w-fit print:hidden">
         <button
           onClick={() => setTab("employee")}
           className={`flex items-center gap-1.5 text-xs font-medium rounded-md px-3 py-1.5 transition-colors ${tab === "employee" ? "bg-[#512feb] text-white" : "text-white/50 hover:text-white/80"}`}
@@ -394,6 +542,12 @@ export default function ReportsClient({ employees }: { employees: Employee[] }) 
           className={`flex items-center gap-1.5 text-xs font-medium rounded-md px-3 py-1.5 transition-colors ${tab === "team" ? "bg-[#512feb] text-white" : "text-white/50 hover:text-white/80"}`}
         >
           <Users className="size-3.5" /> Team — Daily
+        </button>
+        <button
+          onClick={() => setTab("weekly")}
+          className={`flex items-center gap-1.5 text-xs font-medium rounded-md px-3 py-1.5 transition-colors ${tab === "weekly" ? "bg-[#512feb] text-white" : "text-white/50 hover:text-white/80"}`}
+        >
+          <FileText className="size-3.5" /> Weekly Report
         </button>
       </div>
 
@@ -409,8 +563,10 @@ export default function ReportsClient({ employees }: { employees: Employee[] }) 
             ))}
           </div>
         </>
-      ) : (
+      ) : tab === "team" ? (
         <TeamDailyReport />
+      ) : (
+        <WeeklyReport employees={employees} />
       )}
     </div>
   )

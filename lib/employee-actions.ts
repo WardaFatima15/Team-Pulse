@@ -39,7 +39,36 @@ export async function clockIn(localTime?: string) {
   return { ok: true }
 }
 
-export async function clockOut(localTime?: string, summary?: string) {
+export type DailyUpdateInput = {
+  workedOn?: string
+  completed?: string
+  pending?: string
+  blocked?: string
+  needed?: string
+  tomorrow?: string
+}
+
+const DAILY_UPDATE_SECTIONS: { key: keyof DailyUpdateInput; label: string }[] = [
+  { key: "workedOn", label: "Worked on" },
+  { key: "completed", label: "Completed" },
+  { key: "pending", label: "Pending" },
+  { key: "blocked", label: "Blocked" },
+  { key: "needed", label: "Needed" },
+  { key: "tomorrow", label: "Tomorrow" },
+]
+
+// Composes the 6 structured fields into one readable block — kept in the
+// legacy `notes` column so every existing report/history view that already
+// reads it (Team-Daily report, per-employee AI report, EmployeeDetailClient)
+// keeps working without changes.
+function composeNotes(update: DailyUpdateInput): string {
+  return DAILY_UPDATE_SECTIONS
+    .map(s => { const v = (update[s.key] ?? "").trim(); return v ? `${s.label}: ${v}` : "" })
+    .filter(Boolean)
+    .join("\n")
+}
+
+export async function clockOut(localTime?: string, update?: DailyUpdateInput) {
   const emp = await getEmp()
   if (!emp) return { ok: false, error: "Not authenticated" }
   // Find the open session by clockOut IS NULL — NOT by today's UTC date. On a
@@ -58,8 +87,16 @@ export async function clockOut(localTime?: string, summary?: string) {
   const tout = localTime || now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
   // Exact elapsed from the real clock-in instant — timezone & midnight proof, capped at the shift length.
   const hours = computeHours(rec.createdAt, now, rec.shiftHours)
-  const notes = (summary ?? "").trim().slice(0, 500)
-  await execute(`UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2, notes = $3 WHERE id = $4`, [tout, hours, notes, rec.id])
+  const clean = (s?: string) => (s ?? "").trim().slice(0, 500)
+  const workedOn = clean(update?.workedOn), completed = clean(update?.completed), pending = clean(update?.pending)
+  const blocked = clean(update?.blocked), needed = clean(update?.needed), tomorrow = clean(update?.tomorrow)
+  const notes = composeNotes({ workedOn, completed, pending, blocked, needed, tomorrow }).slice(0, 3000)
+  await execute(
+    `UPDATE "TimeRecord" SET "clockOut" = $1, hours = $2, notes = $3,
+       "workedOn" = $4, "completedToday" = $5, "pendingWork" = $6, blockers = $7, "neededSupport" = $8, "tomorrowFocus" = $9
+     WHERE id = $10`,
+    [tout, hours, notes, workedOn, completed, pending, blocked, needed, tomorrow, rec.id]
+  )
   await logActivity(emp.id, emp.name, "clock_out", `Clocked out at ${tout} · ${hours}h logged`)
   if (notes) await logActivity(emp.id, emp.name, "checkin", notes)
   revalidatePath("/employee/dashboard")

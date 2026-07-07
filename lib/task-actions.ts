@@ -24,7 +24,7 @@ export type Task = {
   number: number
   title: string
   description: string
-  status: "todo" | "in_progress" | "in_review" | "done"
+  status: "todo" | "in_progress" | "waiting_for_client" | "blocked" | "submitted" | "approved" | "rework_needed" | "done"
   priority: "low" | "medium" | "high" | "critical"
   assigneeId: string | null
   assigneeName: string | null

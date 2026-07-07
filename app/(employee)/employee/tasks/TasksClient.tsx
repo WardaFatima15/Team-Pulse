@@ -4,13 +4,17 @@ import { useState, useTransition } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { updateTask, type Task } from "@/lib/task-actions"
 import { useRouter } from "next/navigation"
-import { CheckCircle2, Clock, Eye, Circle } from "lucide-react"
+import { CheckCircle2, Clock, Eye, Circle, Ban, UserCheck } from "lucide-react"
 
 const STATUSES = [
-  { key: "todo", label: "To Do", color: "bg-white/10 text-white/70" },
+  { key: "todo", label: "Not Started", color: "bg-white/10 text-white/70" },
   { key: "in_progress", label: "In Progress", color: "bg-blue-500/15 text-blue-400" },
-  { key: "in_review", label: "In Review", color: "bg-amber-500/15 text-amber-400" },
-  { key: "done", label: "Done", color: "bg-green-500/15 text-green-400" },
+  { key: "waiting_for_client", label: "Waiting for Client", color: "bg-cyan-500/15 text-cyan-400" },
+  { key: "blocked", label: "Blocked", color: "bg-red-500/15 text-red-400" },
+  { key: "submitted", label: "Submitted", color: "bg-amber-500/15 text-amber-400" },
+  { key: "approved", label: "Approved", color: "bg-teal-500/15 text-teal-400" },
+  { key: "rework_needed", label: "Rework Needed", color: "bg-orange-500/15 text-orange-400" },
+  { key: "done", label: "Completed", color: "bg-green-500/15 text-green-400" },
 ] as const
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -80,9 +84,13 @@ export default function TasksClient({ tasks }: { tasks: Task[] }) {
                 <div className="mt-0.5 shrink-0">
                   {task.status === "done" ? (
                     <CheckCircle2 className="size-4 text-green-400" />
+                  ) : task.status === "approved" ? (
+                    <UserCheck className="size-4 text-teal-400" />
+                  ) : task.status === "blocked" ? (
+                    <Ban className="size-4 text-red-400" />
                   ) : task.status === "in_progress" ? (
                     <Clock className="size-4 text-blue-400" />
-                  ) : task.status === "in_review" ? (
+                  ) : task.status === "submitted" ? (
                     <Eye className="size-4 text-amber-400" />
                   ) : (
                     <Circle className="size-4 text-white/25" />
@@ -119,19 +127,31 @@ export default function TasksClient({ tasks }: { tasks: Task[] }) {
                 </div>
 
                 <div className="flex gap-1 flex-wrap justify-end shrink-0">
-                  {task.status !== "in_progress" && task.status !== "done" && (
+                  {task.status === "todo" && (
                     <button onClick={() => moveStatus(task, "in_progress")}
                       className="text-[10px] px-2 py-1 rounded border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors whitespace-nowrap">
                       Start
                     </button>
                   )}
                   {task.status === "in_progress" && (
-                    <button onClick={() => moveStatus(task, "in_review")}
-                      className="text-[10px] px-2 py-1 rounded border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors whitespace-nowrap">
-                      Submit review
+                    <>
+                      <button onClick={() => moveStatus(task, "submitted")}
+                        className="text-[10px] px-2 py-1 rounded border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 transition-colors whitespace-nowrap">
+                        Submit
+                      </button>
+                      <button onClick={() => moveStatus(task, "blocked")}
+                        className="text-[10px] px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap">
+                        Mark blocked
+                      </button>
+                    </>
+                  )}
+                  {(task.status === "blocked" || task.status === "waiting_for_client" || task.status === "rework_needed" || task.status === "submitted") && (
+                    <button onClick={() => moveStatus(task, "in_progress")}
+                      className="text-[10px] px-2 py-1 rounded border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 transition-colors whitespace-nowrap">
+                      Resume
                     </button>
                   )}
-                  {task.status !== "done" && (
+                  {task.status === "approved" && (
                     <button onClick={() => moveStatus(task, "done")}
                       className="text-[10px] px-2 py-1 rounded border border-green-500/30 text-green-400 hover:bg-green-500/10 transition-colors whitespace-nowrap">
                       Mark done

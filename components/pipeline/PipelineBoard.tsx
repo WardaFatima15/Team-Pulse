@@ -5,21 +5,32 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, X, Loader2, Trash2, Building2, Mail, Phone, DollarSign, Filter, Upload, ListPlus, Info } from "lucide-react"
-import { createLead, updateLead, deleteLead, type Lead, type LeadStage } from "@/lib/lead-actions"
+import { Plus, X, Loader2, Trash2, Building2, Mail, Phone, DollarSign, Filter, Upload, ListPlus, Info, ChevronDown, ChevronUp, CalendarClock, CheckCircle2 } from "lucide-react"
+import { createLead, updateLead, deleteLead, markContacted, type Lead, type LeadStage } from "@/lib/lead-actions"
 import ImportLeadsModal from "./ImportLeadsModal"
 
 const STAGES: { key: LeadStage; label: string; color: string }[] = [
-  { key: "new",       label: "New",           color: "bg-white/10 text-white/70" },
-  { key: "contacted", label: "Contacted",     color: "bg-blue-500/15 text-blue-400" },
-  { key: "qualified", label: "Qualified",     color: "bg-amber-500/15 text-amber-400" },
-  { key: "proposal",  label: "Proposal Sent", color: "bg-purple-500/15 text-purple-400" },
-  { key: "won",       label: "Won",           color: "bg-green-500/15 text-green-400" },
+  { key: "new",             label: "New Lead",        color: "bg-white/10 text-white/70" },
+  { key: "connected",       label: "Connected",       color: "bg-cyan-500/15 text-cyan-400" },
+  { key: "pitched",         label: "Pitched",         color: "bg-blue-500/15 text-blue-400" },
+  { key: "interested",      label: "Interested",      color: "bg-amber-500/15 text-amber-400" },
+  { key: "call_booked",     label: "Call Booked",     color: "bg-indigo-500/15 text-indigo-400" },
+  { key: "proposal_needed", label: "Proposal Needed", color: "bg-orange-500/15 text-orange-400" },
+  { key: "proposal_sent",   label: "Proposal Sent",   color: "bg-purple-500/15 text-purple-400" },
+  { key: "negotiation",     label: "Negotiation",     color: "bg-pink-500/15 text-pink-400" },
+  { key: "follow_up_later", label: "Follow-Up Later", color: "bg-yellow-500/15 text-yellow-400" },
+  { key: "won",             label: "Closed Won",      color: "bg-green-500/15 text-green-400" },
 ]
+const LOST_META = { key: "lost" as LeadStage, label: "Closed Lost", color: "bg-red-500/15 text-red-400" }
 const BOARD_STAGES = STAGES.map(s => s.key) // "lost" is filtered separately, not a board column
 
 function stageMeta(stage: string) {
+  if (stage === "lost") return LOST_META
   return STAGES.find(s => s.key === stage) ?? { key: stage as LeadStage, label: stage, color: "bg-white/10 text-white/60" }
+}
+function isOverdue(nextFollowUpAt: string) {
+  if (!nextFollowUpAt) return false
+  return new Date(nextFollowUpAt).getTime() < Date.now()
 }
 function money(v: number) {
   return v >= 1000 ? `$${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `$${v.toFixed(0)}`
@@ -46,7 +57,17 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
     stage: lead?.stage ?? "new",
     source: lead?.source ?? "",
     notes: lead?.notes ?? "",
+    title: lead?.title ?? "",
+    linkedinUrl: lead?.linkedinUrl ?? "",
+    location: lead?.location ?? "",
+    industry: lead?.industry ?? "",
+    companySize: lead?.companySize ?? "",
+    painPoint: lead?.painPoint ?? "",
+    offerPitched: lead?.offerPitched ?? "",
+    resourceTypePitched: lead?.resourceTypePitched ?? "",
+    nextFollowUpAt: lead?.nextFollowUpAt ? lead.nextFollowUpAt.slice(0, 10) : "",
   })
+  const [showSalesDetails, setShowSalesDetails] = useState(false)
   // Arbitrary extra fields — imported columns that don't fit the core schema
   // (e.g. "Title", "Location") land here instead of being dropped, and
   // anyone can add more of their own on any lead.
@@ -70,7 +91,13 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
         for (const row of customRows) {
           if (row.key.trim()) customFields[row.key.trim()] = row.value.trim()
         }
-        const payload = { ...form, value: parseFloat(form.value) || 0, customFields }
+        const { nextFollowUpAt, ...rest } = form
+        const payload = {
+          ...rest,
+          value: parseFloat(form.value) || 0,
+          nextFollowUpAt: nextFollowUpAt ? new Date(nextFollowUpAt).toISOString() : "",
+          customFields,
+        }
         if (lead) await updateLead(lead.id, payload)
         else await createLead(payload)
         router.refresh()
@@ -79,6 +106,11 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
         setError(e instanceof Error ? e.message : String(e))
       }
     })
+  }
+
+  function handleMarkContacted() {
+    if (!lead) return
+    startTransition(async () => { await markContacted(lead.id); router.refresh() })
   }
 
   const inputCls = "bg-white/5 border-white/10 text-white placeholder:text-white/30"
@@ -121,7 +153,7 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
               <label className="text-xs font-medium text-white/60 mb-1 block">Stage</label>
               <select value={form.stage} onChange={e => set("stage", e.target.value)} className={selectCls}>
                 {STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
-                <option value="lost">Lost</option>
+                <option value="lost">{LOST_META.label}</option>
               </select>
             </div>
             <div>
@@ -134,6 +166,72 @@ function LeadModal({ lead, onClose, onDelete }: { lead: Lead | null; onClose: ()
             <textarea value={form.notes} onChange={e => set("notes", e.target.value)}
               placeholder="Context, next steps…" rows={3}
               className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 bg-white/5 text-white placeholder:text-white/30" />
+          </div>
+
+          <div className="pt-1 border-t border-white/10">
+            <button onClick={() => setShowSalesDetails(v => !v)}
+              className="flex items-center justify-between w-full text-xs font-medium text-white/60 hover:text-white/80 mt-3 mb-2">
+              Sales Details
+              {showSalesDetails ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            </button>
+            {showSalesDetails && (
+              <div className="space-y-3 mb-1">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Title</label>
+                    <Input value={form.title} onChange={e => set("title", e.target.value)} placeholder="VP of Sales" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">LinkedIn URL</label>
+                    <Input value={form.linkedinUrl} onChange={e => set("linkedinUrl", e.target.value)} placeholder="linkedin.com/in/…" className={inputCls} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Location</label>
+                    <Input value={form.location} onChange={e => set("location", e.target.value)} placeholder="Austin, TX" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Industry</label>
+                    <Input value={form.industry} onChange={e => set("industry", e.target.value)} placeholder="SaaS" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Company Size</label>
+                    <Input value={form.companySize} onChange={e => set("companySize", e.target.value)} placeholder="11-50" className={inputCls} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-white/60 mb-1 block">Pain Point</label>
+                  <Input value={form.painPoint} onChange={e => set("painPoint", e.target.value)} placeholder="What's not working for them" className={inputCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Offer Pitched</label>
+                    <Input value={form.offerPitched} onChange={e => set("offerPitched", e.target.value)} placeholder="AI Automation Proposal" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Resource Type Pitched</label>
+                    <Input value={form.resourceTypePitched} onChange={e => set("resourceTypePitched", e.target.value)} placeholder="Full Stack Developer" className={inputCls} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 items-end">
+                  <div>
+                    <label className="text-xs font-medium text-white/60 mb-1 block">Next Follow-Up</label>
+                    <Input type="date" value={form.nextFollowUpAt} onChange={e => set("nextFollowUpAt", e.target.value)} className={inputCls} />
+                  </div>
+                  {lead && (
+                    <div>
+                      <label className="text-xs font-medium text-white/60 mb-1 block">Last Contacted</label>
+                      <button onClick={handleMarkContacted} disabled={pending}
+                        className="w-full flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg border border-white/10 text-white/60 hover:border-green-500/40 hover:text-green-400 transition-colors">
+                        <CheckCircle2 className="size-3.5" />
+                        {lead.lastContactedAt ? new Date(lead.lastContactedAt).toLocaleDateString() : "Mark contacted today"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="pt-1 border-t border-white/10">
@@ -258,11 +356,11 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
       </div>
 
       {view === "active" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="flex gap-4 overflow-x-auto pb-2">
           {STAGES.map(col => {
             const colLeads = visible.filter(l => l.stage === col.key)
             return (
-              <div key={col.key} className="space-y-3">
+              <div key={col.key} className="space-y-3 w-64 shrink-0">
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${col.color}`}>{col.label}</span>
                   <span className="text-xs text-white/40 font-medium">{colLeads.length}</span>
@@ -282,6 +380,11 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
                           <DollarSign className="size-3" />{lead.value > 0 ? money(lead.value).replace("$", "") : "—"}
                         </span>
                         <div className="flex items-center gap-1.5">
+                          {isOverdue(lead.nextFollowUpAt) && (
+                            <span title="Follow-up overdue" className="text-amber-400">
+                              <CalendarClock className="size-3" />
+                            </span>
+                          )}
                           {Object.keys(lead.customFields).length > 0 && (
                             <span title={`${Object.keys(lead.customFields).length} additional field(s)`} className="text-white/25">
                               <Info className="size-3" />

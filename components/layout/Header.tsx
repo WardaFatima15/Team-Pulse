@@ -54,7 +54,7 @@ export default function Header({ orgName, adminEmail }: { orgName?: string; admi
   }, [open])
 
   return (
-    <header className="h-16 bg-[#0d0d0d] border-b border-white/10 flex items-center justify-between px-6 shrink-0 relative z-30">
+    <header className="h-16 bg-[#0d0d0d] border-b border-white/10 flex items-center justify-between px-6 shrink-0 relative z-30 print:hidden">
       <div>
         <h1 className="text-base font-bold text-white leading-tight">{page.title}</h1>
         {page.sub && <p className="text-xs text-white/40 leading-tight mt-0.5">{page.sub}</p>}

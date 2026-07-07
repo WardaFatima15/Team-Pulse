@@ -223,6 +223,39 @@ async function setupSchema(): Promise<void> {
     // lists never have the same columns, so anything that doesn't map to a
     // known field is preserved here instead of being dropped on import.
     await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "customFields" TEXT NOT NULL DEFAULT '{}'`)
+    // Full sales-CRM field set — promoted out of customFields into first-class
+    // columns so they're filterable/sortable instead of opaque JSON.
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "title" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "linkedinUrl" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "location" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "industry" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "companySize" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "painPoint" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "offerPitched" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "resourceTypePitched" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "lastContactedAt" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "Lead" ADD COLUMN IF NOT EXISTS "nextFollowUpAt" TEXT NOT NULL DEFAULT ''`)
+    // Expanded pipeline: 6 stages -> 11. Remap old stage values onto their
+    // closest new-stage equivalent so existing leads land somewhere sane
+    // instead of falling off the board. Idempotent — no-ops once migrated.
+    await client.query(`UPDATE "Lead" SET stage = 'connected' WHERE stage = 'contacted'`)
+    await client.query(`UPDATE "Lead" SET stage = 'interested' WHERE stage = 'qualified'`)
+    await client.query(`UPDATE "Lead" SET stage = 'proposal_sent' WHERE stage = 'proposal'`)
+
+    // Expanded task lifecycle: 4 statuses -> 8. Only "in_review" needs
+    // remapping — the rest of the old statuses keep their key, just a new label.
+    await client.query(`UPDATE "Task" SET status = 'submitted' WHERE status = 'in_review'`)
+
+    // Structured daily check-in (worked on / completed / pending / blocked /
+    // needed support / tomorrow's focus) instead of one free-text box. The
+    // existing "notes" column keeps a composed summary for backward
+    // compatibility with reports that already read it.
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "workedOn" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "completedToday" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "pendingWork" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "blockers" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "neededSupport" TEXT NOT NULL DEFAULT ''`)
+    await client.query(`ALTER TABLE "TimeRecord" ADD COLUMN IF NOT EXISTS "tomorrowFocus" TEXT NOT NULL DEFAULT ''`)
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS "ActivityLog" (

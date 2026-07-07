@@ -11,10 +11,14 @@ import { useRouter } from "next/navigation"
 type Employee = { id: string; name: string; avatar: string; department: string }
 
 const STATUSES = [
-  { key: "todo", label: "To Do", color: "bg-white/10 text-white/70" },
+  { key: "todo", label: "Not Started", color: "bg-white/10 text-white/70" },
   { key: "in_progress", label: "In Progress", color: "bg-blue-500/15 text-blue-400" },
-  { key: "in_review", label: "In Review", color: "bg-amber-500/15 text-amber-400" },
-  { key: "done", label: "Done", color: "bg-green-500/15 text-green-400" },
+  { key: "waiting_for_client", label: "Waiting for Client", color: "bg-cyan-500/15 text-cyan-400" },
+  { key: "blocked", label: "Blocked", color: "bg-red-500/15 text-red-400" },
+  { key: "submitted", label: "Submitted", color: "bg-amber-500/15 text-amber-400" },
+  { key: "approved", label: "Approved", color: "bg-teal-500/15 text-teal-400" },
+  { key: "rework_needed", label: "Rework Needed", color: "bg-orange-500/15 text-orange-400" },
+  { key: "done", label: "Completed", color: "bg-green-500/15 text-green-400" },
 ] as const
 
 const PRIORITIES = [
@@ -290,11 +294,11 @@ export default function TasksBoard({ projects, tasks, employees }: { projects: P
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="flex gap-4 overflow-x-auto pb-2">
         {STATUSES.map(col => {
           const colTasks = filtered.filter(t => t.status === col.key)
           return (
-            <div key={col.key} className="space-y-3">
+            <div key={col.key} className="space-y-3 w-64 shrink-0">
               <div className="flex items-center gap-2">
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${col.color}`}>{col.label}</span>
                 <span className="text-xs text-white/40 font-medium">{colTasks.length}</span>
