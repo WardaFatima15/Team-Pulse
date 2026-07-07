@@ -74,6 +74,18 @@ export const PROJECT_TYPES = [
 ]
 
 // The generator itself lives in the separate internal "propsalgen" app/repo —
-// this just calls its existing public POST /api/generate endpoint (CORS-open)
-// instead of re-implementing the prompt/model logic here.
+// this just calls its existing public endpoints (CORS-open) instead of
+// re-implementing the prompt/model logic here.
 export const PROPOSAL_API_URL = "https://propsalgen.vercel.app/api/generate"
+export const PROPOSAL_FETCH_URL_API = "https://propsalgen.vercel.app/api/fetch-url"
+export const PROPOSAL_AUDIT_API = "https://propsalgen.vercel.app/api/audit-website"
+
+export type AuditRole = { roleId: string; roleLabel: string; count: number; hourlyRate: number; monthlyRate: number; rationale: string }
+export type AuditResult = {
+  businessType: string
+  businessSummary: string
+  identifiedGaps: { gap: string; impact: string }[]
+  recommendedTeam: { podName: string; rationale: string; roles: AuditRole[] }[]
+  auditSummary: string
+  projectTypeSuggestion: string
+}

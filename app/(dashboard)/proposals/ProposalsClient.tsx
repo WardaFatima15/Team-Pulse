@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink } from "lucide-react"
-import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL } from "@/lib/proposal-roles"
+import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink, Globe, Sparkles } from "lucide-react"
+import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL, PROPOSAL_FETCH_URL_API, PROPOSAL_AUDIT_API, type AuditResult } from "@/lib/proposal-roles"
 
 type LeadOption = {
   id: string; name: string; company: string
@@ -43,6 +43,70 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
   const [error, setError] = useState("")
   const [result, setResult] = useState<ProposalResult | null>(null)
   const [copied, setCopied] = useState(false)
+
+  const [siteUrl, setSiteUrl] = useState("")
+  const [fetchingUrl, setFetchingUrl] = useState(false)
+  const [urlError, setUrlError] = useState("")
+  const [auditing, setAuditing] = useState(false)
+  const [auditError, setAuditError] = useState("")
+  const [auditResult, setAuditResult] = useState<AuditResult | null>(null)
+
+  async function pullPageText() {
+    const url = siteUrl.trim()
+    if (!url) return
+    setFetchingUrl(true)
+    setUrlError("")
+    try {
+      const res = await fetch(PROPOSAL_FETCH_URL_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Couldn't fetch that URL")
+      setOverview(prev => prev ? `${prev}\n\n[From ${url}]:\n${data.text}` : `[From ${url}]:\n${data.text}`)
+    } catch (e: unknown) {
+      setUrlError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setFetchingUrl(false)
+    }
+  }
+
+  async function runAudit() {
+    const url = siteUrl.trim()
+    if (!url) return
+    setAuditing(true)
+    setAuditError("")
+    setAuditResult(null)
+    try {
+      const res = await fetch(PROPOSAL_AUDIT_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Audit failed")
+      setAuditResult(data)
+    } catch (e: unknown) {
+      setAuditError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setAuditing(false)
+    }
+  }
+
+  function applyAudit() {
+    if (!auditResult) return
+    const flatRoles: RoleRow[] = auditResult.recommendedTeam.flatMap(pod =>
+      pod.roles.map(r => ({ roleId: r.roleId, count: r.count || 1 }))
+    ).filter(r => ALL_ROLES.some(x => x.id === r.roleId))
+    if (flatRoles.length) setRoles(flatRoles)
+    if (auditResult.auditSummary) {
+      setOverview(prev => prev ? `${prev}\n\n[Website Audit]:\n${auditResult.auditSummary}` : `[Website Audit]:\n${auditResult.auditSummary}`)
+    }
+    const match = PROJECT_TYPES.find(t => t === auditResult.projectTypeSuggestion)
+    if (match) setProjectType(match)
+    setAuditResult(null)
+  }
 
   function applyLead(id: string) {
     setLeadId(id)
@@ -169,6 +233,57 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
           <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
             className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
         </div>
+      </div>
+
+      <div className="print:hidden">
+        <label className="text-xs font-medium text-white/60 mb-1 flex items-center gap-1.5"><Globe className="size-3.5" /> Client website (optional)</label>
+        <div className="flex items-center gap-2">
+          <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://clientwebsite.com"
+            className="flex-1 text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+          <Button size="sm" variant="outline" onClick={pullPageText} disabled={fetchingUrl || !siteUrl.trim()} className="border-white/10 text-white/70 hover:bg-white/8 shrink-0">
+            {fetchingUrl ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : null}
+            Pull page text
+          </Button>
+          <Button size="sm" onClick={runAudit} disabled={auditing || !siteUrl.trim()} className="bg-[#512feb] hover:bg-[#3f1fd4] text-white shrink-0">
+            {auditing ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Sparkles className="size-3.5 mr-1.5" />}
+            {auditing ? "Auditing…" : "Run AI Audit"}
+          </Button>
+        </div>
+        {urlError && <p className="text-xs text-red-400 mt-1.5">{urlError}</p>}
+        {auditError && <p className="text-xs text-red-400 mt-1.5">{auditError}</p>}
+
+        {auditResult && (
+          <div className="mt-3 bg-[#512feb]/8 border border-[#512feb]/20 rounded-xl p-4 space-y-3">
+            <div>
+              <p className="text-xs font-semibold text-[#7c5af5] uppercase tracking-wide mb-1">{auditResult.businessType}</p>
+              <p className="text-sm text-white/80">{auditResult.businessSummary}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">Gaps identified</p>
+              <ul className="space-y-1">
+                {auditResult.identifiedGaps.map((g, i) => (
+                  <li key={i} className="text-xs text-white/70"><span className="font-medium text-white">{g.gap}</span> — {g.impact}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-1.5">Recommended team</p>
+              <ul className="space-y-1">
+                {auditResult.recommendedTeam.flatMap(pod => pod.roles).map((r, i) => (
+                  <li key={i} className="text-xs text-white/70">{r.count}x {r.roleLabel} — ${r.monthlyRate}/mo</li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={applyAudit} className="bg-[#512feb] hover:bg-[#3f1fd4] text-white">
+                Apply to proposal
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setAuditResult(null)} className="border-white/10 text-white/70 hover:bg-white/8">
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="print:hidden">
