@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import {
   LayoutDashboard, Users, Clock, CheckSquare, Calendar,
   Megaphone, TicketCheck, Settings, LogOut, Users2, MessageSquare, BarChart2, CalendarDays, InboxIcon, Sparkles, TrendingUp,
-  UserCog, Building2, FileSignature, ScanSearch,
+  UserCog, Building2, FileSignature, ScanSearch, ListChecks,
 } from "lucide-react"
 
 const navItems = [
@@ -84,6 +84,18 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
 
       {/* Bottom */}
       <div className="px-3 pb-4 space-y-0.5 border-t border-white/10 pt-3">
+        <Link
+          href="/backlog"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+            pathname === "/backlog"
+              ? "bg-[#512feb] text-white"
+              : "text-white/50 hover:bg-white/8 hover:text-white/90"
+          )}
+        >
+          <ListChecks className="size-4 shrink-0" />
+          Product Backlog
+        </Link>
         <Link
           href="/settings"
           className={cn(
