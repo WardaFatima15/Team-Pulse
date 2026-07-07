@@ -10,6 +10,11 @@ const titles: Record<string, { title: string; sub: string }> = {
   "/dashboard":     { title: "Dashboard",         sub: "Team overview & live status" },
   "/approvals":     { title: "Approvals Inbox",   sub: "Leaves & tickets needing action" },
   "/employees":     { title: "Employees",          sub: "Manage your offshore team" },
+  "/resources":     { title: "Resources",          sub: "Staffing & availability" },
+  "/pipeline":      { title: "Sales Pipeline",     sub: "Leads and deal stages" },
+  "/clients":       { title: "Clients",            sub: "Closed-won accounts" },
+  "/proposals":     { title: "Proposals",          sub: "Generate client proposals" },
+  "/plugai-audits": { title: "PlugAI Audits",      sub: "AI business audits" },
   "/time-tracking": { title: "Time Tracking",      sub: "Attendance & hours logged" },
   "/attendance":    { title: "Attendance",         sub: "Team attendance records" },
   "/tasks":         { title: "Jira Tasks",         sub: "Issues synced from Jira" },
@@ -19,12 +24,13 @@ const titles: Record<string, { title: string; sub: string }> = {
   "/chat":          { title: "Chat",               sub: "Direct & group messages" },
   "/reports":       { title: "Daily Reports",      sub: "AI-generated team summaries" },
   "/ai":            { title: "AI Assistant",       sub: "HR & team management help" },
+  "/backlog":       { title: "Product Backlog",    sub: "Built vs. deferred, tracked honestly" },
   "/settings":      { title: "Settings",           sub: "Jira integration & preferences" },
 }
 
 type NotifCounts = { pendingLeaves: number; openTickets: number; unreadMessages: number; total: number }
 
-export default function Header({ orgName, adminEmail }: { orgName?: string; adminEmail?: string }) {
+export default function Header({ adminEmail }: { adminEmail?: string }) {
   const pathname = usePathname()
   const base = "/" + pathname.split("/")[1]
   const page = titles[base] ?? { title: "TeamPulse", sub: "" }

@@ -8,9 +8,11 @@ const IDLE_MS = 5 * 60 * 1000    // no activity for 5 min => away
 // Mounts invisibly in the employee portal. Reports real activity so the
 // manager sees verified presence — the employee can't just claim "online".
 export default function PresenceTracker() {
-  const lastActivity = useRef(Date.now())
+  const lastActivity = useRef(0)
 
   useEffect(() => {
+    lastActivity.current = Date.now()
+
     function markActive() { lastActivity.current = Date.now() }
 
     const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart", "click"]

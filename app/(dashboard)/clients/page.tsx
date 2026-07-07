@@ -48,7 +48,7 @@ export default async function ClientsPage() {
       {clients.length === 0 ? (
         <div className="text-center py-16 text-white/40 text-sm flex flex-col items-center gap-2">
           <Building2 className="size-6 text-white/20" />
-          No clients yet — mark a lead "Closed Won" in the Sales Pipeline to see it here.
+          No clients yet — mark a lead &quot;Closed Won&quot; in the Sales Pipeline to see it here.
         </div>
       ) : (
         <div className="space-y-2.5">

@@ -51,13 +51,13 @@ export default function EmployeeJiraIssues({ employeeId }: { employeeId: string 
         {loading && <p className="text-white/40 text-sm py-4">Loading…</p>}
 
         {!loading && data?.error === "no_account" && (
-          <p className="text-xs text-white/40 py-2">No Jira account linked. Add one in this employee's Account tab.</p>
+          <p className="text-xs text-white/40 py-2">No Jira account linked. Add one in this employee&apos;s Account tab.</p>
         )}
         {!loading && data?.error === "not_configured" && (
-          <p className="text-xs text-white/40 py-2 flex items-center gap-1.5"><AlertCircle className="size-3.5" /> Jira isn't connected for this workspace yet.</p>
+          <p className="text-xs text-white/40 py-2 flex items-center gap-1.5"><AlertCircle className="size-3.5" /> Jira isn&apos;t connected for this workspace yet.</p>
         )}
         {!loading && (data?.error === "auth" || data?.error === "fetch_failed") && (
-          <p className="text-xs text-red-400 py-2 flex items-center gap-1.5"><AlertCircle className="size-3.5" /> Couldn't reach Jira — check the connection in Settings.</p>
+          <p className="text-xs text-red-400 py-2 flex items-center gap-1.5"><AlertCircle className="size-3.5" /> Couldn&apos;t reach Jira — check the connection in Settings.</p>
         )}
 
         {!loading && data && !data.error && data.issues.length === 0 && (

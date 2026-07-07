@@ -31,7 +31,6 @@ const PRIORITIES = [
 const PROJECT_COLORS = ["#6366f1","#0ea5e9","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6"]
 
 function priorityDot(p: string) { return PRIORITIES.find(x => x.key === p)?.dot ?? "bg-white/30" }
-function statusLabel(s: string) { return STATUSES.find(x => x.key === s)?.label ?? s }
 
 function TaskAvatar({ name, avatar }: { name: string; avatar: string }) {
   if (avatar) return <img src={avatar} alt={name} className="size-5 rounded-full object-cover" />

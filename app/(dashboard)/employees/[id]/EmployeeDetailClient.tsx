@@ -63,7 +63,6 @@ export default function EmployeeDetailClient({
   reliability: Reliability
 }) {
   const [tab, setTab] = useState<Tab>("Overview")
-  const [pending, startTransition] = useTransition()
 
   const sc = STATUS_CONFIG[employee.status] ?? STATUS_CONFIG.offline
   const maxBar = Math.max(...weekBars.map(b => b.hours), 1)
@@ -351,7 +350,7 @@ export default function EmployeeDetailClient({
             ) : (
               <div className="space-y-3 pt-2">
                 {leaves.map(leave => (
-                  <LeaveRow key={leave.id} leave={leave} employeeId={employee.id} />
+                  <LeaveRow key={leave.id} leave={leave} />
                 ))}
               </div>
             )}
@@ -405,7 +404,7 @@ export default function EmployeeDetailClient({
 
       {/* ── ACTIVITY ── */}
       {tab === "Activity" && (
-        <ActivityTab employeeId={employee.id} employeeName={employee.name} />
+        <ActivityTab employeeId={employee.id} />
       )}
 
       {/* ── ACCOUNT ── */}
@@ -419,7 +418,7 @@ export default function EmployeeDetailClient({
   )
 }
 
-function LeaveRow({ leave, employeeId }: { leave: LeaveRequest; employeeId: string }) {
+function LeaveRow({ leave }: { leave: LeaveRequest }) {
   const [pending, startTransition] = useTransition()
   const [done, setDone] = useState(false)
   const [currentStatus, setCurrentStatus] = useState(leave.status)
@@ -444,7 +443,7 @@ function LeaveRow({ leave, employeeId }: { leave: LeaveRequest; employeeId: stri
         <p className="text-xs text-white/50 mt-0.5">
           {format(new Date(leave.startDate), "MMM d")} — {format(new Date(leave.endDate), "MMM d, yyyy")} · {leave.days} day{leave.days !== 1 ? "s" : ""}
         </p>
-        {leave.reason && <p className="text-xs text-white/50 mt-1 italic">"{leave.reason}"</p>}
+        {leave.reason && <p className="text-xs text-white/50 mt-1 italic">&quot;{leave.reason}&quot;</p>}
       </div>
       {currentStatus === "pending" && !done && (
         <div className="flex gap-1.5 shrink-0">
@@ -582,7 +581,7 @@ function PasswordResetCard({ employeeId }: { employeeId: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
-        <p className="text-xs text-white/60 mb-4">Set a new password for this employee's portal account.</p>
+        <p className="text-xs text-white/60 mb-4">Set a new password for this employee&apos;s portal account.</p>
         <div className="flex items-end gap-3 max-w-sm">
           <div className="flex-1">
             <label className="block text-xs font-medium text-white/70 mb-1.5">New Password</label>
@@ -611,7 +610,7 @@ const ACTION_ICON: Record<string, { label: string; color: string }> = {
   ticket_created: { label: "Ticket opened",    color: "text-orange-400" },
 }
 
-function ActivityTab({ employeeId, employeeName }: { employeeId: string; employeeName: string }) {
+function ActivityTab({ employeeId }: { employeeId: string }) {
   const [logs, setLogs] = useState<ActivityEntry[]>([])
   const [loading, setLoading] = useState(true)
 

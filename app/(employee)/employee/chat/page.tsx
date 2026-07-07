@@ -35,7 +35,6 @@ export default async function EmployeeChatPage() {
       </div>
       <ChatClient
         currentUserId={emp.id}
-        currentUserName={emp.name}
         contacts={[adminContact, ...otherEmployees]}
       />
     </div>

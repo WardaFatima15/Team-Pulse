@@ -83,7 +83,7 @@ export default async function AttendancePage() {
     <div className="max-w-full space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-white">Attendance</h1>
-        <p className="text-white/50 text-sm mt-1">Today's status, plus weekly and monthly history for all employees</p>
+        <p className="text-white/50 text-sm mt-1">Today&apos;s status, plus weekly and monthly history for all employees</p>
       </div>
 
       <div>

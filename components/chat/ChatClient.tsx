@@ -39,6 +39,39 @@ function isGrouped(msg: Msg, prev: Msg | undefined) {
   return new Date(msg.createdAt).getTime() - new Date(prev.createdAt).getTime() < 5 * 60_000
 }
 
+function ChatHeader({ name, sub, onCall, onSettings }: { name: string; sub?: string; onCall?: () => void; onSettings?: () => void }) {
+  return (
+    <div className="flex items-center gap-3 px-5 h-14 border-b border-slate-100 bg-white shrink-0">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="font-bold text-slate-900 text-sm truncate">{name}</p>
+          <ChevronDown className="size-3.5 text-slate-400 shrink-0" />
+        </div>
+        {sub && <p className="text-[11px] text-slate-400">{sub}</p>}
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        {onSettings && (
+          <button
+            onClick={onSettings}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all"
+          >
+            <Settings className="size-3.5" /> Manage
+          </button>
+        )}
+        {onCall && (
+          <button
+            onClick={onCall}
+            title="Start call"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-[#512feb] hover:text-white hover:border-[#512feb] transition-all"
+          >
+            <Phone className="size-3.5" /> Call
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Avatar ────────────────────────────────────────────────────────────────────
 function Av({ name, size = 9 }: { name: string; size?: number }) {
   const cls = `rounded-lg bg-[#512feb]/15 text-[#512feb] font-bold flex items-center justify-center shrink-0 text-xs`
@@ -51,13 +84,12 @@ function Av({ name, size = 9 }: { name: string; size?: number }) {
 
 // ── Slack-style message row ───────────────────────────────────────────────────
 function MessageRow({
-  msg, prev, currentUserId, isGroup,
+  msg, prev, currentUserId,
   onDelete, onEdit,
 }: {
   msg: Msg
   prev: Msg | undefined
   currentUserId: string
-  isGroup: boolean
   onDelete: (id: string) => void
   onEdit: (id: string, content: string) => void
 }) {
@@ -228,7 +260,11 @@ function NewGroupModal({
   const [saving, setSaving] = useState(false)
 
   function toggle(id: string) {
-    setSel(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n })
+    setSel(p => {
+      const n = new Set(p)
+      if (n.has(id)) n.delete(id); else n.add(id)
+      return n
+    })
   }
 
   async function create() {
@@ -324,7 +360,11 @@ function GroupSettingsModal({
   const addable = contacts.filter(c => !memberIds.has(c.id))
 
   function toggleAdd(id: string) {
-    setAddSel(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n })
+    setAddSel(p => {
+      const n = new Set(p)
+      if (n.has(id)) n.delete(id); else n.add(id)
+      return n
+    })
   }
 
   async function save() {
@@ -444,10 +484,9 @@ function GroupSettingsModal({
 
 // ── Main ChatClient ───────────────────────────────────────────────────────────
 export default function ChatClient({
-  currentUserId, currentUserName, contacts,
+  currentUserId, contacts,
 }: {
   currentUserId: string
-  currentUserName: string
   contacts: Contact[]
 }) {
   const [tab, setTab] = useState<"dm" | "groups">("dm")
@@ -673,7 +712,6 @@ export default function ChatClient({
                 msg={msg}
                 prev={i > 0 ? dayMsgs[i - 1] : undefined}
                 currentUserId={currentUserId}
-                isGroup={false}
                 onDelete={onDelete}
                 onEdit={onEdit}
               />
@@ -729,40 +767,6 @@ export default function ChatClient({
           </span>
         )}
       </button>
-    )
-  }
-
-  // ── Header ───────────────────────────────────────────────────────────────────
-  function ChatHeader({ name, sub, onCall, onSettings }: { name: string; sub?: string; onCall?: () => void; onSettings?: () => void }) {
-    return (
-      <div className="flex items-center gap-3 px-5 h-14 border-b border-slate-100 bg-white shrink-0">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="font-bold text-slate-900 text-sm truncate">{name}</p>
-            <ChevronDown className="size-3.5 text-slate-400 shrink-0" />
-          </div>
-          {sub && <p className="text-[11px] text-slate-400">{sub}</p>}
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {onSettings && (
-            <button
-              onClick={onSettings}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all"
-            >
-              <Settings className="size-3.5" /> Manage
-            </button>
-          )}
-          {onCall && (
-            <button
-              onClick={onCall}
-              title="Start call"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-[#512feb] hover:text-white hover:border-[#512feb] transition-all"
-            >
-              <Phone className="size-3.5" /> Call
-            </button>
-          )}
-        </div>
-      </div>
     )
   }
 
@@ -945,7 +949,7 @@ export default function ChatClient({
           contacts={contacts}
           currentUserId={currentUserId}
           onClose={() => setShowGroupSettings(false)}
-          onUpdate={(updated, _members) => {
+          onUpdate={(updated) => {
             setGroups(prev => prev.map(g => g.id === updated.id ? updated : g))
             setSelGroup(updated)
             setShowGroupSettings(false)

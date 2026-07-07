@@ -37,15 +37,6 @@ export interface JiraUser {
   active: boolean
 }
 
-function getJiraHeaders(config: JiraConfig) {
-  const token = btoa(`${config.email}:${config.apiToken}`)
-  return {
-    Authorization: `Basic ${token}`,
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  }
-}
-
 export async function fetchJiraProjects(config: JiraConfig): Promise<JiraProject[]> {
   const res = await fetch(`/api/jira/projects?domain=${encodeURIComponent(config.domain)}&email=${encodeURIComponent(config.email)}&token=${encodeURIComponent(config.apiToken)}`)
   if (!res.ok) throw new Error(await res.text())

@@ -88,7 +88,7 @@ export default function LeavesClient({ leaves, employees }: { leaves: LeaveReque
                       <span className="flex items-center gap-1"><Calendar className="size-3 text-white/40" />{format(new Date(leave.startDate), "MMM d")} — {format(new Date(leave.endDate), "MMM d, yyyy")}</span>
                       <span className="font-medium">{leave.days} day{leave.days !== 1 ? "s" : ""}</span>
                     </div>
-                    <p className="text-xs text-white/60 mt-1.5 italic">"{leave.reason}"</p>
+                    <p className="text-xs text-white/60 mt-1.5 italic">&quot;{leave.reason}&quot;</p>
                   </div>
                   {leave.status === "pending" && (
                     <div className="flex gap-2 shrink-0">

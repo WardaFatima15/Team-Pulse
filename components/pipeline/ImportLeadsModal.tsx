@@ -85,7 +85,7 @@ export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
         <div className="bg-[#131318] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center" onClick={e => e.stopPropagation()}>
           <CheckCircle2 className="size-10 text-green-400 mx-auto mb-3" />
           <p className="text-white font-semibold">Imported {done} lead{done !== 1 ? "s" : ""}</p>
-          <p className="text-white/50 text-sm mt-1">They're now on the pipeline board.</p>
+          <p className="text-white/50 text-sm mt-1">They&apos;re now on the pipeline board.</p>
           <Button onClick={onClose} className="mt-5 w-full bg-[#512feb] hover:bg-[#3f1fd4] text-white">Done</Button>
         </div>
       </div>

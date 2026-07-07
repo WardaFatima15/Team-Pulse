@@ -33,7 +33,6 @@ export default async function AdminChatPage() {
       </div>
       <ChatClient
         currentUserId={admin.id}
-        currentUserName={admin.name}
         contacts={[...adminContacts, ...employees]}
       />
     </div>

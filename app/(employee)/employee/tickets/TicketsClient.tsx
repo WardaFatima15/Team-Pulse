@@ -175,7 +175,7 @@ export default function TicketsClient({ tickets, replies }: { tickets: Ticket[];
           <div className="text-center py-16 text-white/50">
             <TicketCheck className="size-8 mx-auto mb-2 text-white/20" />
             <p className="text-sm">No tickets here.</p>
-            {filter !== "all" && <p className="text-xs mt-1 text-white/40">Try switching to "All"</p>}
+            {filter !== "all" && <p className="text-xs mt-1 text-white/40">Try switching to &quot;All&quot;</p>}
           </div>
         )}
       </div>

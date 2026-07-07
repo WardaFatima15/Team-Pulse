@@ -555,7 +555,7 @@ export default function ReportsClient({ employees }: { employees: Employee[] }) 
         <>
           <div className="flex items-center gap-3 text-sm text-white/70 bg-[#512feb]/8 border border-[#512feb]/20 rounded-xl px-4 py-3">
             <Sparkles className="size-4 text-[#7c5af5] shrink-0" />
-            Reports are generated on-demand using AI. Each report analyses today's time tracking, assigned tasks, leave requests, and open tickets.
+            Reports are generated on-demand using AI. Each report analyses today&apos;s time tracking, assigned tasks, leave requests, and open tickets.
           </div>
           <div className="space-y-3">
             {employees.map(emp => (

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Check, X, Clock, TicketCheck, Calendar, ChevronDown } from "lucide-react"
+import { Check, X, Clock, TicketCheck, Calendar } from "lucide-react"
 import { format } from "date-fns"
 import { approveLeave, rejectLeave } from "@/lib/actions"
 

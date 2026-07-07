@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react"
 import { clockIn, clockOut } from "@/lib/employee-actions"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Calendar, Clock, CheckSquare, Megaphone, Pin } from "lucide-react"
+import { Calendar, Clock, CheckSquare, Megaphone, Pin, TicketCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import FocusCard from "@/components/employee/FocusCard"
@@ -196,10 +196,11 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { icon: Clock, label: "Hours today", value: !todayRecord ? "0h" : todayRecord.clockOut ? `${todayRecord.hours || "0"}h` : (elapsed || "0h"), color: "text-[#7c5af5]", bg: "bg-[#512feb]/10" },
           { icon: Calendar, label: "Pending leaves", value: pendingLeaves, href: "/employee/leaves", color: "text-amber-400", bg: "bg-amber-500/10" },
+          { icon: TicketCheck, label: "Open tickets", value: openTickets, href: "/employee/tickets", color: "text-red-400", bg: "bg-red-500/10" },
           { icon: CheckSquare, label: "My Tasks", value: "→", href: "/employee/tasks", color: "text-blue-400", bg: "bg-blue-500/10" },
         ].map(({ icon: Icon, label, value, href, color, bg }) => (
           <Card key={label} className={href ? "cursor-pointer hover:ring-white/20 transition-all" : ""}>

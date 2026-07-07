@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="dark flex h-screen overflow-hidden bg-[#0a0a0c] print:h-auto print:overflow-visible print:bg-white">
       <Sidebar orgName={admin.orgName} />
       <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible">
-        <Header orgName={admin.orgName} adminEmail={admin.email} />
+        <Header adminEmail={admin.email} />
         <main className="flex-1 overflow-y-auto p-6 print:overflow-visible print:p-0">
           {children}
         </main>

@@ -72,7 +72,7 @@ export default function EmployeeLoginPage() {
         <div>
           <p className="text-white/30 text-xs uppercase tracking-widest mb-4 font-medium">Employee Portal</p>
           <blockquote className="text-white/80 text-xl leading-relaxed mb-6">
-            "Track your hours, manage leave requests, and stay connected with your team — all in one place."
+            &quot;Track your hours, manage leave requests, and stay connected with your team — all in one place.&quot;
           </blockquote>
           <div className="flex gap-6 mt-8">
             {[["Clock In/Out", "Track your daily hours"], ["Leave Requests", "Apply for time off"], ["Team Chat", "Message anyone instantly"]].map(([title, desc]) => (

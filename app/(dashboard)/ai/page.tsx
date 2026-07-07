@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect, useTransition } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Send, Bot, User, Sparkles, Trash2 } from "lucide-react"
 
 type Message = { role: "user" | "assistant"; content: string }

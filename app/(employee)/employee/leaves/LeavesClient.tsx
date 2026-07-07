@@ -126,7 +126,7 @@ export default function LeavesClient({ leaves }: { leaves: LeaveRequest[] }) {
           <div className="text-center py-16 text-white/50">
             <Calendar className="size-8 mx-auto mb-2 text-white/20" />
             <p className="text-sm">No leave requests yet.</p>
-            <p className="text-xs mt-1 text-white/40">Click "New Request" to apply for leave.</p>
+            <p className="text-xs mt-1 text-white/40">Click &quot;New Request&quot; to apply for leave.</p>
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import OpenAI from "openai"
-import { queryAll, queryOne } from "@/lib/db"
+import { queryOne } from "@/lib/db"
 
 export async function POST(req: NextRequest) {
   if (!process.env.OPENAI_API_KEY) {
