@@ -36,6 +36,7 @@ const BUILT: Group[] = [
     items: [
       "Real AI proposal generator, wired to the existing internal \"propsalgen\" engine — pick a lead, build a role team, generate, export PDF or copy as text",
       "Website audit: paste a client URL to pull page text into the overview, or run a full AI audit that recommends the team automatically",
+      "Save generated proposals with a status lifecycle (Draft → Sent → Viewed → Accepted / Rejected / Needs Revision) — reopen, re-export, or delete from the saved list",
     ],
   },
   {
@@ -87,10 +88,9 @@ const DEFERRED: (Group & { week: string })[] = [
   },
   {
     week: "Week 3",
-    category: "Proposals — persistence & lifecycle",
+    category: "Proposals — remaining pieces",
     items: [
-      "Generation is live and real, but nothing is saved back to the lead yet",
-      "No Draft → Sent → Viewed → Accepted status lifecycle",
+      "Saving + status lifecycle now done (see Built). Still missing: proposals show on the Proposals page but aren't surfaced inside the lead's own profile yet",
       "No BinaryNext Offer Library or Offer Recommendation Engine",
     ],
   },

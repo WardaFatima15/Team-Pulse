@@ -1,10 +1,12 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink, Globe, Sparkles } from "lucide-react"
-import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL, PROPOSAL_FETCH_URL_API, PROPOSAL_AUDIT_API, type AuditResult } from "@/lib/proposal-roles"
+import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink, Globe, Sparkles, Save, Eye } from "lucide-react"
+import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL, PROPOSAL_FETCH_URL_API, PROPOSAL_AUDIT_API, PROPOSAL_STATUSES, type AuditResult, type SavedProposal, type ProposalStatus } from "@/lib/proposal-roles"
+import { saveProposal, updateProposalStatus, deleteProposal } from "@/lib/proposal-actions"
 
 type LeadOption = {
   id: string; name: string; company: string
@@ -12,6 +14,17 @@ type LeadOption = {
 }
 
 type RoleRow = { roleId: string; count: number }
+
+type ResultMeta = { leadId: string; clientName: string; projectType: string; totalHeadcount: number; totalMonthly: number }
+
+const STATUS_META: Record<ProposalStatus, { label: string; color: string }> = {
+  draft:          { label: "Draft",          color: "bg-white/10 text-white/60" },
+  sent:           { label: "Sent",           color: "bg-blue-500/15 text-blue-400" },
+  viewed:         { label: "Viewed",         color: "bg-violet-500/15 text-violet-400" },
+  accepted:       { label: "Accepted",       color: "bg-green-500/15 text-green-400" },
+  rejected:       { label: "Rejected",       color: "bg-red-500/15 text-red-400" },
+  needs_revision: { label: "Needs Revision", color: "bg-amber-500/15 text-amber-400" },
+}
 
 type ProposalResult = {
   strategicFrame: { clientNeed: string; binaryNextProvides: string; goal: string }
@@ -35,7 +48,8 @@ function newRow(): RoleRow {
 const inputCls = "bg-white/5 border-white/10 text-white placeholder:text-white/30"
 const selectCls = "w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50"
 
-export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
+export default function ProposalsClient({ leads, savedProposals }: { leads: LeadOption[]; savedProposals: SavedProposal[] }) {
+  const router = useRouter()
   const [leadId, setLeadId] = useState("")
   const [clientName, setClientName] = useState("")
   const [projectType, setProjectType] = useState(PROJECT_TYPES[0])
@@ -46,6 +60,9 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [result, setResult] = useState<ProposalResult | null>(null)
+  const [resultMeta, setResultMeta] = useState<ResultMeta | null>(null)
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
 
   const [siteUrl, setSiteUrl] = useState("")
@@ -136,6 +153,7 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
     setLoading(true)
     setError("")
     setResult(null)
+    setSavedId(null)
     try {
       const pods = [{
         type: "pod",
@@ -152,6 +170,7 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
       })
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't generate proposal")
       setResult(await res.json())
+      setResultMeta({ leadId, clientName, projectType, totalHeadcount, totalMonthly })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -159,10 +178,55 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
     }
   }
 
+  async function saveCurrent() {
+    if (!result || !resultMeta || savedId) return
+    setSaving(true)
+    setError("")
+    try {
+      const { id } = await saveProposal({
+        leadId: resultMeta.leadId || null,
+        clientName: resultMeta.clientName,
+        projectType: resultMeta.projectType,
+        totalHeadcount: resultMeta.totalHeadcount,
+        totalMonthly: resultMeta.totalMonthly,
+        content: result,
+      })
+      setSavedId(id)
+      router.refresh()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function viewSaved(p: SavedProposal) {
+    setResult(p.content as ProposalResult)
+    setResultMeta({
+      leadId: p.leadId ?? "", clientName: p.clientName, projectType: p.projectType,
+      totalHeadcount: p.totalHeadcount, totalMonthly: p.totalMonthly,
+    })
+    setSavedId(p.id)
+    setError("")
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
+  }
+
+  async function changeStatus(id: string, status: ProposalStatus) {
+    await updateProposalStatus(id, status)
+    router.refresh()
+  }
+
+  async function removeSaved(id: string) {
+    await deleteProposal(id)
+    if (savedId === id) { setResult(null); setResultMeta(null); setSavedId(null) }
+    router.refresh()
+  }
+
   function asPlainText(r: ProposalResult): string {
+    const m = resultMeta
     return [
-      `Proposal — ${clientName}`,
-      `${projectType} · ${totalHeadcount} people · $${totalMonthly.toLocaleString()}/mo`,
+      `Proposal — ${m?.clientName ?? clientName}`,
+      `${m?.projectType ?? projectType} · ${m?.totalHeadcount ?? totalHeadcount} people · $${(m?.totalMonthly ?? totalMonthly).toLocaleString()}/mo`,
       "",
       "EXECUTIVE SUMMARY", r.executiveSummary, "",
       "CORE CHALLENGE", r.coreChallenge, "",
@@ -316,6 +380,16 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
         </Button>
         {result && (
           <>
+            {savedId ? (
+              <span className="inline-flex items-center gap-1.5 text-xs text-green-400 font-medium px-2.5 py-1.5 rounded-lg bg-green-500/10">
+                <Check className="size-3.5" /> Saved
+              </span>
+            ) : (
+              <Button size="sm" variant="outline" onClick={saveCurrent} disabled={saving} className="border-white/10 text-white/70 hover:bg-white/8">
+                {saving ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : <Save className="size-3.5 mr-1.5" />}
+                {saving ? "Saving…" : "Save proposal"}
+              </Button>
+            )}
             <Button size="sm" variant="outline" onClick={() => window.print()} className="border-white/10 text-white/70 hover:bg-white/8">
               <Printer className="size-3.5 mr-1.5" /> Export PDF
             </Button>
@@ -332,9 +406,9 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
       {result && (
         <div className="bg-[#131318] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
           <div className="border-b border-white/10 print:border-black/20 pb-4">
-            <h2 className="text-lg font-bold text-white print:text-black">Proposal — {clientName}</h2>
+            <h2 className="text-lg font-bold text-white print:text-black">Proposal — {resultMeta?.clientName ?? clientName}</h2>
             <p className="text-xs text-white/50 print:text-black/60 mt-0.5">
-              {projectType} · {totalHeadcount} people · ${totalMonthly.toLocaleString()}/mo
+              {resultMeta?.projectType ?? projectType} · {resultMeta?.totalHeadcount ?? totalHeadcount} people · ${(resultMeta?.totalMonthly ?? totalMonthly).toLocaleString()}/mo
             </p>
           </div>
 
@@ -406,6 +480,39 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
 
           <div className="border-t border-white/10 print:border-black/20 pt-4">
             <p className="text-sm font-medium text-white print:text-black">{result.closingStatement}</p>
+          </div>
+        </div>
+      )}
+
+      {savedProposals.length > 0 && (
+        <div className="print:hidden pt-2">
+          <h2 className="text-sm font-semibold text-white mb-3">Saved proposals</h2>
+          <div className="space-y-2.5">
+            {savedProposals.map(p => (
+              <div key={p.id} className={`bg-[#131318] border rounded-xl px-4 py-3 flex items-center gap-3 ${savedId === p.id ? "border-[#512feb]/50" : "border-white/10"}`}>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-white truncate">{p.clientName}</p>
+                  <p className="text-xs text-white/40 mt-0.5">
+                    {p.projectType} · {p.totalHeadcount} people · ${p.totalMonthly.toLocaleString()}/mo · {new Date(p.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <select
+                  value={p.status}
+                  onChange={e => changeStatus(p.id, e.target.value as ProposalStatus)}
+                  className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 shrink-0 ${STATUS_META[p.status].color}`}
+                >
+                  {PROPOSAL_STATUSES.map(s => (
+                    <option key={s} value={s} className="bg-[#131318] text-white">{STATUS_META[s].label}</option>
+                  ))}
+                </select>
+                <button onClick={() => viewSaved(p)} title="View proposal" className="text-white/40 hover:text-white shrink-0 p-1">
+                  <Eye className="size-4" />
+                </button>
+                <button onClick={() => removeSaved(p.id)} title="Delete proposal" className="text-white/30 hover:text-red-400 shrink-0 p-1">
+                  <Trash2 className="size-3.5" />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

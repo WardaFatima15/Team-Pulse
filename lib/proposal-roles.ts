@@ -89,3 +89,27 @@ export type AuditResult = {
   auditSummary: string
   projectTypeSuggestion: string
 }
+
+// Saved-proposal lifecycle. Lives here (a plain module) rather than in the
+// "use server" actions file, which may only export async functions — a const
+// or type export there is a build error.
+export type ProposalStatus =
+  | "draft" | "sent" | "viewed" | "accepted" | "rejected" | "needs_revision"
+
+export const PROPOSAL_STATUSES: ProposalStatus[] = [
+  "draft", "sent", "viewed", "accepted", "rejected", "needs_revision",
+]
+
+export type SavedProposal = {
+  id: string
+  leadId: string | null
+  clientName: string
+  projectType: string
+  totalHeadcount: number
+  totalMonthly: number
+  content: unknown
+  status: ProposalStatus
+  ownerName: string
+  createdAt: string
+  updatedAt: string
+}

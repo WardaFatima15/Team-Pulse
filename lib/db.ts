@@ -278,6 +278,30 @@ async function setupSchema(): Promise<void> {
     await client.query(`CREATE INDEX IF NOT EXISTS activity_emp_idx ON "ActivityLog"("employeeId")`)
     await client.query(`CREATE INDEX IF NOT EXISTS activity_time_idx ON "ActivityLog"("createdAt" DESC)`)
 
+    // Generated proposals, persisted back so they're a record with a status
+    // lifecycle instead of a one-shot that vanishes when the tab closes.
+    // "content" is the full generated proposal JSON. "leadId" is nullable —
+    // proposals can be built from manual entry with no lead attached.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "Proposal" (
+        id TEXT PRIMARY KEY,
+        "organizationId" TEXT NOT NULL,
+        "leadId" TEXT,
+        "clientName" TEXT NOT NULL,
+        "projectType" TEXT NOT NULL DEFAULT '',
+        "totalHeadcount" INTEGER NOT NULL DEFAULT 0,
+        "totalMonthly" INTEGER NOT NULL DEFAULT 0,
+        content TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'draft',
+        "ownerId" TEXT NOT NULL,
+        "ownerName" TEXT NOT NULL,
+        "createdAt" TEXT NOT NULL,
+        "updatedAt" TEXT NOT NULL
+      )
+    `)
+    await client.query(`CREATE INDEX IF NOT EXISTS proposal_org_idx ON "Proposal"("organizationId")`)
+    await client.query(`CREATE INDEX IF NOT EXISTS proposal_lead_idx ON "Proposal"("leadId")`)
+
     await client.query(`ALTER TABLE "Admin" ADD COLUMN IF NOT EXISTS "name" TEXT NOT NULL DEFAULT 'Admin'`)
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "lastSeenAt" TEXT NOT NULL DEFAULT ''`)
     await client.query(`ALTER TABLE "Employee" ADD COLUMN IF NOT EXISTS "shiftHours" REAL NOT NULL DEFAULT 0`)
