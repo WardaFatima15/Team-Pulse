@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink, Globe, Sparkles } from "lucide-react"
 import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL, PROPOSAL_FETCH_URL_API, PROPOSAL_AUDIT_API, type AuditResult } from "@/lib/proposal-roles"
 
@@ -30,6 +31,9 @@ type ProposalResult = {
 function newRow(): RoleRow {
   return { roleId: ALL_ROLES[0].id, count: 1 }
 }
+
+const inputCls = "bg-white/5 border-white/10 text-white placeholder:text-white/30"
+const selectCls = "w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50"
 
 export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
   const [leadId, setLeadId] = useState("")
@@ -186,12 +190,12 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 flex items-center gap-2 print:hidden">
-        <FileSignature className="size-3.5 text-[#7c5af5] shrink-0" />
-        <p className="text-xs text-white/60">
+      <div className="flex items-center gap-3 text-sm text-white/70 bg-[#512feb]/8 border border-[#512feb]/20 rounded-xl px-4 py-3 print:hidden">
+        <Sparkles className="size-4 text-[#7c5af5] shrink-0" />
+        <p className="text-xs text-white/70">
           This calls Binary Next&apos;s existing internal proposal generator (propsalgen) — same engine, connected here so you don&apos;t have to leave the CRM.
         </p>
-        <a href="https://propsalgen.vercel.app" target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-[#7c5af5] hover:text-[#9b83ff] flex items-center gap-1 shrink-0">
+        <a href="https://propsalgen.vercel.app" target="_blank" rel="noopener noreferrer" className="ml-auto text-xs text-[#7c5af5] hover:underline flex items-center gap-1 shrink-0">
           Open standalone <ExternalLink className="size-3" />
         </a>
       </div>
@@ -199,47 +203,41 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
       <div className="grid grid-cols-2 gap-4 print:hidden">
         <div>
           <label className="text-xs font-medium text-white/60 mb-1 block">Prefill from lead (optional)</label>
-          <select value={leadId} onChange={e => applyLead(e.target.value)}
-            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+          <select value={leadId} onChange={e => applyLead(e.target.value)} className={selectCls}>
             <option value="">— Manual entry —</option>
             {leads.map(l => <option key={l.id} value={l.id}>{l.company || l.name}</option>)}
           </select>
         </div>
         <div>
           <label className="text-xs font-medium text-white/60 mb-1 block">Client name</label>
-          <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Acme Inc."
-            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+          <Input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Acme Inc." className={inputCls} />
         </div>
         <div>
           <label className="text-xs font-medium text-white/60 mb-1 block">Project type</label>
-          <select value={projectType} onChange={e => setProjectType(e.target.value)}
-            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+          <select value={projectType} onChange={e => setProjectType(e.target.value)} className={selectCls}>
             {PROJECT_TYPES.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
         </div>
         <div>
           <label className="text-xs font-medium text-white/60 mb-1 block">Timeline</label>
-          <input value={timeline} onChange={e => setTimeline(e.target.value)}
-            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+          <Input value={timeline} onChange={e => setTimeline(e.target.value)} className={inputCls} />
         </div>
         <div className="col-span-2">
           <label className="text-xs font-medium text-white/60 mb-1 block">Client context / overview</label>
           <textarea value={overview} onChange={e => setOverview(e.target.value)} rows={3}
             placeholder="Their situation, pain points, what they need"
-            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
         </div>
         <div>
           <label className="text-xs font-medium text-white/60 mb-1 block">Monthly budget (optional, $)</label>
-          <input type="number" value={budget} onChange={e => setBudget(e.target.value)}
-            className="w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+          <Input type="number" value={budget} onChange={e => setBudget(e.target.value)} className={inputCls} />
         </div>
       </div>
 
       <div className="print:hidden">
         <label className="text-xs font-medium text-white/60 mb-1 flex items-center gap-1.5"><Globe className="size-3.5" /> Client website (optional)</label>
         <div className="flex items-center gap-2">
-          <input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://clientwebsite.com"
-            className="flex-1 text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+          <Input value={siteUrl} onChange={e => setSiteUrl(e.target.value)} placeholder="https://clientwebsite.com" className={`${inputCls} flex-1`} />
           <Button size="sm" variant="outline" onClick={pullPageText} disabled={fetchingUrl || !siteUrl.trim()} className="border-white/10 text-white/70 hover:bg-white/8 shrink-0">
             {fetchingUrl ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : null}
             Pull page text
@@ -294,20 +292,19 @@ export default function ProposalsClient({ leads }: { leads: LeadOption[] }) {
         <div className="space-y-2">
           {roles.map((r, i) => (
             <div key={i} className="flex items-center gap-2">
-              <select value={r.roleId} onChange={e => updateRole(i, { roleId: e.target.value })}
-                className="flex-1 text-sm border border-white/10 rounded-lg px-3 py-1.5 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50">
+              <select value={r.roleId} onChange={e => updateRole(i, { roleId: e.target.value })} className={`${selectCls} flex-1 py-1.5`}>
                 {ALL_ROLES.map(role => <option key={role.id} value={role.id}>{role.label} — ${role.monthlyRate}/mo</option>)}
               </select>
-              <input type="number" min={1} value={r.count} onChange={e => updateRole(i, { count: Math.max(1, Number(e.target.value)) })}
-                className="w-16 text-sm border border-white/10 rounded-lg px-2 py-1.5 bg-white/5 text-white text-center focus:outline-none focus:ring-2 focus:ring-[#512feb]/50" />
+              <Input type="number" min={1} value={r.count} onChange={e => updateRole(i, { count: Math.max(1, Number(e.target.value)) })}
+                className={`${inputCls} w-16 text-center`} />
               <button onClick={() => setRoles(rows => rows.filter((_, idx) => idx !== i))} disabled={roles.length === 1}
-                className="p-1.5 text-white/30 hover:text-red-400 disabled:opacity-20 disabled:hover:text-white/30">
+                className="text-white/30 hover:text-red-400 shrink-0 px-1 disabled:opacity-20 disabled:hover:text-white/30">
                 <Trash2 className="size-3.5" />
               </button>
             </div>
           ))}
         </div>
-        <button onClick={() => setRoles(rows => [...rows, newRow()])} className="mt-2 text-xs text-[#7c5af5] hover:text-[#9b83ff] flex items-center gap-1">
+        <button onClick={() => setRoles(rows => [...rows, newRow()])} className="mt-2 text-xs text-[#7c5af5] hover:underline flex items-center gap-1">
           <Plus className="size-3.5" /> Add role
         </button>
       </div>
