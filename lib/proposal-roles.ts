@@ -90,6 +90,27 @@ export type AuditResult = {
   projectTypeSuggestion: string
 }
 
+// The generated proposal content shape, as returned by propsalgen's
+// /api/generate. Shared between the page (renders it), the save action
+// (persists it as JSON), and the PDF exporter (lays it out).
+export type ProposalResult = {
+  strategicFrame: { clientNeed: string; binaryNextProvides: string; goal: string }
+  executiveSummary: string
+  coreChallenge: string
+  hiringProblem: string
+  howBinaryNextFits: string
+  clientNeeds: { title: string; description: string }[]
+  positioning: string
+  competitiveLandscape: string
+  whyHardToRefuse: string[]
+  teamRationale: string
+  successMetrics: string
+  closingStatement: string
+}
+
+export type PdfRole = { roleLabel: string; count: number; hourlyRate: number; monthlyRate: number }
+export type PdfPod = { name: string; type: string; roles: PdfRole[] }
+
 // Saved-proposal lifecycle. Lives here (a plain module) rather than in the
 // "use server" actions file, which may only export async functions — a const
 // or type export there is a build error.

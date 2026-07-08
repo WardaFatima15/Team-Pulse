@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Loader2, Sparkles, Clock, CheckSquare, ChevronDown, ChevronUp, RefreshCw, Users, MessageSquareText, TrendingUp, TicketCheck, FileText, Printer, Copy, Check } from "lucide-react"
 import LiveTimer from "@/components/LiveTimer"
+import { printWithTitle } from "@/lib/utils"
 
 type Employee = { id: string; name: string; role: string; department: string; avatar: string; status: string }
 
@@ -472,7 +473,7 @@ function WeeklyReport({ employees }: { employees: Employee[] }) {
         </Button>
         {data && (
           <>
-            <Button size="sm" variant="outline" onClick={() => window.print()} className="border-white/10 text-white/70 hover:bg-white/8">
+            <Button size="sm" variant="outline" onClick={() => data && printWithTitle(`Weekly Report - ${data.employee.name} (${data.from} to ${data.to})`)} className="border-white/10 text-white/70 hover:bg-white/8">
               <Printer className="size-3.5 mr-1.5" /> Export PDF
             </Button>
             <Button size="sm" variant="outline" onClick={copyText} className="border-white/10 text-white/70 hover:bg-white/8">

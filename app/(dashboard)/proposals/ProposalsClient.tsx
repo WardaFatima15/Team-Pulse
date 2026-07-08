@@ -4,9 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Loader2, FileSignature, Printer, Copy, Check, Plus, Trash2, ExternalLink, Globe, Sparkles, Save, Eye } from "lucide-react"
-import { ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL, PROPOSAL_FETCH_URL_API, PROPOSAL_AUDIT_API, PROPOSAL_STATUSES, type AuditResult, type SavedProposal, type ProposalStatus } from "@/lib/proposal-roles"
+import { Loader2, FileSignature, Download, Copy, Check, Plus, Trash2, ExternalLink, Globe, Sparkles, Save, Eye } from "lucide-react"
+import {
+  ALL_ROLES, PROJECT_TYPES, PROPOSAL_API_URL, PROPOSAL_FETCH_URL_API, PROPOSAL_AUDIT_API, PROPOSAL_STATUSES,
+  type AuditResult, type SavedProposal, type ProposalStatus, type ProposalResult, type PdfPod,
+} from "@/lib/proposal-roles"
 import { saveProposal, updateProposalStatus, deleteProposal } from "@/lib/proposal-actions"
+import { exportProposalPdf } from "@/lib/proposal-pdf"
 
 type LeadOption = {
   id: string; name: string; company: string
@@ -15,7 +19,19 @@ type LeadOption = {
 
 type RoleRow = { roleId: string; count: number }
 
-type ResultMeta = { leadId: string; clientName: string; projectType: string; totalHeadcount: number; totalMonthly: number }
+type ResultMeta = {
+  leadId: string; clientName: string; projectType: string
+  totalHeadcount: number; totalMonthly: number
+  pods: PdfPod[]; timeline: string
+}
+
+// Content persisted for a saved proposal — the generated AI content plus
+// enough of the team/timeline snapshot to re-render the same PDF later.
+type StoredProposalContent = { ai: ProposalResult; pods: PdfPod[]; timeline: string }
+
+function isStoredContent(c: unknown): c is StoredProposalContent {
+  return !!c && typeof c === "object" && "ai" in c
+}
 
 const STATUS_META: Record<ProposalStatus, { label: string; color: string }> = {
   draft:          { label: "Draft",          color: "bg-white/10 text-white/60" },
@@ -24,21 +40,6 @@ const STATUS_META: Record<ProposalStatus, { label: string; color: string }> = {
   accepted:       { label: "Accepted",       color: "bg-green-500/15 text-green-400" },
   rejected:       { label: "Rejected",       color: "bg-red-500/15 text-red-400" },
   needs_revision: { label: "Needs Revision", color: "bg-amber-500/15 text-amber-400" },
-}
-
-type ProposalResult = {
-  strategicFrame: { clientNeed: string; binaryNextProvides: string; goal: string }
-  executiveSummary: string
-  coreChallenge: string
-  hiringProblem: string
-  howBinaryNextFits: string
-  clientNeeds: { title: string; description: string }[]
-  positioning: string
-  competitiveLandscape: string
-  whyHardToRefuse: string[]
-  teamRationale: string
-  successMetrics: string
-  closingStatement: string
 }
 
 function newRow(): RoleRow {
@@ -155,7 +156,7 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
     setResult(null)
     setSavedId(null)
     try {
-      const pods = [{
+      const pods: PdfPod[] = [{
         type: "pod",
         name: "Proposed Team",
         roles: roles.map(r => {
@@ -170,7 +171,7 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
       })
       if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || "Couldn't generate proposal")
       setResult(await res.json())
-      setResultMeta({ leadId, clientName, projectType, totalHeadcount, totalMonthly })
+      setResultMeta({ leadId, clientName, projectType, totalHeadcount, totalMonthly, pods, timeline })
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -183,13 +184,14 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
     setSaving(true)
     setError("")
     try {
+      const content: StoredProposalContent = { ai: result, pods: resultMeta.pods, timeline: resultMeta.timeline }
       const { id } = await saveProposal({
         leadId: resultMeta.leadId || null,
         clientName: resultMeta.clientName,
         projectType: resultMeta.projectType,
         totalHeadcount: resultMeta.totalHeadcount,
         totalMonthly: resultMeta.totalMonthly,
-        content: result,
+        content,
       })
       setSavedId(id)
       router.refresh()
@@ -201,10 +203,12 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
   }
 
   function viewSaved(p: SavedProposal) {
-    setResult(p.content as ProposalResult)
+    const stored = isStoredContent(p.content) ? p.content : { ai: p.content as ProposalResult, pods: [], timeline: "" }
+    setResult(stored.ai)
     setResultMeta({
       leadId: p.leadId ?? "", clientName: p.clientName, projectType: p.projectType,
       totalHeadcount: p.totalHeadcount, totalMonthly: p.totalMonthly,
+      pods: stored.pods, timeline: stored.timeline,
     })
     setSavedId(p.id)
     setError("")
@@ -249,6 +253,14 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
     navigator.clipboard.writeText(asPlainText(result)).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  function downloadPdf() {
+    if (!result || !resultMeta) return
+    exportProposalPdf({
+      clientName: resultMeta.clientName, projectType: resultMeta.projectType,
+      timeline: resultMeta.timeline, pods: resultMeta.pods, ai: result,
     })
   }
 
@@ -390,8 +402,8 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
                 {saving ? "Saving…" : "Save proposal"}
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={() => window.print()} className="border-white/10 text-white/70 hover:bg-white/8">
-              <Printer className="size-3.5 mr-1.5" /> Export PDF
+            <Button size="sm" variant="outline" onClick={downloadPdf} className="border-white/10 text-white/70 hover:bg-white/8">
+              <Download className="size-3.5 mr-1.5" /> Download PDF
             </Button>
             <Button size="sm" variant="outline" onClick={copyText} className="border-white/10 text-white/70 hover:bg-white/8">
               {copied ? <Check className="size-3.5 mr-1.5 text-green-400" /> : <Copy className="size-3.5 mr-1.5" />}
