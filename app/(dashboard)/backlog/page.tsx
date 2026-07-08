@@ -35,6 +35,7 @@ const BUILT: Group[] = [
     category: "Proposals",
     items: [
       "Real AI proposal generator, wired to the existing internal \"propsalgen\" engine — pick a lead, build a role team, generate, export PDF or copy as text",
+      "Website audit: paste a client URL to pull page text into the overview, or run a full AI audit that recommends the team automatically",
     ],
   },
   {
