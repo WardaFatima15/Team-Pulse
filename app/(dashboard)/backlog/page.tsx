@@ -37,6 +37,8 @@ const BUILT: Group[] = [
       "Real AI proposal generator, wired to the existing internal \"propsalgen\" engine — pick a lead, build a role team, generate, export PDF or copy as text",
       "Website audit: paste a client URL to pull page text into the overview, or run a full AI audit that recommends the team automatically",
       "Save generated proposals with a status lifecycle (Draft → Sent → Viewed → Accepted / Rejected / Needs Revision) — reopen, re-export, or delete from the saved list",
+      "Real \"Download PDF\" (jsPDF, multi-page, styled) instead of the browser print dialog, which just reused whatever destination was last used",
+      "PDF cover, headers, and contact info now pull the logged-in organization's own name instead of a hardcoded company — any org using this CRM gets their own branding, not BinaryNext's. The AI-written body paragraphs still frame things around whichever company propsalgen's own prompt was written for, since that prompt lives in a separate app this CRM doesn't own",
     ],
   },
   {

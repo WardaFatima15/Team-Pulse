@@ -24,6 +24,7 @@ export default async function ProposalsPage() {
           offerPitched: l.offerPitched, resourceTypePitched: l.resourceTypePitched,
         }))}
         savedProposals={savedProposals}
+        provider={{ name: admin.orgName, preparedBy: admin.name, email: admin.email }}
       />
     </div>
   )

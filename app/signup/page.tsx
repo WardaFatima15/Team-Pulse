@@ -64,7 +64,7 @@ export default function SignupPage() {
             Your team,<br />your workspace.
           </h1>
           <p className="text-white/50 text-lg leading-relaxed">
-            Create your organization and start managing your remote team with TeamPulse.
+            Create your organization and start managing your remote team with Cadenz.
           </p>
           <div className="mt-8 space-y-3">
             {["Isolated workspace — your employees only", "Approvals, chat, leaves, tickets", "AI assistant + real-time tracking"].map(f => (
@@ -77,7 +77,7 @@ export default function SignupPage() {
             ))}
           </div>
         </div>
-        <p className="text-white/20 text-xs">© 2026 Binary Next · TeamPulse CRM</p>
+        <p className="text-white/20 text-xs">© 2026 Binary Next · Cadenz</p>
       </div>
 
       {/* Right panel */}
@@ -90,7 +90,7 @@ export default function SignupPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Create your workspace</h2>
-                <p className="text-white/40 text-xs mt-0.5">Set up your organization on TeamPulse</p>
+                <p className="text-white/40 text-xs mt-0.5">Set up your organization on Cadenz</p>
               </div>
             </div>
 

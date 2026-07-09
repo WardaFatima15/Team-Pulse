@@ -49,7 +49,9 @@ function newRow(): RoleRow {
 const inputCls = "bg-white/5 border-white/10 text-white placeholder:text-white/30"
 const selectCls = "w-full text-sm border border-white/10 rounded-lg px-3 py-2 bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-[#512feb]/50"
 
-export default function ProposalsClient({ leads, savedProposals }: { leads: LeadOption[]; savedProposals: SavedProposal[] }) {
+type Provider = { name: string; preparedBy: string; email: string }
+
+export default function ProposalsClient({ leads, savedProposals, provider }: { leads: LeadOption[]; savedProposals: SavedProposal[]; provider: Provider }) {
   const router = useRouter()
   const [leadId, setLeadId] = useState("")
   const [clientName, setClientName] = useState("")
@@ -260,7 +262,7 @@ export default function ProposalsClient({ leads, savedProposals }: { leads: Lead
     if (!result || !resultMeta) return
     exportProposalPdf({
       clientName: resultMeta.clientName, projectType: resultMeta.projectType,
-      timeline: resultMeta.timeline, pods: resultMeta.pods, ai: result,
+      timeline: resultMeta.timeline, pods: resultMeta.pods, ai: result, provider,
     })
   }
 

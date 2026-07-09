@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     queryOne<{ n: string }>(`SELECT COUNT(*) as n FROM "Ticket" WHERE status != 'resolved'`),
   ])
 
-  const systemPrompt = `You are an AI HR assistant for TeamPulse, a remote employee management platform built by Binary Next.
+  const systemPrompt = `You are an AI HR assistant for Cadenz, a remote employee management platform built by Binary Next.
 
 Current team stats:
 - Total employees: ${empCount?.n ?? 0}

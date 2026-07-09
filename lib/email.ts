@@ -2,7 +2,7 @@ import { Resend } from "resend"
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-const FROM = "TeamPulse <onboarding@resend.dev>"
+const FROM = "Cadenz <onboarding@resend.dev>"
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://crm-app-blue-phi.vercel.app"
 
 export async function sendWelcomeEmail(employee: {
@@ -27,12 +27,12 @@ export async function sendWelcomeEmail(employee: {
       <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" width="36" height="36" style="border-radius:8px;" alt="Binary Next"/>
       <div>
         <div style="color:#fff;font-weight:700;font-size:15px;">Binary Next</div>
-        <div style="color:rgba(255,255,255,0.4);font-size:11px;">TeamPulse CRM</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">Cadenz CRM</div>
       </div>
     </div>
 
     <div style="padding:32px;">
-      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f172a;">Welcome to TeamPulse, ${employee.name}!</h1>
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f172a;">Welcome to Cadenz, ${employee.name}!</h1>
       <p style="margin:0 0 24px;color:#64748b;font-size:14px;line-height:1.6;">
         Your account has been created. Here are your login credentials:
       </p>
@@ -51,7 +51,7 @@ export async function sendWelcomeEmail(employee: {
       </div>
 
       <a href="${loginUrl}" style="display:block;text-align:center;background:#512feb;color:#fff;text-decoration:none;padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;margin-bottom:20px;">
-        Sign in to TeamPulse →
+        Sign in to Cadenz →
       </a>
 
       <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
@@ -71,7 +71,7 @@ export async function sendWelcomeEmail(employee: {
   return resend.emails.send({
     from: FROM,
     to: employee.email,
-    subject: `Welcome to TeamPulse — your login details`,
+    subject: `Welcome to Cadenz — your login details`,
     html,
   })
 }
@@ -96,7 +96,7 @@ export async function sendAdminWelcomeEmail(admin: {
         <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" width="36" height="36" style="border-radius:8px;" alt="Binary Next"/>
         <div>
           <div style="color:#fff;font-weight:700;font-size:15px;">Binary Next</div>
-          <div style="color:rgba(255,255,255,0.4);font-size:11px;">TeamPulse CRM</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:11px;">Cadenz CRM</div>
         </div>
       </div>
     </div>
@@ -104,7 +104,7 @@ export async function sendAdminWelcomeEmail(admin: {
     <div style="padding:32px;">
       <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f172a;">Your workspace is ready 🎉</h1>
       <p style="margin:0 0 24px;color:#64748b;font-size:14px;line-height:1.6;">
-        <strong style="color:#0f172a;">${admin.orgName}</strong> has been created on TeamPulse. You can now add employees, manage leaves, track attendance, and more.
+        <strong style="color:#0f172a;">${admin.orgName}</strong> has been created on Cadenz. You can now add employees, manage leaves, track attendance, and more.
       </p>
 
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
@@ -145,7 +145,7 @@ export async function sendAdminWelcomeEmail(admin: {
   return resend.emails.send({
     from: FROM,
     to: admin.email,
-    subject: `Your TeamPulse workspace "${admin.orgName}" is ready`,
+    subject: `Your Cadenz workspace "${admin.orgName}" is ready`,
     html,
   })
 }
@@ -170,13 +170,13 @@ export async function sendAdminInviteEmail(admin: {
       <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" width="36" height="36" style="border-radius:8px;" alt="Binary Next"/>
       <div>
         <div style="color:#fff;font-weight:700;font-size:15px;">Binary Next</div>
-        <div style="color:rgba(255,255,255,0.4);font-size:11px;">TeamPulse CRM</div>
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;">Cadenz CRM</div>
       </div>
     </div>
     <div style="padding:32px;">
       <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#0f172a;">You've been added as an admin</h1>
       <p style="margin:0 0 24px;color:#64748b;font-size:14px;line-height:1.6;">
-        Hi ${admin.name}, you now have admin access to <strong style="color:#0f172a;">${admin.orgName}</strong> on TeamPulse.
+        Hi ${admin.name}, you now have admin access to <strong style="color:#0f172a;">${admin.orgName}</strong> on Cadenz.
       </p>
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:24px;">
         <table style="width:100%;border-collapse:collapse;">
@@ -191,7 +191,7 @@ export async function sendAdminInviteEmail(admin: {
         </table>
       </div>
       <a href="${loginUrl}" style="display:block;text-align:center;background:#512feb;color:#fff;text-decoration:none;padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;margin-bottom:20px;">
-        Sign in to TeamPulse →
+        Sign in to Cadenz →
       </a>
       <p style="margin:0;color:#94a3b8;font-size:12px;line-height:1.6;">
         Please change your password after your first login.
@@ -209,7 +209,7 @@ export async function sendAdminInviteEmail(admin: {
   return resend.emails.send({
     from: FROM,
     to: admin.email,
-    subject: `You've been added as admin on TeamPulse — ${admin.orgName}`,
+    subject: `You've been added as admin on Cadenz — ${admin.orgName}`,
     html,
   })
 }
@@ -246,7 +246,7 @@ export async function sendWeeklyDigest(toEmails: string[], orgName: string, week
 <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
     <div style="background:#0d0d0d;padding:28px 32px;">
-      <div style="color:#fff;font-weight:700;font-size:15px;">TeamPulse · Weekly Digest</div>
+      <div style="color:#fff;font-weight:700;font-size:15px;">Cadenz · Weekly Digest</div>
       <div style="color:rgba(255,255,255,0.4);font-size:11px;margin-top:2px;">${orgName} · ${weekLabel}</div>
     </div>
     <div style="padding:32px;">
@@ -264,7 +264,7 @@ export async function sendWeeklyDigest(toEmails: string[], orgName: string, week
         <tbody>${rowsHtml}</tbody>
       </table>
       <a href="${APP_URL}/dashboard" style="display:block;text-align:center;background:#512feb;color:#fff;text-decoration:none;padding:13px 24px;border-radius:10px;font-weight:600;font-size:14px;margin-top:24px;">
-        Open TeamPulse →
+        Open Cadenz →
       </a>
     </div>
     <div style="background:#f8fafc;padding:16px 32px;border-top:1px solid #e2e8f0;">
@@ -279,7 +279,7 @@ export async function sendWeeklyDigest(toEmails: string[], orgName: string, week
   return resend.emails.send({
     from: FROM,
     to: toEmails,
-    subject: `TeamPulse weekly digest — ${orgName} (${weekLabel})`,
+    subject: `Cadenz weekly digest — ${orgName} (${weekLabel})`,
     html,
   })
 }
@@ -297,7 +297,7 @@ export async function sendPasswordResetEmail(employee: {
 <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:520px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #e2e8f0;">
     <div style="background:#0d0d0d;padding:24px 32px;">
-      <div style="color:#fff;font-weight:700;font-size:15px;">TeamPulse · Password Reset</div>
+      <div style="color:#fff;font-weight:700;font-size:15px;">Cadenz · Password Reset</div>
     </div>
     <div style="padding:32px;">
       <h2 style="margin:0 0 12px;color:#0f172a;">Hi ${employee.name},</h2>
@@ -315,7 +315,7 @@ export async function sendPasswordResetEmail(employee: {
   return resend.emails.send({
     from: FROM,
     to: employee.email,
-    subject: `TeamPulse — your password has been reset`,
+    subject: `Cadenz — your password has been reset`,
     html,
   })
 }

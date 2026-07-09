@@ -5,7 +5,7 @@ import "./globals.css"
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "TeamPulse — Remote Employee CRM",
+  title: "Cadenz — Remote Employee CRM",
   description: "Manage and monitor your remote team with ease",
 }
 

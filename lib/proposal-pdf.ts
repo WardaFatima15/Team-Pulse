@@ -26,18 +26,6 @@ const COLORS = {
   lightRed:   [254, 242, 242]  as const,
 }
 
-function addPageHeader(doc: jsPDF, title: string, pageNum: number) {
-  doc.setFillColor(...COLORS.navy)
-  doc.rect(0, 0, 210, 14, "F")
-  doc.setFontSize(8)
-  doc.setTextColor(...COLORS.white)
-  doc.setFont("helvetica", "bold")
-  doc.text("BINARYNEXT", 14, 9)
-  doc.setFont("helvetica", "normal")
-  doc.text(title, 105, 9, { align: "center" })
-  doc.text(`Page ${pageNum}`, 196, 9, { align: "right" })
-}
-
 function addSectionTitle(doc: jsPDF, title: string, y: number): number {
   doc.setFillColor(...COLORS.teal)
   doc.rect(14, y, 4, 8, "F")
@@ -48,15 +36,10 @@ function addSectionTitle(doc: jsPDF, title: string, y: number): number {
   return y + 14
 }
 
-function checkPage(doc: jsPDF, y: number, pageNum: number, title: string): { y: number; pageNum: number } {
-  if (y > 255) {
-    doc.addPage()
-    pageNum++
-    addPageHeader(doc, title, pageNum)
-    return { y: 24, pageNum }
-  }
-  return { y, pageNum }
-}
+// A CEO at any company using this feature sees their own org's name here, not
+// BinaryNext's — hence addPageHeader/checkPage are defined per-call (closing
+// over providerName) rather than as standalone functions.
+export type ProposalProvider = { name: string; preparedBy: string; email: string }
 
 export type ProposalPdfInput = {
   clientName: string
@@ -64,6 +47,7 @@ export type ProposalPdfInput = {
   timeline: string
   pods: PdfPod[]
   ai: ProposalResult
+  provider: ProposalProvider
 }
 
 export function exportProposalPdf(input: ProposalPdfInput) {
@@ -73,6 +57,29 @@ export function exportProposalPdf(input: ProposalPdfInput) {
   const clientName = input.clientName || "Valued Client"
   const ai = input.ai
   const propTitle = input.projectType || "Proposal"
+  const providerName = input.provider.name || "Your Company"
+
+  function addPageHeader(d: jsPDF, title: string, pn: number) {
+    d.setFillColor(...COLORS.navy)
+    d.rect(0, 0, 210, 14, "F")
+    d.setFontSize(8)
+    d.setTextColor(...COLORS.white)
+    d.setFont("helvetica", "bold")
+    d.text(providerName.toUpperCase(), 14, 9)
+    d.setFont("helvetica", "normal")
+    d.text(title, 105, 9, { align: "center" })
+    d.text(`Page ${pn}`, 196, 9, { align: "right" })
+  }
+
+  function checkPage(d: jsPDF, y: number, pn: number, title: string): { y: number; pageNum: number } {
+    if (y > 255) {
+      d.addPage()
+      pn++
+      addPageHeader(d, title, pn)
+      return { y: 24, pageNum: pn }
+    }
+    return { y, pageNum: pn }
+  }
 
   // ── PAGE 1: COVER ──────────────────────────────────────────────
   doc.setFillColor(...COLORS.navy)
@@ -80,32 +87,16 @@ export function exportProposalPdf(input: ProposalPdfInput) {
   doc.setFillColor(...COLORS.teal)
   doc.rect(0, 100, pageW, 4, "F")
 
-  const logoChars: { ch: string; rgb: readonly [number, number, number] }[] = [
-    { ch: "0", rgb: [34, 211, 238] },
-    { ch: "1", rgb: [250, 204, 21] },
-    { ch: "0", rgb: [248, 113, 113] },
-    { ch: "1", rgb: [129, 140, 248] },
-    { ch: "0", rgb: [74, 222, 128] },
-  ]
-  doc.setFontSize(28)
-  doc.setFont("courier", "bold")
-  const charW = 12
-  const logoTotalW = logoChars.length * charW
-  let lx = pageW / 2 - logoTotalW / 2
   const logoY = 46
-  logoChars.forEach(({ ch, rgb }) => {
-    doc.setTextColor(...rgb)
-    doc.text(ch, lx + charW / 2, logoY, { align: "center" })
-    lx += charW
-  })
+  doc.setFontSize(26)
+  doc.setFont("helvetica", "bold")
+  doc.setTextColor(...COLORS.teal)
+  const logoTotalW = doc.getTextWidth(providerName.toUpperCase())
+  doc.text(providerName.toUpperCase(), pageW / 2, logoY, { align: "center" })
   doc.setDrawColor(255, 255, 255)
   doc.setLineWidth(0.6)
   doc.line(pageW / 2 - logoTotalW / 2, logoY - 8, pageW / 2 + logoTotalW / 2, logoY - 8)
 
-  doc.setFontSize(22)
-  doc.setFont("helvetica", "bold")
-  doc.setTextColor(...COLORS.white)
-  doc.text("BINARYNEXT", pageW / 2, 62, { align: "center" })
   doc.setFontSize(11)
   doc.setFont("helvetica", "normal")
   doc.setTextColor(...COLORS.teal)
@@ -123,7 +114,7 @@ export function exportProposalPdf(input: ProposalPdfInput) {
   const coverDetails: [string, string][] = [
     ["Project Type", input.projectType || "—"],
     ["Timeline", input.timeline || "—"],
-    ["Prepared By", "Syed Bokhari / BinaryNext"],
+    ["Prepared By", input.provider.preparedBy ? `${input.provider.preparedBy} / ${providerName}` : providerName],
     ["Date", format(new Date(), "MMMM d, yyyy")],
   ]
   coverDetails.forEach(([label, val]) => {
@@ -141,7 +132,7 @@ export function exportProposalPdf(input: ProposalPdfInput) {
   doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
   doc.setTextColor(...COLORS.gray)
-  doc.text("www.binarynext.io  |  operations@binarynext.io", pageW / 2, 285, { align: "center" })
+  doc.text(input.provider.email || providerName, pageW / 2, 285, { align: "center" })
 
   // ── PAGE 2: EXECUTIVE SUMMARY ──────────────────────────────────
   doc.addPage()
@@ -212,7 +203,7 @@ export function exportProposalPdf(input: ProposalPdfInput) {
     doc.setFontSize(8)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(...COLORS.teal)
-    doc.text("HOW BINARYNEXT FITS", 18, y + 6)
+    doc.text(`HOW ${providerName.toUpperCase()} FITS`, 18, y + 6)
     doc.setFontSize(9)
     doc.setFont("helvetica", "normal")
     doc.setTextColor(...COLORS.white)
@@ -253,7 +244,7 @@ export function exportProposalPdf(input: ProposalPdfInput) {
 
   if (ai.positioning) {
     ;({ y, pageNum } = checkPage(doc, y, pageNum, propTitle))
-    y = addSectionTitle(doc, "Why BinaryNext", y)
+    y = addSectionTitle(doc, `Why ${providerName}`, y)
     const posLines = doc.splitTextToSize(ai.positioning, 182)
     doc.setFontSize(9)
     doc.setFont("helvetica", "normal")
@@ -435,7 +426,7 @@ export function exportProposalPdf(input: ProposalPdfInput) {
   doc.setFontSize(7.5)
   doc.setFont("helvetica", "bold")
   doc.setTextColor(...COLORS.teal)
-  doc.text("BINARYNEXT", 14 + halfW + 6 + halfW / 2, y + 6, { align: "center" })
+  doc.text(providerName.toUpperCase(), 14 + halfW + 6 + halfW / 2, y + 6, { align: "center" })
   doc.setFontSize(14)
   doc.setFont("helvetica", "bold")
   doc.setTextColor(15, 118, 110)
@@ -521,8 +512,10 @@ export function exportProposalPdf(input: ProposalPdfInput) {
   doc.setFont("helvetica", "normal")
   doc.setFontSize(8)
   doc.setTextColor(...COLORS.teal)
-  doc.text("www.binarynext.io  |  operations@binarynext.io  |  Syed Bokhari / BinaryNext", 105, y, { align: "center" })
+  const signOff = [input.provider.email, input.provider.preparedBy ? `${input.provider.preparedBy} / ${providerName}` : providerName]
+    .filter(Boolean).join("  |  ")
+  doc.text(signOff, 105, y, { align: "center" })
 
-  const fileName = `BinaryNext_Proposal_${clientName.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`
+  const fileName = `${providerName.replace(/\s+/g, "_")}_Proposal_${clientName.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`
   doc.save(fileName)
 }

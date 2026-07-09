@@ -33,7 +33,7 @@ type NotifCounts = { pendingLeaves: number; openTickets: number; unreadMessages:
 export default function Header({ adminEmail }: { adminEmail?: string }) {
   const pathname = usePathname()
   const base = "/" + pathname.split("/")[1]
-  const page = titles[base] ?? { title: "TeamPulse", sub: "" }
+  const page = titles[base] ?? { title: "Cadenz", sub: "" }
 
   const [counts, setCounts] = useState<NotifCounts>({ pendingLeaves: 0, openTickets: 0, unreadMessages: 0, total: 0 })
   const [open, setOpen] = useState(false)

@@ -56,7 +56,7 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         </div>
         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10">
           <Users2 className="size-3.5 text-[#512feb] shrink-0" />
-          <span className="text-white/80 text-xs font-medium truncate">{orgName ?? "TeamPulse CRM"}</span>
+          <span className="text-white/80 text-xs font-medium truncate">{orgName ?? "Cadenz"}</span>
         </div>
       </div>
 

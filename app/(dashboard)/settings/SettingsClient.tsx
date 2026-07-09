@@ -142,10 +142,10 @@ export default function SettingsClient({
       {/* About */}
       <Card>
         <CardHeader className="border-b border-white/10 pb-4">
-          <CardTitle className="text-sm font-semibold text-white">About TeamPulse</CardTitle>
+          <CardTitle className="text-sm font-semibold text-white">About Cadenz</CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-2 text-sm text-white/70">
-          <p>TeamPulse is an internal employee management platform for tracking time, leaves, announcements, support tickets, and project tasks.</p>
+          <p>Cadenz is an internal employee management platform for tracking time, leaves, announcements, support tickets, and project tasks.</p>
           <p className="text-xs text-white/50 mt-2">All data is stored securely in your private database.</p>
           <p className="text-xs text-white/40">v1.0.0</p>
         </CardContent>

@@ -56,7 +56,7 @@ export default function EmployeeSidebar({ employee }: { employee: EmployeeSessio
           </div>
           <div className="flex-1 min-w-0 text-left">
             <p className="text-xs font-semibold text-white truncate">{employee.orgName}</p>
-            <p className="text-[10px] text-white/40">TeamPulse CRM</p>
+            <p className="text-[10px] text-white/40">Cadenz</p>
           </div>
           {hasMultipleWorkspaces && <ChevronDown className={`size-3.5 text-white/30 shrink-0 transition-transform ${showWorkspaceMenu ? "rotate-180" : ""}`} />}
         </button>

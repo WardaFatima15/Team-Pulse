@@ -55,7 +55,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="space-y-5">
-          <p className="text-white/30 text-xs uppercase tracking-widest font-medium">TeamPulse CRM Features</p>
+          <p className="text-white/30 text-xs uppercase tracking-widest font-medium">Cadenz Features</p>
           {[
             { title: "Real-time team status", desc: "See who's online, away, or offline across all timezones at a glance." },
             { title: "Built-in task tracking", desc: "Kanban boards with projects, priorities, and assignments — no Jira needed." },
@@ -83,7 +83,7 @@ export default function LoginPage() {
             <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Binary Next" className="size-8 object-contain" />
             <div>
               <p className="font-bold text-white text-sm">Binary Next</p>
-              <p className="text-[10px] text-white/40">TeamPulse CRM</p>
+              <p className="text-[10px] text-white/40">Cadenz</p>
             </div>
           </div>
 
