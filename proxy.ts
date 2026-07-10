@@ -7,6 +7,7 @@ export function proxy(req: NextRequest) {
   if (pathname === "/") return NextResponse.next()
   if (pathname === "/login" || pathname === "/signup") return NextResponse.next()
   if (pathname === "/employee/login") return NextResponse.next()
+  if (pathname === "/icon.svg" || pathname === "/favicon.ico") return NextResponse.next()
 
   // Employee portal — requires employee_token
   if (pathname === "/employee" || pathname.startsWith("/employee/")) {
