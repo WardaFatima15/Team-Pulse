@@ -36,12 +36,12 @@ export default async function ClientsPage() {
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Card><CardContent className="pt-4">
-          <p className="text-xl font-bold text-white">{clients.length}</p>
-          <p className="text-xs text-white/50 mt-0.5">Total clients</p>
+          <p className="text-xl font-bold text-white tabular-nums">{clients.length}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/45 mt-1">Total clients</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
-          <p className="text-xl font-bold text-green-400">{money(totalValue)}</p>
-          <p className="text-xs text-white/50 mt-0.5">Combined deal value</p>
+          <p className="text-xl font-bold text-green-400 tabular-nums">{money(totalValue)}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/45 mt-1">Combined deal value</p>
         </CardContent></Card>
       </div>
 

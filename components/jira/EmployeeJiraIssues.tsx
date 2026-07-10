@@ -45,7 +45,7 @@ export default function EmployeeJiraIssues({ employeeId }: { employeeId: string 
   return (
     <Card>
       <CardHeader className="border-b border-white/10 pb-4">
-        <CardTitle className="text-sm font-semibold text-white">In-Progress Jira Issues</CardTitle>
+        <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">In-Progress Jira Issues</CardTitle>
       </CardHeader>
       <CardContent className="pt-4">
         {loading && <p className="text-white/40 text-sm py-4">Loading…</p>}

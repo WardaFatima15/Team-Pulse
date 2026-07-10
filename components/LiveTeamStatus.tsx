@@ -90,7 +90,7 @@ export function LiveTeamStatusGrid() {
     <Card>
       <CardHeader className="border-b border-white/10 pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-white">Live Team Status</CardTitle>
+          <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Live Team Status</CardTitle>
           <Link href="/employees" className="text-xs text-[#7c5af5] hover:underline flex items-center gap-1">Manage <ArrowRight className="size-3" /></Link>
         </div>
       </CardHeader>
@@ -140,7 +140,7 @@ export function LiveActivityCard() {
     <Card>
       <CardHeader className="border-b border-white/10 pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold text-white">Live Activity</CardTitle>
+          <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Live Activity</CardTitle>
           <span className="flex items-center gap-1 text-xs text-green-400"><span className="size-1.5 rounded-full bg-green-500 animate-pulse" /> live</span>
         </div>
       </CardHeader>
@@ -180,8 +180,8 @@ export function LiveOnlineStatTile({ total }: { total: number }) {
             <Users className="size-4 text-green-400" />
           </div>
         </div>
-        <p className="text-2xl font-bold text-white">{data.online}/{total}</p>
-        <p className="text-xs font-medium text-white/70 mt-0.5">Online Now</p>
+        <p className="text-2xl font-bold text-white tabular-nums">{data.online}/{total}</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50 mt-1">Online Now</p>
         <p className="text-xs text-white/40 mt-0.5">{away} away</p>
       </CardContent>
     </Card>

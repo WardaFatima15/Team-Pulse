@@ -60,7 +60,7 @@ export default async function TimeTrackingPage() {
 
       <Card className="bg-[#0d0d12] border-white/10">
         <CardHeader className="border-b border-white/10 pb-4">
-          <CardTitle className="text-sm font-semibold text-white">Today&apos;s Attendance — {format(new Date(today), "EEEE, MMMM d yyyy")}</CardTitle>
+          <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Today&apos;s Attendance — {format(new Date(today), "EEEE, MMMM d yyyy")}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="overflow-x-auto">
@@ -117,7 +117,7 @@ export default async function TimeTrackingPage() {
 
       <Card className="bg-[#0d0d12] border-white/10">
         <CardHeader className="border-b border-white/10 pb-4">
-          <CardTitle className="text-sm font-semibold text-white">Weekly Breakdown</CardTitle>
+          <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Weekly Breakdown</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="overflow-x-auto">

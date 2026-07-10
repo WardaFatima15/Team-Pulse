@@ -82,8 +82,9 @@ export default async function DashboardPage() {
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-start justify-between">
         <div>
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35 mb-1">// live overview</p>
           <h1 className="text-2xl font-bold text-white">Team Overview</h1>
-          <p className="text-white/50 text-sm mt-0.5">{format(new Date(), "EEEE, MMMM d yyyy")} · {employees.length} team members</p>
+          <p className="font-mono text-xs text-white/40 mt-1">{format(new Date(), "EEE dd MMM yyyy").toLowerCase()} · {employees.length} team members</p>
         </div>
         <LiveHeaderBadge />
       </div>
@@ -101,10 +102,10 @@ export default async function DashboardPage() {
                 <div className={`size-9 rounded-lg ${bg} flex items-center justify-center`}>
                   <Icon className={`size-4 ${color}`} />
                 </div>
-                <span className="text-xs text-white/40 flex items-center gap-0.5"><ArrowUp className="size-2.5 text-green-500" />{trend}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wide text-white/35 flex items-center gap-1"><ArrowUp className="size-2.5 text-green-500" />{trend}</span>
               </div>
-              <p className="text-2xl font-bold text-white">{value}</p>
-              <p className="text-xs font-medium text-white/70 mt-0.5">{label}</p>
+              <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50 mt-1">{label}</p>
               <p className="text-xs text-white/40 mt-0.5">{sub}</p>
             </CardContent>
           </Card>
@@ -118,7 +119,7 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-white">Weekly Hours Logged</CardTitle>
+                <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Weekly Hours Logged</CardTitle>
                 <Link href="/time-tracking" className="text-xs text-[#7c5af5] hover:underline flex items-center gap-1">Details <ArrowRight className="size-3" /></Link>
               </div>
             </CardHeader>
@@ -155,7 +156,7 @@ export default async function DashboardPage() {
 
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
-              <CardTitle className="text-sm font-semibold text-white">Team by Department</CardTitle>
+              <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Team by Department</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-3">
               {Object.entries(
@@ -179,7 +180,7 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-white">Pending Leaves</CardTitle>
+                <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Pending Leaves</CardTitle>
                 <Link href="/leaves" className="text-xs text-[#7c5af5] hover:underline">Review</Link>
               </div>
             </CardHeader>
@@ -206,7 +207,7 @@ export default async function DashboardPage() {
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-white">Open Tickets</CardTitle>
+                <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Open Tickets</CardTitle>
                 <Link href="/tickets" className="text-xs text-[#7c5af5] hover:underline">View all</Link>
               </div>
             </CardHeader>

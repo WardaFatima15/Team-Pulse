@@ -55,9 +55,9 @@ export default function EmployeesClient({ employees }: { employees: Employee[] }
         <div className="flex gap-2 flex-wrap">
           {(["all", "online", "away", "offline"] as const).map(s => (
             <button key={s} onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filter === s ? "bg-[#512feb] text-white" : "bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white"}`}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-              {s !== "all" && <span className="ml-1.5 opacity-70">{employees.filter(e => e.status === s).length}</span>}
+              className={`px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wide transition-colors ${filter === s ? "bg-[#512feb]/15 text-white border border-[#512feb]/40" : "bg-white/5 border border-white/10 text-white/55 hover:bg-white/10 hover:text-white"}`}>
+              {s}
+              {s !== "all" && <span className="ml-1.5 opacity-60 tabular-nums">{employees.filter(e => e.status === s).length}</span>}
             </button>
           ))}
         </div>
@@ -72,12 +72,12 @@ export default function EmployeesClient({ employees }: { employees: Employee[] }
         onSuccess={() => { setDialogOpen(false); router.refresh() }}
       />
 
-      <div className="flex gap-4 text-sm text-white/50">
+      <div className="flex gap-4 font-mono text-xs text-white/40">
         {["online", "away", "offline"].map(s => (
-          <span key={s}><span className="font-semibold text-white">{employees.filter(e => e.status === s).length}</span> {s}</span>
+          <span key={s}><span className="font-semibold text-white tabular-nums">{employees.filter(e => e.status === s).length}</span> {s}</span>
         ))}
-        <span className="text-white/20">|</span>
-        <span><span className="font-semibold text-white">{filtered.length}</span> shown</span>
+        <span className="text-white/15">|</span>
+        <span><span className="font-semibold text-white tabular-nums">{filtered.length}</span> shown</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

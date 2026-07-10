@@ -362,8 +362,8 @@ export default function PipelineBoard({ leads, currentUserId, isAdmin }: {
             return (
               <div key={col.key} className="space-y-3 w-64 shrink-0">
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${col.color}`}>{col.label}</span>
-                  <span className="text-xs text-white/40 font-medium">{colLeads.length}</span>
+                  <span className={`font-mono text-[10px] uppercase tracking-[0.12em] font-semibold px-2.5 py-1 rounded-full ${col.color}`}>{col.label}</span>
+                  <span className="font-mono text-xs text-white/35 tabular-nums">{colLeads.length}</span>
                 </div>
 
                 {colLeads.map(lead => (

@@ -53,8 +53,8 @@ export default function ResourcesClient({ resources }: { resources: Resource[] }
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {AVAILABILITY.map(a => (
           <Card key={a.key}><CardContent className="pt-4">
-            <p className="text-lg font-bold text-white">{counts[a.key] ?? 0}</p>
-            <p className="text-xs text-white/50 mt-0.5">{a.label}</p>
+            <p className="text-lg font-bold text-white tabular-nums">{counts[a.key] ?? 0}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/45 mt-1">{a.label}</p>
           </CardContent></Card>
         ))}
       </div>

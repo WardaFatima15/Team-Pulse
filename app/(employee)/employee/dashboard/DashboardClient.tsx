@@ -78,8 +78,9 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35 mb-1">// your day</p>
         <h1 className="text-2xl font-bold text-white">{greeting}, {firstName}!</h1>
-        <p className="text-white/60 text-sm mt-0.5">{format(now, "EEEE, MMMM d yyyy")}</p>
+        <p className="font-mono text-xs text-white/40 mt-1">{format(now, "EEE dd MMM yyyy").toLowerCase()}</p>
       </div>
 
       {/* Clock widget */}
@@ -87,7 +88,7 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
         <CardContent className="p-0">
           <div className="flex flex-col sm:flex-row">
             <div className="flex-1 p-6 border-b sm:border-b-0 sm:border-r border-white/10">
-              <p className="text-xs text-white/50 font-medium uppercase tracking-widest mb-3">Current time</p>
+              <p className="font-mono text-[10px] text-white/45 uppercase tracking-[0.18em] mb-3">Current time</p>
               <p className="text-5xl font-bold text-white tabular-nums tracking-tight">
                 {format(now, "HH:mm")}
                 <span className="text-2xl text-white/30 ml-1.5">{format(now, "ss")}</span>
@@ -182,7 +183,7 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
 
       {/* Status — automatic, activity-based */}
       <div className="bg-[#0d0d12] rounded-2xl border border-white/10 p-5">
-        <p className="text-xs text-white/50 font-medium uppercase tracking-widest mb-3">Your Status</p>
+        <p className="font-mono text-[10px] text-white/45 uppercase tracking-[0.18em] mb-3">Your Status</p>
         <div className="flex items-center gap-2.5">
           <span className="size-2.5 rounded-full bg-green-500 animate-pulse" />
           <span className="text-sm font-semibold text-white">Active</span>
@@ -208,14 +209,14 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
               {href ? (
                 <Link href={href} className="block">
                   <div className={`size-8 rounded-lg ${bg} flex items-center justify-center mb-2`}><Icon className={`size-4 ${color}`} /></div>
-                  <p className="text-2xl font-bold text-white">{value}</p>
-                  <p className="text-xs text-white/60 mt-0.5">{label}</p>
+                  <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50 mt-1">{label}</p>
                 </Link>
               ) : (
                 <>
                   <div className={`size-8 rounded-lg ${bg} flex items-center justify-center mb-2`}><Icon className={`size-4 ${color}`} /></div>
-                  <p className="text-2xl font-bold text-white">{value}</p>
-                  <p className="text-xs text-white/60 mt-0.5">{label}</p>
+                  <p className="text-2xl font-bold text-white tabular-nums">{value}</p>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-white/50 mt-1">{label}</p>
                 </>
               )}
             </CardContent>

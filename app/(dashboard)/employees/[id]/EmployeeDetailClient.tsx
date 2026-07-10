@@ -164,7 +164,7 @@ export default function EmployeeDetailClient({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <Card className="lg:col-span-2">
               <CardHeader className="border-b border-white/10 pb-4">
-                <CardTitle className="text-sm font-semibold text-white">Hours Logged — Last 7 Days</CardTitle>
+                <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Hours Logged — Last 7 Days</CardTitle>
               </CardHeader>
               <CardContent className="pt-5">
                 <div className="flex items-end gap-2 h-28">
@@ -187,7 +187,7 @@ export default function EmployeeDetailClient({
 
             <Card>
               <CardHeader className="border-b border-white/10 pb-4">
-                <CardTitle className="text-sm font-semibold text-white">Quick Stats</CardTitle>
+                <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Quick Stats</CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-3">
                 {[
@@ -215,7 +215,7 @@ export default function EmployeeDetailClient({
 
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
-              <CardTitle className="text-sm font-semibold text-white">Reliability — Last 30 Weekdays</CardTitle>
+              <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Reliability — Last 30 Weekdays</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               {!reliability || !employee.shiftStart ? (
@@ -248,7 +248,7 @@ export default function EmployeeDetailClient({
           <Card>
             <CardHeader className="border-b border-white/10 pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-semibold text-white">Recent Time Logs</CardTitle>
+                <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Recent Time Logs</CardTitle>
                 <button onClick={() => setTab("Time Tracking")} className="text-xs text-[#7c5af5] hover:underline">View all</button>
               </div>
             </CardHeader>
@@ -287,7 +287,7 @@ export default function EmployeeDetailClient({
         <Card>
           <CardHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold text-white">Full Time History</CardTitle>
+              <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Full Time History</CardTitle>
               <span className="text-xs text-white/40">{timeRecords.length} records</span>
             </div>
           </CardHeader>
@@ -340,7 +340,7 @@ export default function EmployeeDetailClient({
         <Card>
           <CardHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold text-white">Leave History</CardTitle>
+              <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Leave History</CardTitle>
               <span className="text-xs text-white/40">{leaves.length} requests</span>
             </div>
           </CardHeader>
@@ -363,7 +363,7 @@ export default function EmployeeDetailClient({
         <Card>
           <CardHeader className="border-b border-white/10 pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold text-white">Support Tickets</CardTitle>
+              <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Support Tickets</CardTitle>
               <span className="text-xs text-white/40">{tickets.length} total</span>
             </div>
           </CardHeader>
@@ -495,7 +495,7 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
   return (
     <Card>
       <CardHeader className="border-b border-white/10 pb-4">
-        <CardTitle className="text-sm font-semibold text-white">Employee Details</CardTitle>
+        <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Employee Details</CardTitle>
       </CardHeader>
       <CardContent className="pt-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

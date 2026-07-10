@@ -69,7 +69,7 @@ export default function SettingsClient({
       {/* Current account */}
       <Card>
         <CardHeader className="border-b border-white/10 pb-4">
-          <CardTitle className="text-sm font-semibold text-white">Your Account</CardTitle>
+          <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">Your Account</CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-2 text-sm">
           <div className="flex justify-between text-white/70">
@@ -142,7 +142,7 @@ export default function SettingsClient({
       {/* About */}
       <Card>
         <CardHeader className="border-b border-white/10 pb-4">
-          <CardTitle className="text-sm font-semibold text-white">About Cadenz</CardTitle>
+          <CardTitle className="font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">About Cadenz</CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-2 text-sm text-white/70">
           <p>Cadenz is an internal employee management platform for tracking time, leaves, announcements, support tickets, and project tasks.</p>
