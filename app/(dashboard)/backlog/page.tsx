@@ -135,6 +135,15 @@ const CAVEATS = [
   "Proposals and PlugAI Audits connect to two already-deployed, separate internal apps (propsalgen, plugai.tech) rather than reimplementing that logic here — worth knowing if either of those apps changes independently.",
 ]
 
+const KNOWN_BUGS: string[] = []
+
+const FIXED_BUGS = [
+  "ChatHeader was defined inside its parent component, so it remounted (and lost focus/state) on every render — hoisted to module scope",
+  "PresenceTracker called Date.now() during render instead of inside the effect, violating render purity — moved into the effect body",
+  "Proposal PDF download used a jsPDF import path that type-checked but wasn't actually the constructor at runtime (jsPDF.prototype was undefined) — would have thrown for every real user clicking \"Download PDF\"; switched to the named import",
+  "window.print() was being used for \"Download PDF,\" which just reused whichever destination the OS/browser last printed to instead of forcing a real file download — replaced with a real jsPDF-generated file",
+]
+
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="mb-8">
@@ -162,6 +171,23 @@ export default async function BacklogPage() {
       <Section title="Missing pages" icon={<CheckCircle2 className="size-4 text-green-400" />}>
         <Card><CardContent className="pt-4 text-sm text-white/70">
           None. All 10 required Week 1 pages exist: Login, Dashboard, Leads (Sales Pipeline), Clients, Resources, Proposals, Tasks, Reports, PlugAI Audits, Settings.
+        </CardContent></Card>
+      </Section>
+
+      <Section title="Known bugs" icon={<CheckCircle2 className="size-4 text-green-400" />}>
+        <Card><CardContent className="pt-4">
+          <p className="text-sm text-white/70 mb-3">
+            {KNOWN_BUGS.length === 0 ? "None currently open." : `${KNOWN_BUGS.length} open.`}
+          </p>
+          <p className="text-xs font-medium text-white/50 mb-2">Fixed this pass</p>
+          <ul className="space-y-1.5">
+            {FIXED_BUGS.map((b, i) => (
+              <li key={i} className="text-xs text-white/65 flex items-start gap-1.5">
+                <CheckCircle2 className="size-3 text-green-400/70 shrink-0 mt-0.5" />
+                {b}
+              </li>
+            ))}
+          </ul>
         </CardContent></Card>
       </Section>
 
