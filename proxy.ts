@@ -4,6 +4,7 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (pathname.startsWith("/api")) return NextResponse.next()
+  if (pathname === "/") return NextResponse.next()
   if (pathname === "/login" || pathname === "/signup") return NextResponse.next()
   if (pathname === "/employee/login") return NextResponse.next()
 
