@@ -46,12 +46,12 @@ export default function Sidebar({ orgName }: { orgName?: string }) {
         <div className="flex items-center gap-2.5 mb-3">
           <img
             src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png"
-            alt="Binary Next"
+            alt="Cadenz"
             className="size-7 rounded object-contain"
           />
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Binary Next</p>
-            <p className="text-white/40 text-[10px] tracking-wide uppercase">AI Automation</p>
+            <p className="text-white font-bold text-sm leading-tight">Cadenz</p>
+            <p className="text-white/40 text-[10px] tracking-wide uppercase">by Binary Next</p>
           </div>
         </div>
         <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10">
