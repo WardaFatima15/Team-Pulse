@@ -100,7 +100,7 @@ export default function AttendanceClient({ employees, records: initialRecords, i
         <div className="flex items-center gap-1 bg-white/8 rounded-xl p-1">
           {(["week", "month"] as const).map(m => (
             <button key={m} onClick={() => switchMode(m)}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-colors capitalize ${mode === m ? "bg-[#131318] shadow-sm text-white" : "text-white/50 hover:text-white/80"}`}>
+              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-colors capitalize ${mode === m ? "bg-[#0d0d12] shadow-sm text-white" : "text-white/50 hover:text-white/80"}`}>
               {m}
             </button>
           ))}
@@ -149,7 +149,7 @@ export default function AttendanceClient({ employees, records: initialRecords, i
         <table className="w-full text-xs border-collapse" style={{ minWidth: Math.max(600, 120 + days.length * (isManyDays ? 28 : 52)) }}>
           <thead>
             <tr className="bg-white/5 border-b border-white/10">
-              <th className="text-left px-4 py-3 font-semibold text-white/70 sticky left-0 bg-[#131318] z-10 min-w-[160px]">Employee</th>
+              <th className="text-left px-4 py-3 font-semibold text-white/70 sticky left-0 bg-[#0d0d12] z-10 min-w-[160px]">Employee</th>
               {days.map(d => {
                 const isToday = d === today
                 const isWeekend = new Date(d + "T12:00:00").getDay() === 0 || new Date(d + "T12:00:00").getDay() === 6
@@ -162,7 +162,7 @@ export default function AttendanceClient({ employees, records: initialRecords, i
                   </th>
                 )
               })}
-              <th className="text-center px-3 py-3 font-semibold text-white/70 sticky right-0 bg-[#131318]">Total</th>
+              <th className="text-center px-3 py-3 font-semibold text-white/70 sticky right-0 bg-[#0d0d12]">Total</th>
             </tr>
           </thead>
           <tbody className={loading ? "opacity-40" : ""}>
@@ -173,7 +173,7 @@ export default function AttendanceClient({ employees, records: initialRecords, i
 
               return (
                 <tr key={emp.id} className={`border-b border-white/5 ${idx % 2 === 0 ? "bg-transparent" : "bg-white/[0.02]"}`}>
-                  <td className={`px-4 py-2.5 sticky left-0 z-10 ${idx % 2 === 0 ? "bg-[#131318]" : "bg-[#141419]"}`}>
+                  <td className={`px-4 py-2.5 sticky left-0 z-10 ${idx % 2 === 0 ? "bg-[#0d0d12]" : "bg-[#141419]"}`}>
                     <div className="flex items-center gap-2.5">
                       <EmpAvatar emp={emp} />
                       <div className="min-w-0">

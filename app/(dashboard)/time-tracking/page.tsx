@@ -46,7 +46,7 @@ export default async function TimeTrackingPage() {
           { label: "Members Logged In", value: todayRecords.length, icon: Users, color: "text-blue-400", bg: "bg-blue-500/10" },
           { label: "Avg Hours Today", value: avgHours.toFixed(1) + "h", icon: TrendingUp, color: "text-amber-400", bg: "bg-amber-500/10" },
         ].map(({ label, value, icon: Icon, color, bg }) => (
-          <Card key={label} className="bg-[#131318] border-white/10">
+          <Card key={label} className="bg-[#0d0d12] border-white/10">
             <CardContent className="pt-4">
               <div className={`size-8 rounded-lg ${bg} flex items-center justify-center mb-2`}>
                 <Icon className={`size-4 ${color}`} />
@@ -58,7 +58,7 @@ export default async function TimeTrackingPage() {
         ))}
       </div>
 
-      <Card className="bg-[#131318] border-white/10">
+      <Card className="bg-[#0d0d12] border-white/10">
         <CardHeader className="border-b border-white/10 pb-4">
           <CardTitle className="text-sm font-semibold text-white">Today&apos;s Attendance — {format(new Date(today), "EEEE, MMMM d yyyy")}</CardTitle>
         </CardHeader>
@@ -115,7 +115,7 @@ export default async function TimeTrackingPage() {
         </CardContent>
       </Card>
 
-      <Card className="bg-[#131318] border-white/10">
+      <Card className="bg-[#0d0d12] border-white/10">
         <CardHeader className="border-b border-white/10 pb-4">
           <CardTitle className="text-sm font-semibold text-white">Weekly Breakdown</CardTitle>
         </CardHeader>

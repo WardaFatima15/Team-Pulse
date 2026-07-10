@@ -93,7 +93,7 @@ export default function EmployeesClient({ employees }: { employees: Employee[] }
                         <Avatar className="size-11">
                           <AvatarFallback className="bg-[#512feb]/20 text-[#7c5af5] font-semibold">{emp.avatar}</AvatarFallback>
                         </Avatar>
-                        <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#131318] ${sc.dot}`} />
+                        <span className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-[#0d0d12] ${sc.dot}`} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-white truncate">{emp.name}</p>
@@ -160,7 +160,7 @@ function AddEmployeeDialog({ open, onOpenChange, onSuccess }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => onOpenChange(false)}>
-      <div className="bg-[#131318] border border-white/10 rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#0d0d12] border border-white/10 rounded-xl shadow-2xl w-full max-w-md mx-4 p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
             <div className="size-8 rounded-lg bg-[#512feb]/15 flex items-center justify-center">

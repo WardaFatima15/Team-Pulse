@@ -418,7 +418,7 @@ export default function ProposalsClient({ leads, savedProposals, provider }: { l
       {error && <p className="text-xs text-red-400">{error}</p>}
 
       {result && (
-        <div className="bg-[#131318] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
+        <div className="bg-[#0d0d12] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
           <div className="border-b border-white/10 print:border-black/20 pb-4">
             <h2 className="text-lg font-bold text-white print:text-black">Proposal — {resultMeta?.clientName ?? clientName}</h2>
             <p className="text-xs text-white/50 print:text-black/60 mt-0.5">
@@ -503,7 +503,7 @@ export default function ProposalsClient({ leads, savedProposals, provider }: { l
           <h2 className="text-sm font-semibold text-white mb-3">Saved proposals</h2>
           <div className="space-y-2.5">
             {savedProposals.map(p => (
-              <div key={p.id} className={`bg-[#131318] border rounded-xl px-4 py-3 flex items-center gap-3 ${savedId === p.id ? "border-[#512feb]/50" : "border-white/10"}`}>
+              <div key={p.id} className={`bg-[#0d0d12] border rounded-xl px-4 py-3 flex items-center gap-3 ${savedId === p.id ? "border-[#512feb]/50" : "border-white/10"}`}>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-white truncate">{p.clientName}</p>
                   <p className="text-xs text-white/40 mt-0.5">
@@ -516,7 +516,7 @@ export default function ProposalsClient({ leads, savedProposals, provider }: { l
                   className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 shrink-0 ${STATUS_META[p.status].color}`}
                 >
                   {PROPOSAL_STATUSES.map(s => (
-                    <option key={s} value={s} className="bg-[#131318] text-white">{STATUS_META[s].label}</option>
+                    <option key={s} value={s} className="bg-[#0d0d12] text-white">{STATUS_META[s].label}</option>
                   ))}
                 </select>
                 <button onClick={() => viewSaved(p)} title="View proposal" className="text-white/40 hover:text-white shrink-0 p-1">

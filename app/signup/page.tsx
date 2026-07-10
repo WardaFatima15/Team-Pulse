@@ -49,48 +49,55 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0c]">
+    <div className="min-h-screen flex bg-[#060608]">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#0d0d0d] border-r border-white/8 flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
+      <div className="relative hidden lg:flex lg:w-1/2 bg-[#08080b] border-r border-white/8 flex-col justify-between p-12 overflow-hidden">
+        <div className="bg-ops-grid grid-fade pointer-events-none absolute inset-0" />
+        <div className="relative flex items-center gap-3">
           <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Cadenz" className="size-9 rounded-xl object-contain" />
           <div>
             <p className="text-white font-bold text-xl">Cadenz</p>
-            <p className="text-white/40 text-xs tracking-wide uppercase">by Binary Next</p>
+            <p className="text-white/35 font-mono text-[10px] tracking-[0.18em] uppercase">command center</p>
           </div>
         </div>
-        <div>
+        <div className="relative">
+          <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.2em] text-white/35">// new workspace</p>
           <h1 className="text-4xl font-bold text-white leading-tight mb-4">
             Your team,<br />your workspace.
           </h1>
           <p className="text-white/50 text-lg leading-relaxed">
             Create your organization and start managing your remote team with Cadenz.
           </p>
-          <div className="mt-8 space-y-3">
-            {["Isolated workspace — your employees only", "Approvals, chat, leaves, tickets", "AI assistant + real-time tracking"].map(f => (
-              <div key={f} className="flex items-center gap-2.5">
-                <div className="size-5 rounded-full bg-[#512feb]/20 flex items-center justify-center shrink-0">
-                  <div className="size-2 rounded-full bg-[#7c5af5]" />
-                </div>
+          <div className="mt-8 space-y-px overflow-hidden rounded-xl border border-white/10 bg-white/10 max-w-md">
+            {["Isolated workspace — your employees only", "Approvals, chat, leaves, tickets", "AI assistant + real-time tracking"].map((f, i) => (
+              <div key={f} className="flex items-center gap-3 bg-[#0a0a0e] px-5 py-3.5">
+                <span className="font-mono text-xs text-white/25">0{i + 1}</span>
                 <p className="text-white/70 text-sm">{f}</p>
               </div>
             ))}
           </div>
         </div>
-        <p className="text-white/20 text-xs">© 2026 Binary Next · Cadenz</p>
+        <p className="relative font-mono text-xs text-white/25">© 2026 Binary Next</p>
       </div>
 
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
-          <div className="bg-[#131318] border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="bg-[#0d0d12] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="flex items-center gap-2 border-b border-white/8 px-5 py-3">
+              <span className="size-2.5 rounded-full bg-red-500/70" />
+              <span className="size-2.5 rounded-full bg-yellow-500/70" />
+              <span className="size-2.5 rounded-full bg-green-500/70" />
+              <span className="ml-3 font-mono text-[11px] tracking-wide text-white/40">cadenz — init workspace</span>
+            </div>
+            <div className="p-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="size-10 rounded-xl bg-[#512feb]/15 flex items-center justify-center">
                 <Building2 className="size-5 text-[#7c5af5]" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">Create your workspace</h2>
-                <p className="text-white/40 text-xs mt-0.5">Set up your organization on Cadenz</p>
+                <p className="font-mono text-xs text-white/40 mt-0.5">$ cadenz init --workspace</p>
               </div>
             </div>
 
@@ -168,6 +175,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link href="/login" className="text-[#7c5af5] hover:underline">Sign in</Link>
             </p>
+            </div>
           </div>
         </div>
       </div>

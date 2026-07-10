@@ -83,7 +83,7 @@ export default function ApprovalsClient({ pendingLeaves, openTickets, employees 
             key={key}
             onClick={() => setTab(key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              tab === key ? "bg-[#131318] text-white shadow-sm" : "text-white/50 hover:text-white/80"
+              tab === key ? "bg-[#0d0d12] text-white shadow-sm" : "text-white/50 hover:text-white/80"
             }`}
           >
             <Icon className="size-4" />
@@ -106,7 +106,7 @@ export default function ApprovalsClient({ pendingLeaves, openTickets, employees 
               <p className="text-sm">No pending leave requests</p>
             </div>
           ) : leaves.map(leave => (
-            <div key={leave.id} className="bg-[#131318] border border-white/10 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div key={leave.id} className="bg-[#0d0d12] border border-white/10 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <p className="font-semibold text-white text-sm">{empName(employees, leave.employeeId)}</p>
@@ -158,7 +158,7 @@ export default function ApprovalsClient({ pendingLeaves, openTickets, employees 
           ) : tickets.map(ticket => {
             const currentStatus = ticketStatuses[ticket.id] ?? ticket.status
             return (
-              <div key={ticket.id} className="bg-[#131318] border border-white/10 rounded-xl p-5 flex flex-col sm:flex-row sm:items-start gap-4">
+              <div key={ticket.id} className="bg-[#0d0d12] border border-white/10 rounded-xl p-5 flex flex-col sm:flex-row sm:items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <p className="font-semibold text-white text-sm">{ticket.title}</p>

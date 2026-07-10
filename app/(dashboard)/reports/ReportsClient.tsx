@@ -74,7 +74,7 @@ function EmployeeReportCard({ emp }: { emp: Employee }) {
         <div className="flex items-center gap-3">
           <div className="relative">
             <EmpAvatar name={emp.name} avatar={emp.avatar} />
-            <span className={`absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-[#131318] ${STATUS_DOT[emp.status] ?? "bg-white/30"}`} />
+            <span className={`absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-[#0d0d12] ${STATUS_DOT[emp.status] ?? "bg-white/30"}`} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-white text-sm">{emp.name}</p>
@@ -487,7 +487,7 @@ function WeeklyReport({ employees }: { employees: Employee[] }) {
       {error && <p className="text-xs text-red-400">{error}</p>}
 
       {data && (
-        <div className="bg-[#131318] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
+        <div className="bg-[#0d0d12] print:bg-white border border-white/10 print:border-0 rounded-2xl print:rounded-none p-6 space-y-5">
           <div className="border-b border-white/10 print:border-black/20 pb-4">
             <h2 className="text-lg font-bold text-white print:text-black">Weekly Report — {data.employee.name}</h2>
             <p className="text-xs text-white/50 print:text-black/60 mt-0.5">

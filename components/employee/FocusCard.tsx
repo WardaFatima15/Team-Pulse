@@ -21,7 +21,7 @@ export default function FocusCard({ focus, since }: { focus: string; since: stri
   }
 
   return (
-    <div className="bg-[#131318] rounded-2xl border border-white/10 p-5">
+    <div className="bg-[#0d0d12] rounded-2xl border border-white/10 p-5">
       <div className="flex items-center justify-between mb-3">
         <p className="text-xs text-white/50 font-medium uppercase tracking-widest flex items-center gap-1.5">
           <Target className="size-3.5" /> What are you working on?

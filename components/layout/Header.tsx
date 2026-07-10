@@ -30,6 +30,23 @@ const titles: Record<string, { title: string; sub: string }> = {
 
 type NotifCounts = { pendingLeaves: number; openTickets: number; unreadMessages: number; total: number }
 
+function LiveClock() {
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => {
+    setNow(new Date())
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <span className="hidden md:flex items-center gap-2 font-mono text-[11px] tracking-[0.12em] text-white/35">
+      <span className="size-1.5 rounded-full bg-green-400 animate-pulse" />
+      {now
+        ? now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        : "--:--:--"}
+    </span>
+  )
+}
+
 export default function Header({ adminEmail }: { adminEmail?: string }) {
   const pathname = usePathname()
   const base = "/" + pathname.split("/")[1]
@@ -60,12 +77,17 @@ export default function Header({ adminEmail }: { adminEmail?: string }) {
   }, [open])
 
   return (
-    <header className="h-16 bg-[#0d0d0d] border-b border-white/10 flex items-center justify-between px-6 shrink-0 relative z-30 print:hidden">
+    <header className="h-16 bg-[#08080b] border-b border-white/10 flex items-center justify-between px-6 shrink-0 relative z-30 print:hidden">
       <div>
         <h1 className="text-base font-bold text-white leading-tight">{page.title}</h1>
-        {page.sub && <p className="text-xs text-white/40 leading-tight mt-0.5">{page.sub}</p>}
+        {page.sub && (
+          <p className="font-mono text-[11px] text-white/35 leading-tight mt-0.5">
+            <span className="text-white/20">//</span> {page.sub.toLowerCase()}
+          </p>
+        )}
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        <LiveClock />
         {/* Notification bell */}
         <div className="relative" ref={panelRef}>
           <Button
@@ -82,7 +104,7 @@ export default function Header({ adminEmail }: { adminEmail?: string }) {
           </Button>
 
           {open && (
-            <div className="absolute right-0 top-10 w-72 bg-[#131318] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+            <div className="absolute right-0 top-10 w-72 bg-[#0d0d12] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                 <p className="text-sm font-semibold text-white">Notifications</p>
                 <button onClick={() => setOpen(false)} className="text-white/40 hover:text-white">

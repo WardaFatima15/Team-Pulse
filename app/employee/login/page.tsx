@@ -59,37 +59,48 @@ export default function EmployeeLoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0c]">
+    <div className="min-h-screen flex bg-[#060608]">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#0d0d0d] border-r border-white/8 flex-col justify-between p-12">
-        <div className="flex items-center gap-3">
+      <div className="relative hidden lg:flex lg:w-1/2 bg-[#08080b] border-r border-white/8 flex-col justify-between p-12 overflow-hidden">
+        <div className="bg-ops-grid grid-fade pointer-events-none absolute inset-0" />
+        <div className="relative flex items-center gap-3">
           <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Cadenz" className="size-9 rounded-xl object-contain" />
           <div>
             <p className="text-white font-bold text-xl leading-tight">Cadenz</p>
-            <p className="text-white/40 text-xs">by Binary Next</p>
+            <p className="text-white/35 font-mono text-[10px] tracking-[0.18em] uppercase">command center</p>
           </div>
         </div>
-        <div>
-          <p className="text-white/30 text-xs uppercase tracking-widest mb-4 font-medium">Employee Portal</p>
+        <div className="relative">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-white/35 mb-4">// employee portal</p>
           <blockquote className="text-white/80 text-xl leading-relaxed mb-6">
             &quot;Track your hours, manage leave requests, and stay connected with your team — all in one place.&quot;
           </blockquote>
-          <div className="flex gap-6 mt-8">
-            {[["Clock In/Out", "Track your daily hours"], ["Leave Requests", "Apply for time off"], ["Team Chat", "Message anyone instantly"]].map(([title, desc]) => (
-              <div key={title}>
-                <p className="text-white/80 text-sm font-medium">{title}</p>
-                <p className="text-white/40 text-xs mt-0.5">{desc}</p>
+          <div className="mt-8 space-y-px overflow-hidden rounded-xl border border-white/10 bg-white/10 max-w-md">
+            {[["Clock In/Out", "Track your daily hours"], ["Leave Requests", "Apply for time off"], ["Team Chat", "Message anyone instantly"]].map(([title, desc], i) => (
+              <div key={title} className="flex items-center gap-3 bg-[#0a0a0e] px-5 py-3.5">
+                <span className="font-mono text-xs text-white/25">0{i + 1}</span>
+                <div>
+                  <p className="text-white/80 text-sm font-medium">{title}</p>
+                  <p className="text-white/40 text-xs mt-0.5">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
-        <p className="text-white/25 text-xs">© 2026 Binary Next. All rights reserved.</p>
+        <p className="relative font-mono text-xs text-white/25">© 2026 Binary Next</p>
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#0a0a0c]">
+      <div className="flex-1 flex items-center justify-center p-8 bg-[#060608]">
         <div className="w-full max-w-sm">
-          <div className="bg-[#131318] rounded-2xl border border-white/10 p-8">
+          <div className="bg-[#0d0d12] rounded-2xl border border-white/10 overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-white/8 px-5 py-3">
+              <span className="size-2.5 rounded-full bg-red-500/70" />
+              <span className="size-2.5 rounded-full bg-yellow-500/70" />
+              <span className="size-2.5 rounded-full bg-green-500/70" />
+              <span className="ml-3 font-mono text-[11px] tracking-wide text-white/40">cadenz — employee portal</span>
+            </div>
+            <div className="p-8">
 
             {/* ── Workspace picker ────────────────────── */}
             {workspaces ? (
@@ -169,6 +180,7 @@ export default function EmployeeLoginPage() {
                 </p>
               </>
             )}
+            </div>
           </div>
 
           <p className="mt-4 text-center text-xs text-white/40">

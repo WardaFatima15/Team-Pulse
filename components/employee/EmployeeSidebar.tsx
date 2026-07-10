@@ -43,7 +43,7 @@ export default function EmployeeSidebar({ employee }: { employee: EmployeeSessio
   const hasMultipleWorkspaces = employee.workspaces.length > 1
 
   return (
-    <aside className="w-56 shrink-0 flex flex-col h-full bg-[#0d0d0d] border-r border-white/8">
+    <aside className="w-56 shrink-0 flex flex-col h-full bg-[#08080b] border-r border-white/8">
 
       {/* Workspace selector */}
       <div className="px-3 py-3 border-b border-white/8 relative">

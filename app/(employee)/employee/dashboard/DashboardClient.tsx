@@ -181,7 +181,7 @@ export default function DashboardClient({ name, todayRecord, pendingLeaves, open
       <FocusCard focus={focus} since={focusSince} />
 
       {/* Status — automatic, activity-based */}
-      <div className="bg-[#131318] rounded-2xl border border-white/10 p-5">
+      <div className="bg-[#0d0d12] rounded-2xl border border-white/10 p-5">
         <p className="text-xs text-white/50 font-medium uppercase tracking-widest mb-3">Your Status</p>
         <div className="flex items-center gap-2.5">
           <span className="size-2.5 rounded-full bg-green-500 animate-pulse" />

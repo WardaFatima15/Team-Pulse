@@ -15,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!admin) redirect("/login")
 
   return (
-    <div className="dark flex h-screen overflow-hidden bg-[#0a0a0c] print:h-auto print:overflow-visible print:bg-white">
+    <div className="dark flex h-screen overflow-hidden bg-[#060608] print:h-auto print:overflow-visible print:bg-white">
       <Sidebar orgName={admin.orgName} />
       <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible">
         <Header adminEmail={admin.email} />

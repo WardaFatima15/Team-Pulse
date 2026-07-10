@@ -126,7 +126,7 @@ export default function AIAssistantPage() {
               <div className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === "user"
                   ? "bg-[#512feb] text-white rounded-tr-sm"
-                  : "bg-[#131318] border border-white/10 text-white/90 rounded-tl-sm"
+                  : "bg-[#0d0d12] border border-white/10 text-white/90 rounded-tl-sm"
               }`}>
                 {msg.content}
                 {msg.role === "assistant" && i === messages.length - 1 && streaming && (
@@ -146,7 +146,7 @@ export default function AIAssistantPage() {
 
       {/* Input */}
       <div className="shrink-0 pt-4">
-        <div className="flex gap-2 items-end bg-[#131318] border border-white/10 rounded-2xl p-3 focus-within:border-[#512feb]/50 transition-colors">
+        <div className="flex gap-2 items-end bg-[#0d0d12] border border-white/10 rounded-2xl p-3 focus-within:border-[#512feb]/50 transition-colors">
           <textarea
             ref={textareaRef}
             value={input}

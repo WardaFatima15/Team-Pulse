@@ -352,7 +352,7 @@ export default function CallModal(props: Props) {
   if (phase === "failed") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <div className="bg-[#0d0d0d] rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-4 max-w-sm w-full border border-white/10">
+        <div className="bg-[#08080b] rounded-3xl shadow-2xl p-8 flex flex-col items-center gap-4 max-w-sm w-full border border-white/10">
           <div className="size-14 rounded-full bg-red-500/20 flex items-center justify-center">
             <AlertCircle className="size-7 text-red-400" />
           </div>
@@ -377,7 +377,7 @@ export default function CallModal(props: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <div
         className="relative w-full rounded-3xl overflow-hidden shadow-2xl flex flex-col"
-        style={{ maxWidth: 680, background: "linear-gradient(160deg,#12082a 0%,#0d0d0d 60%)" }}
+        style={{ maxWidth: 680, background: "linear-gradient(160deg,#12082a 0%,#08080b 60%)" }}
       >
         <div className="absolute inset-x-0 top-0 h-64 pointer-events-none"
           style={{ background: "radial-gradient(ellipse at 50% -20%,rgba(81,47,235,.35) 0%,transparent 70%)" }} />

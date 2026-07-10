@@ -84,12 +84,12 @@
 }
 
 .dark {
-  /* Binary Next dark palette */
-  --background: #0a0a0c;
+  /* Cadenz command-center palette (matches landing) */
+  --background: #060608;
   --foreground: oklch(0.98 0 0);
-  --card: #131318;
+  --card: #0d0d12;
   --card-foreground: oklch(0.98 0 0);
-  --popover: #16161c;
+  --popover: #101016;
   --popover-foreground: oklch(0.98 0 0);
   --primary: #512feb;
   --primary-foreground: #ffffff;
@@ -108,7 +108,7 @@
   --chart-3: oklch(0.6 0.18 280);
   --chart-4: oklch(0.5 0.12 280);
   --chart-5: oklch(0.4 0.08 280);
-  --sidebar: #0d0d0d;
+  --sidebar: #08080b;
   --sidebar-foreground: oklch(0.98 0 0);
   --sidebar-primary: #512feb;
   --sidebar-primary-foreground: #ffffff;

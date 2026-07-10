@@ -80,7 +80,7 @@ export default function ResourcesClient({ resources }: { resources: Resource[] }
                 onChange={e => setAvailability(r.id, e.target.value)}
                 className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-[#512feb]/50 shrink-0 ${availabilityMeta(r.availabilityStatus).color}`}
               >
-                {AVAILABILITY.map(a => <option key={a.key} value={a.key} className="bg-[#131318] text-white">{a.label}</option>)}
+                {AVAILABILITY.map(a => <option key={a.key} value={a.key} className="bg-[#0d0d12] text-white">{a.label}</option>)}
               </select>
             </CardContent>
           </Card>

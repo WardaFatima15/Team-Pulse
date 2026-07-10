@@ -893,13 +893,13 @@ export default function ChatClient({
 
       {/* ── Incoming call banner ─────────────────────────────────────────────── */}
       {incomingCall && !activeCall && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0d0d0d] rounded-2xl shadow-2xl border border-white/10 p-4 w-80">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#08080b] rounded-2xl shadow-2xl border border-white/10 p-4 w-80">
           <div className="flex items-center gap-3 mb-4">
             <div className="relative">
               <div className="size-12 rounded-xl bg-[#512feb]/20 flex items-center justify-center text-white font-bold text-lg">
                 {initials(incomingCall.callerName)}
               </div>
-              <span className="absolute -top-1 -right-1 size-4 rounded-full bg-green-400 border-2 border-[#0d0d0d] animate-pulse" />
+              <span className="absolute -top-1 -right-1 size-4 rounded-full bg-green-400 border-2 border-[#08080b] animate-pulse" />
             </div>
             <div>
               <p className="font-bold text-white text-sm">{incomingCall.callerName}</p>

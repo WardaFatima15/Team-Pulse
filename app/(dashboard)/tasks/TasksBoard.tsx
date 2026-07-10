@@ -79,7 +79,7 @@ function TaskModal({ task, employees, projects, onClose }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#131318] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#0d0d12] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <h2 className="font-semibold text-white">{task ? "Edit Task" : "New Task"}</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white"><X className="size-4" /></button>
@@ -176,7 +176,7 @@ function ProjectModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#131318] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#0d0d12] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <h2 className="font-semibold text-white">New Project</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white"><X className="size-4" /></button>
@@ -263,13 +263,13 @@ export default function TasksBoard({ projects, tasks, employees }: { projects: P
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex items-center gap-1 bg-white/8 rounded-xl p-1 flex-wrap">
           <button onClick={() => setSelectedProject("all")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${selectedProject === "all" ? "bg-[#131318] shadow-sm text-white" : "text-white/50 hover:text-white/80"}`}>
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${selectedProject === "all" ? "bg-[#0d0d12] shadow-sm text-white" : "text-white/50 hover:text-white/80"}`}>
             All projects
             <span className="ml-1.5 text-white/30">{tasks.length}</span>
           </button>
           {projects.map(p => (
             <button key={p.id} onClick={() => setSelectedProject(p.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 ${selectedProject === p.id ? "bg-[#131318] shadow-sm text-white" : "text-white/50 hover:text-white/80"}`}>
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 ${selectedProject === p.id ? "bg-[#0d0d12] shadow-sm text-white" : "text-white/50 hover:text-white/80"}`}>
               <span className="size-2 rounded-full shrink-0" style={{ background: p.color }} />
               {p.name}
               <span className="text-white/30">{p.taskCount ?? 0}</span>

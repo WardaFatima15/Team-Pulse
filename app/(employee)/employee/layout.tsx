@@ -12,10 +12,10 @@ export default async function EmployeePortalLayout({ children }: { children: Rea
   const emp = serialize(raw)
 
   return (
-    <div className="dark flex h-screen overflow-hidden bg-[#0a0a0c]">
+    <div className="dark flex h-screen overflow-hidden bg-[#060608]">
       <PresenceTracker />
       <EmployeeSidebar employee={emp} />
-      <main className="flex-1 overflow-y-auto p-6 bg-[#0a0a0c]">
+      <main className="flex-1 overflow-y-auto p-6 bg-[#060608]">
         {children}
       </main>
     </div>

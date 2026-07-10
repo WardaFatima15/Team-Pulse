@@ -82,7 +82,7 @@ export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
   if (done > 0) {
     return (
       <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-        <div className="bg-[#131318] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center" onClick={e => e.stopPropagation()}>
+        <div className="bg-[#0d0d12] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center" onClick={e => e.stopPropagation()}>
           <CheckCircle2 className="size-10 text-green-400 mx-auto mb-3" />
           <p className="text-white font-semibold">Imported {done} lead{done !== 1 ? "s" : ""}</p>
           <p className="text-white/50 text-sm mt-1">They&apos;re now on the pipeline board.</p>
@@ -94,7 +94,7 @@ export default function ImportLeadsModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#131318] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#0d0d12] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
           <h2 className="font-semibold text-white">Import Leads</h2>
           <button onClick={onClose} className="text-white/40 hover:text-white"><X className="size-4" /></button>
