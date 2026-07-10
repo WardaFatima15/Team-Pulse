@@ -46,12 +46,12 @@ export default function LoginPage() {
         <div className="flex items-center gap-3">
           <img
             src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png"
-            alt="Binary Next"
+            alt="Cadenz"
             className="size-9 rounded-xl object-contain"
           />
           <div>
-            <p className="text-white font-bold text-base leading-tight">Binary Next</p>
-            <p className="text-white/40 text-xs">AI Automation Partner</p>
+            <p className="text-white font-bold text-xl leading-tight">Cadenz</p>
+            <p className="text-white/40 text-xs">by Binary Next</p>
           </div>
         </div>
         <div className="space-y-5">
@@ -80,10 +80,10 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-[#0a0a0c]">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Binary Next" className="size-8 object-contain" />
+            <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Cadenz" className="size-8 object-contain" />
             <div>
-              <p className="font-bold text-white text-sm">Binary Next</p>
-              <p className="text-[10px] text-white/40">Cadenz</p>
+              <p className="font-bold text-white text-base">Cadenz</p>
+              <p className="text-[10px] text-white/40">by Binary Next</p>
             </div>
           </div>
 

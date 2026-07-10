@@ -63,10 +63,10 @@ export default function EmployeeLoginPage() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#0d0d0d] border-r border-white/8 flex-col justify-between p-12">
         <div className="flex items-center gap-3">
-          <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Binary Next" className="size-9 rounded-xl object-contain" />
+          <img src="https://framerusercontent.com/images/T6zMkBq8OVUH1pVvYSkogfSLY.png" alt="Cadenz" className="size-9 rounded-xl object-contain" />
           <div>
-            <p className="text-white font-bold text-base leading-tight">Binary Next</p>
-            <p className="text-white/40 text-xs">AI Automation Partner</p>
+            <p className="text-white font-bold text-xl leading-tight">Cadenz</p>
+            <p className="text-white/40 text-xs">by Binary Next</p>
           </div>
         </div>
         <div>
